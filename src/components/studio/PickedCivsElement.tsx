@@ -57,17 +57,17 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
   }
 
   const getGlowStyle = (civName: string) => {
-    if (!(element.showGlow ?? true)) return {};
+    if (!element.showGlow) return {};
 
     const isOnline = civDraftStatus === 'live';
     const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'pick';
 
     if (isOnline && isLast) {
-        return { boxShadow: '0 0 35px 10px #9CFF9C' };
+      return { boxShadow: '0 0 35px 10px #9CFF9C' };
     }
 
-    if (!isOnline && (element.showGlow ?? true)) {
-        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+    if (!isOnline) {
+      return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
     }
 
     return {};
@@ -114,7 +114,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...((element.showGlow ?? true) ? glowStyle : {}),
+                  ...glowStyle,
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
@@ -146,7 +146,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...((element.showGlow ?? true) ? glowStyle : {}),
+                  ...glowStyle,
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}

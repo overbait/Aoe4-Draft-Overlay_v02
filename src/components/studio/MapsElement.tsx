@@ -65,27 +65,27 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   }
 
   const getGlowStyle = (mapName: string, status: 'picked' | 'banned') => {
-    if (!(element.showGlow ?? true)) return {};
+    if (!element.showGlow) return {};
 
     const isOnline = mapDraftStatus === 'live';
     const isLast = lastDraftAction?.item === mapName;
 
     if (isOnline && isLast) {
-        if (lastDraftAction?.action === 'pick' && status === 'picked') {
-            return { boxShadow: '0 0 35px 10px #9CFF9C' };
-        }
-        if (lastDraftAction?.action === 'ban' && status === 'banned') {
-            return { boxShadow: '0 0 35px 10px #FF9C9C' };
-        }
+      if (lastDraftAction?.action === 'pick' && status === 'picked') {
+        return { boxShadow: '0 0 35px 10px #9CFF9C' };
+      }
+      if (lastDraftAction?.action === 'ban' && status === 'banned') {
+        return { boxShadow: '0 0 35px 10px #FF9C9C' };
+      }
     }
 
-    if (!isOnline && (element.showGlow ?? true)) {
-        if (status === 'picked') {
-            return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
-        }
-        if (status === 'banned') {
-            return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
-        }
+    if (!isOnline) {
+      if (status === 'picked') {
+        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+      }
+      if (status === 'banned') {
+        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+      }
     }
     return {};
   };
@@ -105,7 +105,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             height: `${mapItemHeight}px`,
             backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
-                  ...(element.showGlow ?? true ? glowStyle : {}),
+            ...glowStyle,
           }}
         >
                 {(element.showText ?? true) && <span className={styles.civName}>{mapItem.name}</span>}

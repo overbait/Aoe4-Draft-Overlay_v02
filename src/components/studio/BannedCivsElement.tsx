@@ -57,21 +57,21 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
   }
 
   const getGlowStyle = (civName: string) => {
-    if (!(element.showGlow ?? true)) return {};
+    if (!element.showGlow) return {};
 
     const isOnline = civDraftStatus === 'live';
     const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'ban';
 
     if (isOnline && isLast) {
-        return { boxShadow: '0 0 35px 10px #FF9C9C' };
+      return { boxShadow: '0 0 35px 10px #FF9C9C' };
     }
 
-    if (!isOnline && (element.showGlow ?? true)) {
-        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+    if (!isOnline) {
+      return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
     }
 
     return {};
-    };
+  };
 
   return (
     <div
@@ -114,7 +114,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...((element.showGlow ?? true) ? glowStyle : {}),
+                  ...glowStyle,
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
@@ -146,7 +146,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...((element.showGlow ?? true) ? glowStyle : {}),
+                  ...glowStyle,
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
