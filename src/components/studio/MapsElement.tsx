@@ -65,23 +65,25 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   }
 
   const getGlowStyle = (mapName: string, status: 'picked' | 'banned') => {
+    if (!(element.showGlow ?? true)) return {};
+
     const isOnline = mapDraftStatus === 'live';
     const isLast = lastDraftAction?.item === mapName;
-    if (element.showGlow ?? true) {
-        if (isOnline && isLast) {
-            if (lastDraftAction?.action === 'pick' && status === 'picked') {
-                return { boxShadow: '0 0 35px 10px #9CFF9C' };
-            }
-            if (lastDraftAction?.action === 'ban' && status === 'banned') {
-                return { boxShadow: '0 0 35px 10px #FF9C9C' };
-            }
+
+    if (isOnline && isLast) {
+        if (lastDraftAction?.action === 'pick' && status === 'picked') {
+            return { boxShadow: '0 0 35px 10px #9CFF9C' };
         }
-        if (status === 'picked') {
-            return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+        if (lastDraftAction?.action === 'ban' && status === 'banned') {
+            return { boxShadow: '0 0 35px 10px #FF9C9C' };
         }
-        if (status === 'banned') {
-            return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
-        }
+    }
+
+    if (status === 'picked') {
+        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+    }
+    if (status === 'banned') {
+        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
     }
     return {};
   };
