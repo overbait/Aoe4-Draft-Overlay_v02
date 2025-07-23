@@ -64,24 +64,8 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     return null;
   }
 
-  const getGlowStyle = (mapName: string, status: 'picked' | 'banned') => {
-    if (element.showGlow === false) {
-      return {};
-    }
-
-    const isOnline = mapDraftStatus === 'live';
-    const isLast = lastDraftAction?.item === mapName;
-
-    if (isOnline && isLast) {
-      if (lastDraftAction?.action === 'pick' && status === 'picked') {
-        return { boxShadow: '0 0 35px 10px #9CFF9C' };
-      }
-      if (lastDraftAction?.action === 'ban' && status === 'banned') {
-        return { boxShadow: '0 0 35px 10px #FF9C9C' };
-      }
-    }
-
-    if (!isOnline || element.showGlow) {
+  const getGlowStyle = (status: 'picked' | 'banned') => {
+    if (element.showGlow) {
       if (status === 'picked') {
         return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
       }
@@ -94,7 +78,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
 
   const renderMap = (mapItem: MapItem, player: 1 | 2) => {
     const animation = useDraftAnimation(mapItem.name, 'map', mapItem.status);
-    const glowStyle = getGlowStyle(mapItem.name, mapItem.status);
+    const glowStyle = getGlowStyle(mapItem.status);
     const statusClass = mapItem.status === 'picked' ? styles.picked : styles.banned;
     const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''}`;
 

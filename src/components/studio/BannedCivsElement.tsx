@@ -56,22 +56,10 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     return null;
   }
 
-  const getGlowStyle = (civName: string) => {
-    if (element.showGlow === false) {
-      return {};
-    }
-
-    const isOnline = civDraftStatus === 'live';
-    const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'ban';
-
-    if (isOnline && isLast) {
-      return { boxShadow: '0 0 35px 10px #FF9C9C' };
-    }
-
-    if (!isOnline || element.showGlow) {
+  const getGlowStyle = () => {
+    if (element.showGlow) {
       return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
     }
-
     return {};
   };
 
@@ -104,7 +92,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player1Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowStyle = getGlowStyle(civItem.name);
+          const glowStyle = getGlowStyle();
           const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
 
           return (
@@ -136,7 +124,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player2Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowStyle = getGlowStyle(civItem.name);
+          const glowStyle = getGlowStyle();
           const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
 
           return (
