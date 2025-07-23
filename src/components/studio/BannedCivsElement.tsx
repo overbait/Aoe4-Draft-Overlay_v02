@@ -109,7 +109,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...(element.showGlow ?? true ? glowStyle : {}),
+                  ...((element.showGlow ?? true) ? glowStyle : {}),
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}

@@ -109,7 +109,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...(element.showGlow ?? true ? glowStyle : {}),
+                  ...((element.showGlow ?? true) ? glowStyle : {}),
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
