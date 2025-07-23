@@ -48,7 +48,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
 
-  const civItemWidth = 120;
+  const civItemWidth = 100;
   const civItemHeight = 100;
   const dynamicFontSize = 10;
 

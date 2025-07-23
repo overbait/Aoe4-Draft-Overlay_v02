@@ -79,8 +79,10 @@
 }
 
 .playerCivGrid {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(6, 120px); /* Updated for 6 columns of 120px width */
+  grid-template-rows: repeat(3, auto); /* Updated for 3 rows, height can be auto or fixed */
+  grid-auto-flow: column;
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
