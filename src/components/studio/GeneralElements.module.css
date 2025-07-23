@@ -133,13 +133,14 @@
 
 .civName {
   font-family: 'Cinzel', serif; /* from BoXSeriesOverview */
-  font-size: 1.76em; /* Changed from 1.6em */
+  font-size: 1.2em; /* Changed from 1.6em */
   text-align: center;
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
   padding: 2px 0;
+  line-height: 1.2;
 }
 
 .placeholderText {
