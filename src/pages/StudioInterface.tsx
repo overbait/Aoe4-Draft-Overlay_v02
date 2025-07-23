@@ -333,10 +333,10 @@ const StudioInterface: React.FC = () => {
           </div>
         )}
         <div style={toolboxSectionStyle}>
-         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsSaveLayoutOpen(!isSaveLayoutOpen)}>
-           Save Current Layout <span>{isSaveLayoutOpen ? '▼' : '▶'}</span>
+         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('saveLayout')}>
+           Save Current Layout <span>{openToolboxSections.saveLayout ? '▼' : '▶'}</span>
          </h3>
-         {isSaveLayoutOpen && (
+         {openToolboxSections.saveLayout && (
            <>
               <input type="text" placeholder="Layout Name" value={newLayoutName} onChange={(e) => setNewLayoutName(e.target.value)} style={inputStyle}/>
               <button onClick={handleSaveLayout} style={buttonStyle}>Save Layout</button>
