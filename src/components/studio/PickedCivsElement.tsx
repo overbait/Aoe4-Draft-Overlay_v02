@@ -66,7 +66,11 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         return { boxShadow: '0 0 35px 10px #9CFF9C' };
     }
 
-    return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+    if (!isOnline && (element.showGlow ?? true)) {
+        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+    }
+
+    return {};
   };
 
   return (

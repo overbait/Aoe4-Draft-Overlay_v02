@@ -66,7 +66,11 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         return { boxShadow: '0 0 35px 10px #FF9C9C' };
     }
 
-    return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+    if (!isOnline && (element.showGlow ?? true)) {
+        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+    }
+
+    return {};
     };
 
   return (

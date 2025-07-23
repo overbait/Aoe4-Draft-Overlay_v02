@@ -79,11 +79,13 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         }
     }
 
-    if (status === 'picked') {
-        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
-    }
-    if (status === 'banned') {
-        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+    if (!isOnline && (element.showGlow ?? true)) {
+        if (status === 'picked') {
+            return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+        }
+        if (status === 'banned') {
+            return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+        }
     }
     return {};
   };
