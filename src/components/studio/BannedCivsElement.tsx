@@ -9,7 +9,7 @@ interface CivItem {
   imageUrl: string;
 }
 
-import styles from './CivPoolElement.module.css';
+import styles from './GeneralElements.module.css';
 
 const formatCivNameForImagePath = (civName: string): string => {
   if (!civName) return 'random';

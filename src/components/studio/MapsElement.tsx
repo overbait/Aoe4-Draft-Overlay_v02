@@ -9,7 +9,7 @@ interface MapItem {
   imageUrl: string;
 }
 
-import styles from './CivPoolElement.module.css';
+import styles from './GeneralElements.module.css';
 
 const formatMapNameForImagePath = (mapName: string): string => {
   if (!mapName) return 'random';
