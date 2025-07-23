@@ -27,34 +27,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civPicksHost, civPicksGuest, lastDraftAction } = useDraftStore(state => ({
-    civPicksHost: state.civPicksHost,
-    civPicksGuest: state.civPicksGuest,
-    lastDraftAction: state.lastDraftAction,
-  }));
-
-  const derivePickedCivs = useCallback((playerPicks: string[]): CivItem[] => {
-    return playerPicks.map(civName => ({
-      name: civName,
-      status: 'picked',
-      imageUrl: `/assets/civflags_simplified/${formatCivNameForImagePath(civName)}.png`,
-    }));
-  }, []);
-
-  const player1Civs = derivePickedCivs(civPicksHost || []);
-  const player2Civs = derivePickedCivs(civPicksGuest || []);
-
-  const p1TranslateX = -(horizontalSplitOffset || 0);
-  const p2TranslateX = (horizontalSplitOffset || 0);
-
-  const civItemWidth = 120;
-  const civItemHeight = 100;
-  const dynamicFontSize = 10;
-
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
-    return null;
-  }
-
   const { civPicksHost, civPicksGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
     civPicksHost: state.civPicksHost,
     civPicksGuest: state.civPicksGuest,

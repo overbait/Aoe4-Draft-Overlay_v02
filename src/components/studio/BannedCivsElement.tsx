@@ -27,34 +27,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civBansHost, civBansGuest, lastDraftAction } = useDraftStore(state => ({
-    civBansHost: state.civBansHost,
-    civBansGuest: state.civBansGuest,
-    lastDraftAction: state.lastDraftAction,
-  }));
-
-  const deriveBannedCivs = useCallback((playerBans: string[]): CivItem[] => {
-    return playerBans.map(civName => ({
-      name: civName,
-      status: 'banned',
-      imageUrl: `/assets/civflags_simplified/${formatCivNameForImagePath(civName)}.png`,
-    }));
-  }, []);
-
-  const player1Civs = deriveBannedCivs(civBansHost || []);
-  const player2Civs = deriveBannedCivs(civBansGuest || []);
-
-  const p1TranslateX = -(horizontalSplitOffset || 0);
-  const p2TranslateX = (horizontalSplitOffset || 0);
-
-  const civItemWidth = 120;
-  const civItemHeight = 100;
-  const dynamicFontSize = 10;
-
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
-    return null;
-  }
-
   const { civBansHost, civBansGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
     civBansHost: state.civBansHost,
     civBansGuest: state.civBansGuest,
