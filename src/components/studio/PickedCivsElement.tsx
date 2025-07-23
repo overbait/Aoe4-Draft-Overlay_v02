@@ -59,10 +59,10 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
   const getGlowStyle = (civName: string) => {
     const isOnline = civDraftStatus === 'live';
     const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'pick';
-    if (isOnline && isLast) {
-      return { boxShadow: '0 0 35px 10px #9CFF9C' };
-    }
-    if (!isOnline && !isLast) {
+    if (element.showGlow ?? true) {
+        if (isOnline && isLast) {
+            return { boxShadow: '0 0 35px 10px #9CFF9C' };
+        }
         return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
     }
     return {};
