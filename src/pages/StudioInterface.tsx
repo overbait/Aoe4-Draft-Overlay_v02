@@ -53,8 +53,18 @@ const StudioInterface: React.FC = () => {
   }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   const [newLayoutName, setNewLayoutName] = useState<string>("");
-  const [isElementsOpen, setIsElementsOpen] = useState<boolean>(true);
-  const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState<boolean>(true);
+  const [openToolboxSections, setOpenToolboxSections] = useState<Record<string, boolean>>({
+    elements: true,
+    general: true,
+    saveLayout: true,
+    layoutsList: true,
+    importExport: true,
+    canvasSettings: true,
+  });
+
+  const toggleToolboxSection = (section: string) => {
+    setOpenToolboxSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
   const [isLayoutsListOpen, setIsLayoutsListOpen] = useState<boolean>(true);
   const [isImportExportOpen, setIsImportExportOpen] = useState<boolean>(true); // New state for Import/Export
   const [isCanvasSettingsOpen, setIsCanvasSettingsOpen] = useState<boolean>(true);
@@ -288,10 +298,10 @@ const StudioInterface: React.FC = () => {
       <aside style={{ width: '250px', borderRight: '1px solid #333', padding: '1rem', backgroundColor: '#1a1a1a', overflowY: 'auto', display: 'flex', flexDirection: 'column', zIndex: 1 }}>
         <h2 style={{ marginBottom: '1rem', color: '#a0a0a0', fontSize: '1.1em', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Toolbox</h2>
         <div style={toolboxSectionStyle}>
-         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsElementsOpen(!isElementsOpen)}>
-           Elements <span>{isElementsOpen ? '▼' : '▶'}</span>
+         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('elements')}>
+           Elements <span>{openToolboxSections.elements ? '▼' : '▶'}</span>
          </h3>
-         {isElementsOpen && (
+         {openToolboxSections.elements && (
            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
              <button onClick={handleAddScoreOnly} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Score</button>
              <button onClick={handleAddNicknamesOnly} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Nicknames</button>
@@ -305,10 +315,10 @@ const StudioInterface: React.FC = () => {
          )}
         </div>
         <div style={toolboxSectionStyle}>
-            <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsElementsOpen(!isElementsOpen)}>
-                General <span>{isElementsOpen ? '▼' : '▶'}</span>
+            <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('general')}>
+                General <span>{openToolboxSections.general ? '▼' : '▶'}</span>
             </h3>
-            {isElementsOpen && (
+            {openToolboxSections.general && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                     <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
                     <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
