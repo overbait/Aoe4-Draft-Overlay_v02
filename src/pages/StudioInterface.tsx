@@ -7,6 +7,9 @@ import CountryFlagsElement from '../components/studio/CountryFlagsElement';
 import ColorGlowElement from '../components/studio/ColorGlowElement';
 import MapPoolElement from '../components/studio/MapPoolElement';
 import CivPoolElement from '../components/studio/CivPoolElement'; // Added CivPoolElement import
+import PickedCivsElement from '../components/studio/PickedCivsElement';
+import BannedCivsElement from '../components/studio/BannedCivsElement';
+import MapsElement from '../components/studio/MapsElement';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import BackgroundImageElement
 import { StudioElement, SavedStudioLayout } from '../types/draft';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -301,6 +304,18 @@ const StudioInterface: React.FC = () => {
            </div>
          )}
         </div>
+        <div style={toolboxSectionStyle}>
+            <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsElementsOpen(!isElementsOpen)}>
+                General <span>{isElementsOpen ? '▼' : '▶'}</span>
+            </h3>
+            {isElementsOpen && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
+                    <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
+                    <button onClick={() => addStudioElement("Maps")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Maps</button>
+                </div>
+            )}
+        </div>
         {/* Element Settings Panel - Moved Here */}
         {selectedElement && (
           <div style={toolboxSectionStyle}>
@@ -506,6 +521,9 @@ const StudioInterface: React.FC = () => {
               else if (element.type === "ColorGlowElement") { content = <ColorGlowElement element={element} isSelected={element.id === selectedElementId} />; }
               else if (element.type === "MapPoolElement") { content = <MapPoolElement element={element} />; }
               else if (element.type === "CivPoolElement") { content = <CivPoolElement element={element} />; }
+              else if (element.type === "PickedCivs") { content = <PickedCivsElement element={element} />; }
+              else if (element.type === "BannedCivs") { content = <BannedCivsElement element={element} />; }
+              else if (element.type === "Maps") { content = <MapsElement element={element} />; }
               else if (element.type === "BackgroundImage") {
                 // Use BackgroundImageElement for preview in StudioInterface as well
                 content = <BackgroundImageElement element={element} isSelected={isSelected} />;

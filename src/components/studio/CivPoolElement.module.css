@@ -179,3 +179,11 @@
   border-color: #ffd700; /* Gold */
   box-shadow: 0 0 8px 3px #ffd700, 0 0 5px 2px #ffd700 inset;
 }
+
+.pickedGlow {
+  box-shadow: 0 0 35px #9CFF9C, inset 0 0 20px rgba(156, 255, 156, 0.7);
+}
+
+.bannedGlow {
+  box-shadow: 0 0 35px #FF9C9C, inset 0 0 20px rgba(255, 156, 156, 0.7);
+}

@@ -1930,6 +1930,45 @@ const useDraftStore = create<DraftStore>()(
         textColor: 'white', 
         pivotInternalOffset: 0,
       } as StudioElement;
+    } else if (elementType === "PickedCivs") {
+        newElement = {
+            id: Date.now().toString(),
+            type: "PickedCivs",
+            position: { x: initialX_px, y: initialY_px },
+            size: { width: 730, height: 110 },
+            fontFamily: 'Arial, sans-serif',
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            scale: 1,
+            isPivotLocked: false,
+            horizontalSplitOffset: 0,
+        } as StudioElement;
+    } else if (elementType === "BannedCivs") {
+        newElement = {
+            id: Date.now().toString(),
+            type: "BannedCivs",
+            position: { x: initialX_px, y: initialY_px },
+            size: { width: 730, height: 110 },
+            fontFamily: 'Arial, sans-serif',
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            scale: 1,
+            isPivotLocked: false,
+            horizontalSplitOffset: 0,
+        } as StudioElement;
+    } else if (elementType === "Maps") {
+        newElement = {
+            id: Date.now().toString(),
+            type: "Maps",
+            position: { x: initialX_px, y: initialY_px },
+            size: { width: 730, height: 110 },
+            fontFamily: 'Arial, sans-serif',
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            scale: 1,
+            isPivotLocked: false,
+            horizontalSplitOffset: 0,
+        } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
         id: Date.now().toString(),

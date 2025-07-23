@@ -1,0 +1,135 @@
+import React, { useCallback } from 'react';
+import useDraftStore from '../../store/draftStore';
+import { StudioElement } from '../../types/draft';
+import useDraftAnimation from '../../hooks/useDraftAnimation';
+
+interface CivItem {
+  name: string;
+  status: 'banned';
+  imageUrl: string;
+}
+
+import styles from './CivPoolElement.module.css';
+
+const formatCivNameForImagePath = (civName: string): string => {
+  if (!civName) return 'random';
+  return civName.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
+};
+
+interface BannedCivsElementProps {
+  element: StudioElement;
+  isBroadcast?: boolean;
+}
+
+const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadcast }) => {
+  const {
+    fontFamily = 'Arial, sans-serif',
+    horizontalSplitOffset = 0,
+  } = element;
+
+  const { civBansHost, civBansGuest, lastDraftAction } = useDraftStore(state => ({
+    civBansHost: state.civBansHost,
+    civBansGuest: state.civBansGuest,
+    lastDraftAction: state.lastDraftAction,
+  }));
+
+  const deriveBannedCivs = useCallback((playerBans: string[]): CivItem[] => {
+    return playerBans.map(civName => ({
+      name: civName,
+      status: 'banned',
+      imageUrl: `/assets/civflags_simplified/${formatCivNameForImagePath(civName)}.png`,
+    }));
+  }, []);
+
+  const player1Civs = deriveBannedCivs(civBansHost || []);
+  const player2Civs = deriveBannedCivs(civBansGuest || []);
+
+  const p1TranslateX = -(horizontalSplitOffset || 0);
+  const p2TranslateX = (horizontalSplitOffset || 0);
+
+  const civItemWidth = 120;
+  const civItemHeight = 100;
+  const dynamicFontSize = 10;
+
+  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
+    return null;
+  }
+
+  const isLastBanned = (civName: string) => {
+    return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'ban';
+  };
+
+  return (
+    <div
+      className={styles.civPoolElement}
+      style={{
+        fontFamily,
+        fontSize: `${dynamicFontSize}px`,
+      }}
+    >
+      <div
+        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
+        style={{
+          transform: `translateX(${p1TranslateX}px)`,
+          flexDirection: 'row-reverse',
+        }}
+      >
+        {player1Civs.map((civItem, index) => {
+          const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
+          const glowClass = isLastBanned(civItem.name) ? styles.bannedGlow : '';
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''} ${glowClass}`;
+
+          return (
+            <div key={`p1-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
+              <div
+                className={combinedClassName}
+                style={{
+                  width: `${civItemWidth}px`,
+                  height: `${civItemHeight}px`,
+                  backgroundImage: `url('${civItem.imageUrl}')`,
+                  opacity: animation.imageOpacity,
+                  filter: 'grayscale(40%)',
+                }}
+              >
+                <span className={styles.civName}>{civItem.name}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
+        style={{
+          transform: `translateX(${p2TranslateX}px)`,
+          flexDirection: 'row',
+        }}
+      >
+        {player2Civs.map((civItem, index) => {
+          const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
+          const glowClass = isLastBanned(civItem.name) ? styles.bannedGlow : '';
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''} ${glowClass}`;
+
+          return (
+            <div key={`p2-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
+              <div
+                className={combinedClassName}
+                style={{
+                  width: `${civItemWidth}px`,
+                  height: `${civItemHeight}px`,
+                  backgroundImage: `url('${civItem.imageUrl}')`,
+                  opacity: animation.imageOpacity,
+                  filter: 'grayscale(40%)',
+                }}
+              >
+                <span className={styles.civName}>{civItem.name}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default BannedCivsElement;
