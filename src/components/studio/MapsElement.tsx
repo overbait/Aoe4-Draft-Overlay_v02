@@ -63,23 +63,70 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     return null;
   }
 
-  const getGlowClass = (mapName: string, status: 'picked' | 'banned') => {
-    if (lastDraftAction && lastDraftAction.item === mapName && (Date.now() - lastDraftAction.timestamp < 5000)) {
-      if (lastDraftAction.action === 'pick' && status === 'picked') {
-        return styles.pickedGlow;
+  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest, lastDraftAction, mapDraftStatus } = useDraftStore(state => ({
+    mapPicksHost: state.mapPicksHost,
+    mapBansHost: state.mapBansHost,
+    mapPicksGuest: state.mapPicksGuest,
+    mapBansGuest: state.mapBansGuest,
+    lastDraftAction: state.lastDraftAction,
+    mapDraftStatus: state.mapDraftStatus,
+  }));
+
+  const deriveMaps = useCallback((picks: string[], bans: string[]): MapItem[] => {
+    const pickedMaps = picks.map(mapName => ({
+      name: mapName,
+      status: 'picked' as const,
+      imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
+    }));
+    const bannedMaps = bans.map(mapName => ({
+      name: mapName,
+      status: 'banned' as const,
+      imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
+    }));
+    return [...pickedMaps, ...bannedMaps];
+  }, []);
+
+  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
+  const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || []);
+
+  const p1TranslateX = -(horizontalSplitOffset || 0);
+  const p2TranslateX = (horizontalSplitOffset || 0);
+
+  const mapItemWidth = 120;
+  const mapItemHeight = 100;
+  const dynamicFontSize = 10;
+
+  if (isBroadcast && player1Maps.length === 0 && player2Maps.length === 0) {
+    return null;
+  }
+
+  const getGlowStyle = (mapName: string, status: 'picked' | 'banned') => {
+    const isOnline = mapDraftStatus === 'live';
+    const isLast = lastDraftAction?.item === mapName;
+    if (isOnline && isLast) {
+      if (lastDraftAction?.action === 'pick' && status === 'picked') {
+        return { boxShadow: '0 0 35px 10px #9CFF9C' };
       }
-      if (lastDraftAction.action === 'ban' && status === 'banned') {
-        return styles.bannedGlow;
+      if (lastDraftAction?.action === 'ban' && status === 'banned') {
+        return { boxShadow: '0 0 35px 10px #FF9C9C' };
       }
     }
-    return '';
+    if (!isOnline && isLast) {
+        if (lastDraftAction?.action === 'pick' && status === 'picked') {
+            return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+        }
+        if (lastDraftAction?.action === 'ban' && status === 'banned') {
+            return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+        }
+    }
+    return {};
   };
 
   const renderMap = (mapItem: MapItem, player: 1 | 2) => {
     const animation = useDraftAnimation(mapItem.name, 'map', mapItem.status);
-    const glowClass = getGlowClass(mapItem.name, mapItem.status);
+    const glowStyle = getGlowStyle(mapItem.name, mapItem.status);
     const statusClass = mapItem.status === 'picked' ? styles.picked : styles.banned;
-    const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''} ${glowClass}`;
+    const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''}`;
 
     return (
       <div key={`p${player}-map-${mapItem.name}`} className={styles.civItemGridCell}>
@@ -90,6 +137,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             height: `${mapItemHeight}px`,
             backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
+            ...glowStyle,
           }}
         >
           <span className={styles.civName}>{mapItem.name}</span>

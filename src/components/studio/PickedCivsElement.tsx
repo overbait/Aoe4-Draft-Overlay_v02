@@ -55,8 +55,45 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     return null;
   }
 
-  const isLastPicked = (civName: string) => {
-      return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'pick' && (Date.now() - lastDraftAction.timestamp < 5000);
+  const { civPicksHost, civPicksGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
+    civPicksHost: state.civPicksHost,
+    civPicksGuest: state.civPicksGuest,
+    lastDraftAction: state.lastDraftAction,
+    civDraftStatus: state.civDraftStatus,
+  }));
+
+  const derivePickedCivs = useCallback((playerPicks: string[]): CivItem[] => {
+    return playerPicks.map(civName => ({
+      name: civName,
+      status: 'picked',
+      imageUrl: `/assets/civflags_simplified/${formatCivNameForImagePath(civName)}.png`,
+    }));
+  }, []);
+
+  const player1Civs = derivePickedCivs(civPicksHost || []);
+  const player2Civs = derivePickedCivs(civPicksGuest || []);
+
+  const p1TranslateX = -(horizontalSplitOffset || 0);
+  const p2TranslateX = (horizontalSplitOffset || 0);
+
+  const civItemWidth = 120;
+  const civItemHeight = 100;
+  const dynamicFontSize = 10;
+
+  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
+    return null;
+  }
+
+  const getGlowStyle = (civName: string) => {
+    const isOnline = civDraftStatus === 'live';
+    const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'pick';
+    if (isOnline && isLast) {
+      return { boxShadow: '0 0 35px 10px #9CFF9C' };
+    }
+    if (!isOnline && isLast) {
+        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
+    }
+    return {};
   };
 
   return (
@@ -77,8 +114,8 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
       >
         {player1Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowClass = isLastPicked(civItem.name) ? styles.pickedGlow : '';
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''} ${glowClass}`;
+          const glowStyle = getGlowStyle(civItem.name);
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
 
           return (
             <div key={`p1-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
@@ -89,6 +126,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
+                  ...glowStyle,
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>
@@ -108,8 +146,8 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
       >
         {player2Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowClass = isLastPicked(civItem.name) ? styles.pickedGlow : '';
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''} ${glowClass}`;
+          const glowStyle = getGlowStyle(civItem.name);
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
 
           return (
             <div key={`p2-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
@@ -120,6 +158,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
+                  ...glowStyle,
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>

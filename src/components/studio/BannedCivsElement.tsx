@@ -55,9 +55,46 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     return null;
   }
 
-  const isLastBanned = (civName: string) => {
-    return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'ban' && (Date.now() - lastDraftAction.timestamp < 5000);
-  };
+  const { civBansHost, civBansGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
+    civBansHost: state.civBansHost,
+    civBansGuest: state.civBansGuest,
+    lastDraftAction: state.lastDraftAction,
+    civDraftStatus: state.civDraftStatus,
+  }));
+
+  const deriveBannedCivs = useCallback((playerBans: string[]): CivItem[] => {
+    return playerBans.map(civName => ({
+      name: civName,
+      status: 'banned',
+      imageUrl: `/assets/civflags_simplified/${formatCivNameForImagePath(civName)}.png`,
+    }));
+  }, []);
+
+  const player1Civs = deriveBannedCivs(civBansHost || []);
+  const player2Civs = deriveBannedCivs(civBansGuest || []);
+
+  const p1TranslateX = -(horizontalSplitOffset || 0);
+  const p2TranslateX = (horizontalSplitOffset || 0);
+
+  const civItemWidth = 120;
+  const civItemHeight = 100;
+  const dynamicFontSize = 10;
+
+  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
+    return null;
+  }
+
+  const getGlowStyle = (civName: string) => {
+    const isOnline = civDraftStatus === 'live';
+    const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'ban';
+    if (isOnline && isLast) {
+      return { boxShadow: '0 0 35px 10px #FF9C9C' };
+    }
+    if (!isOnline && isLast) {
+        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
+    }
+    return {};
+    };
 
   return (
     <div
@@ -77,8 +114,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player1Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowClass = isLastBanned(civItem.name) ? styles.bannedGlow : '';
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''} ${glowClass}`;
+          const glowStyle = getGlowStyle(civItem.name);
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
 
           return (
             <div key={`p1-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
@@ -89,6 +126,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
+                  ...glowStyle
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>
@@ -108,8 +146,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player2Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowClass = isLastBanned(civItem.name) ? styles.bannedGlow : '';
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''} ${glowClass}`;
+          const glowStyle = getGlowStyle(civItem.name);
+          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
 
           return (
             <div key={`p2-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
@@ -120,6 +158,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
+                  ...glowStyle
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>

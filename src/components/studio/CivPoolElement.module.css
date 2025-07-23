@@ -179,9 +179,9 @@
 }
 
 .pickedGlow {
-  box-shadow: 0 0 35px #9CFF9C, inset 0 0 20px rgba(156, 255, 156, 0.7);
+  box-shadow: 0 0 35px 10px #9CFF9C;
 }
 
 .bannedGlow {
-  box-shadow: 0 0 35px #FF9C9C, inset 0 0 20px rgba(255, 156, 156, 0.7);
+  box-shadow: 0 0 35px 10px #FF9C9C;
 }
