@@ -311,20 +311,11 @@ const StudioInterface: React.FC = () => {
              <button onClick={handleAddMapPoolElement} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Map Pool</button>
              <button onClick={handleAddCivPoolElement} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Civ Pool</button>
              <button onClick={() => addStudioElement("BackgroundImage")} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Background Element</button>
+             <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
+             <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
+             <button onClick={() => addStudioElement("Maps")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Maps</button>
            </div>
          )}
-        </div>
-        <div style={toolboxSectionStyle}>
-            <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('general')}>
-                General <span>{openToolboxSections.general ? '▼' : '▶'}</span>
-            </h3>
-            {openToolboxSections.general && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
-                    <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
-                    <button onClick={() => addStudioElement("Maps")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Maps</button>
-                </div>
-            )}
         </div>
         {/* Element Settings Panel - Moved Here */}
         {selectedElement && (
