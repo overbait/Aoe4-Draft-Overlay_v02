@@ -1942,6 +1942,11 @@ const useDraftStore = create<DraftStore>()(
             scale: 1,
             isPivotLocked: false,
             horizontalSplitOffset: 0,
+            imageUrl: null,
+            opacity: 1,
+            stretch: 'cover',
+            textColor: 'white',
+            pivotInternalOffset: 0,
         } as StudioElement;
     } else if (elementType === "BannedCivs") {
         newElement = {
@@ -1955,6 +1960,11 @@ const useDraftStore = create<DraftStore>()(
             scale: 1,
             isPivotLocked: false,
             horizontalSplitOffset: 0,
+            imageUrl: null,
+            opacity: 1,
+            stretch: 'cover',
+            textColor: 'white',
+            pivotInternalOffset: 0,
         } as StudioElement;
     } else if (elementType === "Maps") {
         newElement = {
@@ -1968,6 +1978,11 @@ const useDraftStore = create<DraftStore>()(
             scale: 1,
             isPivotLocked: false,
             horizontalSplitOffset: 0,
+            imageUrl: null,
+            opacity: 1,
+            stretch: 'cover',
+            textColor: 'white',
+            pivotInternalOffset: 0,
         } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
