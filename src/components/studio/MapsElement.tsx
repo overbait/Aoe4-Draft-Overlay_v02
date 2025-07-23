@@ -1,14 +1,7 @@
 import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
-import useDraftAnimation from '../../hooks/useDraftAnimation';
-
-interface MapItem {
-  name: string;
-  status: 'picked' | 'banned';
-  imageUrl: string;
-}
-
+import MapItemElement, { MapItem } from './MapItemElement';
 import styles from './GeneralElements.module.css';
 
 const formatMapNameForImagePath = (mapName: string): string => {
@@ -56,37 +49,11 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
 
-  const mapItemWidth = 100;
-  const mapItemHeight = 100;
   const dynamicFontSize = 10;
 
   if (isBroadcast && player1Maps.length === 0 && player2Maps.length === 0) {
     return null;
   }
-
-
-  const renderMap = (mapItem: MapItem, player: 1 | 2) => {
-    const animation = useDraftAnimation(mapItem.name, 'map', mapItem.status);
-    const statusClass = mapItem.status === 'picked' ? styles.picked : styles.banned;
-    const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''}`;
-
-    return (
-      <div key={`p${player}-map-${mapItem.name}`} className={styles.civItemGridCell}>
-        <div
-          className={combinedClassName}
-          style={{
-            width: `${mapItemWidth}px`,
-            height: `${mapItemHeight}px`,
-            backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
-            opacity: animation.imageOpacity,
-            boxShadow: element.showGlow ? (mapItem.status === 'picked' ? '0 0 3.5px 1px #9CFF9C' : '0 0 3.5px 1px #FF9C9C') : 'none',
-          }}
-        >
-                {(element.showText ?? true) && <span className={styles.civName}>{mapItem.name}</span>}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div
@@ -115,7 +82,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           flexWrap: 'nowrap'
         }}
       >
-        {player1Maps.map(map => renderMap(map, 1))}
+        {player1Maps.map(map => <MapItemElement key={map.name} mapItem={map} player={1} element={element} />)}
       </div>
 
       <div
@@ -126,7 +93,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           flexWrap: 'nowrap'
         }}
       >
-        {player2Maps.map(map => renderMap(map, 2))}
+        {player2Maps.map(map => <MapItemElement key={map.name} mapItem={map} player={2} element={element} />)}
       </div>
     </div>
   );

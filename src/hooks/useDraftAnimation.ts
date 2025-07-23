@@ -8,7 +8,7 @@ interface DebugAnimationOutput {
   debugStatus?: string;
 }
 
-const useDraftAnimation_DEBUG = (
+const useDraftAnimation = (
   itemName: string | null | undefined,
   itemType: 'civ' | 'map',
   currentStatus: string
@@ -80,4 +80,4 @@ const useDraftAnimation_DEBUG = (
   };
 };
 
-export default useDraftAnimation_DEBUG;
+export default useDraftAnimation;
