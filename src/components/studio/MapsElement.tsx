@@ -27,42 +27,6 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     horizontalSplitOffset = 0,
   } = element;
 
-  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest, lastDraftAction } = useDraftStore(state => ({
-    mapPicksHost: state.mapPicksHost,
-    mapBansHost: state.mapBansHost,
-    mapPicksGuest: state.mapPicksGuest,
-    mapBansGuest: state.mapBansGuest,
-    lastDraftAction: state.lastDraftAction,
-  }));
-
-  const deriveMaps = useCallback((picks: string[], bans: string[]): MapItem[] => {
-    const pickedMaps = picks.map(mapName => ({
-      name: mapName,
-      status: 'picked' as const,
-      imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
-    }));
-    const bannedMaps = bans.map(mapName => ({
-      name: mapName,
-      status: 'banned' as const,
-      imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
-    }));
-    return [...pickedMaps, ...bannedMaps];
-  }, []);
-
-  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
-  const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || []);
-
-  const p1TranslateX = -(horizontalSplitOffset || 0);
-  const p2TranslateX = (horizontalSplitOffset || 0);
-
-  const mapItemWidth = 120;
-  const mapItemHeight = 100;
-  const dynamicFontSize = 10;
-
-  if (isBroadcast && player1Maps.length === 0 && player2Maps.length === 0) {
-    return null;
-  }
-
   const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest, lastDraftAction, mapDraftStatus } = useDraftStore(state => ({
     mapPicksHost: state.mapPicksHost,
     mapBansHost: state.mapBansHost,
@@ -111,7 +75,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         return { boxShadow: '0 0 35px 10px #FF9C9C' };
       }
     }
-    if (!isOnline && isLast) {
+    if (!isOnline && !isLast) {
         if (lastDraftAction?.action === 'pick' && status === 'picked') {
             return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
         }
