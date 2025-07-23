@@ -130,7 +130,7 @@ const StudioInterface: React.FC = () => {
     if (element.isPivotLocked) {
     let newY_screen = element.position.y + data.deltaY;
 
-    if (element.type === "MapPoolElement" || element.type === "CivPoolElement") {
+    if (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") {
         let newHorizontalSplitOffset = element.horizontalSplitOffset || 0;
         const currentX_screen = element.position.x;
         const currentScale = element.scale || 1;

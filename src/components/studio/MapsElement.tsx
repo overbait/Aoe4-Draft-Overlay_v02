@@ -64,7 +64,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   }
 
   const getGlowClass = (mapName: string, status: 'picked' | 'banned') => {
-    if (lastDraftAction && lastDraftAction.item === mapName) {
+    if (lastDraftAction && lastDraftAction.item === mapName && (Date.now() - lastDraftAction.timestamp < 5000)) {
       if (lastDraftAction.action === 'pick' && status === 'picked') {
         return styles.pickedGlow;
       }
@@ -90,7 +90,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             height: `${mapItemHeight}px`,
             backgroundImage: `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
-            filter: mapItem.status === 'banned' ? 'grayscale(40%)' : 'none',
+            filter: mapItem.status === 'banned' ? 'grayscale(70%)' : 'none',
           }}
         >
           <span className={styles.civName}>{mapItem.name}</span>
@@ -112,6 +112,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         style={{
           transform: `translateX(${p1TranslateX}px)`,
           flexDirection: 'row-reverse',
+          flexWrap: 'nowrap'
         }}
       >
         {player1Maps.map(map => renderMap(map, 1))}
@@ -122,6 +123,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         style={{
           transform: `translateX(${p2TranslateX}px)`,
           flexDirection: 'row',
+          flexWrap: 'nowrap'
         }}
       >
         {player2Maps.map(map => renderMap(map, 2))}

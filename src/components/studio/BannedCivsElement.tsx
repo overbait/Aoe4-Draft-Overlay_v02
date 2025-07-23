@@ -56,7 +56,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
   }
 
   const isLastBanned = (civName: string) => {
-    return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'ban';
+    return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'ban' && (Date.now() - lastDraftAction.timestamp < 5000);
   };
 
   return (
@@ -72,6 +72,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         style={{
           transform: `translateX(${p1TranslateX}px)`,
           flexDirection: 'row-reverse',
+          flexWrap: 'nowrap'
         }}
       >
         {player1Civs.map((civItem, index) => {
@@ -88,7 +89,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  filter: 'grayscale(40%)',
+                  filter: 'grayscale(70%)',
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>
@@ -103,6 +104,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         style={{
           transform: `translateX(${p2TranslateX}px)`,
           flexDirection: 'row',
+          flexWrap: 'nowrap'
         }}
       >
         {player2Civs.map((civItem, index) => {
@@ -119,7 +121,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  filter: 'grayscale(40%)',
+                  filter: 'grayscale(70%)',
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>

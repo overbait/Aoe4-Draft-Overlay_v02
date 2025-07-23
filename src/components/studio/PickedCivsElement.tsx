@@ -56,7 +56,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
   }
 
   const isLastPicked = (civName: string) => {
-      return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'pick';
+      return lastDraftAction && lastDraftAction.item === civName && lastDraftAction.action === 'pick' && (Date.now() - lastDraftAction.timestamp < 5000);
   };
 
   return (
@@ -72,6 +72,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         style={{
           transform: `translateX(${p1TranslateX}px)`,
           flexDirection: 'row-reverse',
+          flexWrap: 'nowrap'
         }}
       >
         {player1Civs.map((civItem, index) => {
@@ -102,6 +103,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         style={{
           transform: `translateX(${p2TranslateX}px)`,
           flexDirection: 'row',
+          flexWrap: 'nowrap'
         }}
       >
         {player2Civs.map((civItem, index) => {
