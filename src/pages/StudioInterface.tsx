@@ -139,9 +139,9 @@ const StudioInterface: React.FC = () => {
             let changeInOffsetFactor = data.deltaX / currentScale;
 
             if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
-                newHorizontalSplitOffset = Math.max(0, (element.horizontalSplitOffset || 0) - changeInOffsetFactor);
+                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) - changeInOffsetFactor;
             } else {
-                newHorizontalSplitOffset = Math.max(0, (element.horizontalSplitOffset || 0) + changeInOffsetFactor);
+                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) + changeInOffsetFactor;
             }
         }
         updateStudioElementSettings(elementId, {

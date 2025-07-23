@@ -87,9 +87,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                 style={{
                   width: `${civItemWidth}px`,
                   height: `${civItemHeight}px`,
-                  backgroundImage: `url('${civItem.imageUrl}')`,
+                  backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  filter: 'grayscale(70%)',
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>
@@ -119,9 +118,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
                 style={{
                   width: `${civItemWidth}px`,
                   height: `${civItemHeight}px`,
-                  backgroundImage: `url('${civItem.imageUrl}')`,
+                  backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  filter: 'grayscale(70%)',
                 }}
               >
                 <span className={styles.civName}>{civItem.name}</span>

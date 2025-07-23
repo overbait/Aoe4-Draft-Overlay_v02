@@ -88,9 +88,8 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           style={{
             width: `${mapItemWidth}px`,
             height: `${mapItemHeight}px`,
-            backgroundImage: `url('${mapItem.imageUrl}')`,
+            backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
-            filter: mapItem.status === 'banned' ? 'grayscale(70%)' : 'none',
           }}
         >
           <span className={styles.civName}>{mapItem.name}</span>
