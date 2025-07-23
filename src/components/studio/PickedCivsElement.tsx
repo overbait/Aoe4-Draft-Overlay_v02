@@ -76,6 +76,17 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         fontSize: `${dynamicFontSize}px`,
       }}
     >
+        {element.isPivotLocked && (
+            <div style={{
+                position: 'absolute',
+                left: '50%',
+                top: 0,
+                bottom: 0,
+                width: '2px',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                transform: 'translateX(-50%)',
+            }} />
+        )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{
@@ -98,10 +109,10 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...glowStyle,
+                  ...(element.showGlow ?? true ? glowStyle : {}),
                 }}
               >
-                <span className={styles.civName}>{civItem.name}</span>
+                {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
               </div>
             </div>
           );

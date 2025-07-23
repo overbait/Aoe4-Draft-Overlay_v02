@@ -56,7 +56,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
 
-  const mapItemWidth = 120;
+  const mapItemWidth = 100;
   const mapItemHeight = 100;
   const dynamicFontSize = 10;
 
@@ -101,10 +101,10 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             height: `${mapItemHeight}px`,
             backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
-            ...glowStyle,
+                  ...(element.showGlow ?? true ? glowStyle : {}),
           }}
         >
-          <span className={styles.civName}>{mapItem.name}</span>
+                {(element.showText ?? true) && <span className={styles.civName}>{mapItem.name}</span>}
         </div>
       </div>
     );
@@ -118,6 +118,17 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         fontSize: `${dynamicFontSize}px`,
       }}
     >
+        {element.isPivotLocked && (
+            <div style={{
+                position: 'absolute',
+                left: '50%',
+                top: 0,
+                bottom: 0,
+                width: '2px',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                transform: 'translateX(-50%)',
+            }} />
+        )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{
