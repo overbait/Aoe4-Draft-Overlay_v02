@@ -65,7 +65,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
   }
 
   const getGlowStyle = (mapName: string, status: 'picked' | 'banned') => {
-    if (!element.showGlow) return {};
+    if (element.showGlow === false) return {};
 
     const isOnline = mapDraftStatus === 'live';
     const isLast = lastDraftAction?.item === mapName;

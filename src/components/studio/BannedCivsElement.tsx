@@ -57,7 +57,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
   }
 
   const getGlowStyle = (civName: string) => {
-    if (!element.showGlow) return {};
+    if (element.showGlow === false) return {};
 
     const isOnline = civDraftStatus === 'live';
     const isLast = lastDraftAction?.item === civName && lastDraftAction?.action === 'ban';

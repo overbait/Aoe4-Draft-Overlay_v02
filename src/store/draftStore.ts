@@ -1947,6 +1947,7 @@ const useDraftStore = create<DraftStore>()(
             stretch: 'cover',
             textColor: 'white',
             pivotInternalOffset: 0,
+            showGlow: true,
         } as StudioElement;
     } else if (elementType === "BannedCivs") {
         newElement = {
@@ -1965,6 +1966,7 @@ const useDraftStore = create<DraftStore>()(
             stretch: 'cover',
             textColor: 'white',
             pivotInternalOffset: 0,
+            showGlow: true,
         } as StudioElement;
     } else if (elementType === "Maps") {
         newElement = {
@@ -1983,6 +1985,7 @@ const useDraftStore = create<DraftStore>()(
             stretch: 'cover',
             textColor: 'white',
             pivotInternalOffset: 0,
+            showGlow: true,
         } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
