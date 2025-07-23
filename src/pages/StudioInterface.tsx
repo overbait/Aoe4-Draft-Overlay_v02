@@ -584,7 +584,7 @@ const StudioInterface: React.FC = () => {
                          style={{
                              width: element.size.width + 'px',
                              height: element.size.height + 'px',
-                             overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement") ? 'visible' : 'hidden',
+                             overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden',
                              boxSizing: 'border-box',
                              border: `1px solid ${element.borderColor || 'transparent'}`,
                              background: element.backgroundColor || 'transparent',
