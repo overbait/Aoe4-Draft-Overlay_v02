@@ -64,21 +64,9 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     return null;
   }
 
-  const getGlowStyle = (status: 'picked' | 'banned') => {
-    if (element.showGlow) {
-      if (status === 'picked') {
-        return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
-      }
-      if (status === 'banned') {
-        return { boxShadow: '0 0 3.5px 1px #FF9C9C' };
-      }
-    }
-    return {};
-  };
 
   const renderMap = (mapItem: MapItem, player: 1 | 2) => {
     const animation = useDraftAnimation(mapItem.name, 'map', mapItem.status);
-    const glowStyle = getGlowStyle(mapItem.status);
     const statusClass = mapItem.status === 'picked' ? styles.picked : styles.banned;
     const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''}`;
 
@@ -91,7 +79,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             height: `${mapItemHeight}px`,
             backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
             opacity: animation.imageOpacity,
-            ...glowStyle,
+            boxShadow: element.showGlow ? (mapItem.status === 'picked' ? '0 0 3.5px 1px #9CFF9C' : '0 0 3.5px 1px #FF9C9C') : 'none',
           }}
         >
                 {(element.showText ?? true) && <span className={styles.civName}>{mapItem.name}</span>}

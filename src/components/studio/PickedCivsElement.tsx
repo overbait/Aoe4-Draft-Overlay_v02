@@ -56,12 +56,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     return null;
   }
 
-  const getGlowStyle = () => {
-    if (element.showGlow) {
-      return { boxShadow: '0 0 3.5px 1px #9CFF9C' };
-    }
-    return {};
-  };
 
   return (
     <div
@@ -92,7 +86,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
       >
         {player1Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowStyle = getGlowStyle();
           const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
 
           return (
@@ -104,7 +97,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...glowStyle,
+                  boxShadow: element.showGlow ? '0 0 3.5px 1px #9CFF9C' : 'none',
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
@@ -124,7 +117,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
       >
         {player2Civs.map((civItem, index) => {
           const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const glowStyle = getGlowStyle();
           const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
 
           return (
@@ -136,7 +128,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                   height: `${civItemHeight}px`,
                   backgroundImage: `url('${civItem.imageUrl}')`,
                   opacity: animation.imageOpacity,
-                  ...glowStyle,
+                  boxShadow: element.showGlow ? '0 0 3.5px 1px #9CFF9C' : 'none',
                 }}
               >
                 {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
