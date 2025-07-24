@@ -44,7 +44,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       status: 'banned' as const,
       imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
     }));
-    return [...bannedMaps, ...pickedMaps];
+    return [...pickedMaps, ...bannedMaps];
   }, []);
 
   const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
@@ -79,8 +79,8 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid}`}
-        style={{ transform: `translateX(${p1TranslateX}px)`, display: 'flex', flexDirection: 'row-reverse' }}
+        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
+        style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Maps.map((map, index) => (
           <MapItem

@@ -79,9 +79,7 @@
 }
 
 .playerCivGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  grid-gap: 8px;
+  display: flex;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
@@ -89,7 +87,7 @@
 }
 
 .player1CivGrid {
-  direction: rtl;
+  flex-direction: row-reverse;
 }
 
 .player2CivGrid {
