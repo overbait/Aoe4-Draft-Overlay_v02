@@ -1003,7 +1003,9 @@ const useDraftStore = create<DraftStore>()(
                           let newMapBansGuest = [...state.mapBansGuest];
                           let newMapBansGlobal = [...state.mapBansGlobal];
                           let newLastDraftAction: LastDraftAction | null = state.lastDraftAction;
-                          const newRevealedBans = [...state.revealedBans];
+
+                          // Reset revealedBans every time a REVEAL_BANS event comes in
+                          const newRevealedBans: string[] = [];
 
                           const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
@@ -1018,7 +1020,6 @@ const useDraftStore = create<DraftStore>()(
 
                               const { executingPlayer, chosenOptionId } = revealedBanEvent;
 
-                              // If this ban has already been revealed, skip it.
                               if (newRevealedBans.includes(chosenOptionId)) {
                                   return;
                               }
@@ -1052,7 +1053,7 @@ const useDraftStore = create<DraftStore>()(
                                       else if (listKeyForUpdate === 'mapBansGuest') newMapBansGuest = updatedList;
                                       else if (listKeyForUpdate === 'mapBansGlobal') newMapBansGlobal = updatedList;
 
-                                      newRevealedBans.push(chosenOptionId); // Track revealed ban
+                                      newRevealedBans.push(chosenOptionId);
                                       bansRevealedStateChanged = true;
                                       newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
                                   } else {
