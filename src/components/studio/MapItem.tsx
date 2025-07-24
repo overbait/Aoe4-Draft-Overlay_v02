@@ -29,7 +29,7 @@ const MapItem: React.FC<MapItemProps> = ({ mapName, mapImageUrl, status, element
   const combinedClassName = `${styles.civItemVisualContent} ${styles[status]} ${styles[animation.animationClass] || ''}`;
 
   return (
-    <div className={styles.civItemGridCell} style={{ position: 'relative' }}>
+    <div className={styles.civItemGridCell} style={{ position: 'relative', margin: '0 4px' }}>
       {animation.isRevealing && animation.previousImageUrl && (
         <div
           className={`${styles.civItemVisualContent} ${styles.banned} ${styles.crossFadeOld}`}
