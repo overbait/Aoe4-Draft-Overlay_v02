@@ -1042,15 +1042,7 @@ const useDraftStore = create<DraftStore>()(
 if (targetBanList && listKeyForUpdate) {
     const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
     if (hiddenBanIndex !== -1) {
-        const updatedList = [...targetBanList];
-        updatedList[hiddenBanIndex] = optionName;
-
-        if (listKeyForUpdate === 'civBansHost') newCivBansHost = updatedList;
-        else if (listKeyForUpdate === 'civBansGuest') newCivBansGuest = updatedList;
-        else if (listKeyForUpdate === 'mapBansHost') newMapBansHost = updatedList;
-        else if (listKeyForUpdate === 'mapBansGuest') newMapBansGuest = updatedList;
-        else if (listKeyForUpdate === 'mapBansGlobal') newMapBansGlobal = updatedList;
-
+        targetBanList[hiddenBanIndex] = optionName; // Directly modify the list being built
         newRevealedBans.push(chosenOptionId);
         bansRevealedStateChanged = true;
         newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
