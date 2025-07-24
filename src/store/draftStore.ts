@@ -1003,9 +1003,7 @@ const useDraftStore = create<DraftStore>()(
                           let newMapBansGuest = [...state.mapBansGuest];
                           let newMapBansGlobal = [...state.mapBansGlobal];
                           let newLastDraftAction: LastDraftAction | null = state.lastDraftAction;
-
-                          // Reset revealedBans every time a REVEAL_BANS event comes in
-                          const newRevealedBans: string[] = [];
+                          const newRevealedBans = [...state.revealedBans];
 
                           const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
