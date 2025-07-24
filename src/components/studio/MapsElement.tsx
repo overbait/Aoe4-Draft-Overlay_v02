@@ -47,7 +47,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     return [...pickedMaps, ...bannedMaps];
   }, []);
 
-  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
+  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []).reverse();
   const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || []);
 
   const p1TranslateX = -(horizontalSplitOffset || 0);
