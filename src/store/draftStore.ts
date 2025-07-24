@@ -1040,13 +1040,22 @@ const useDraftStore = create<DraftStore>()(
                               }
 
                               if (targetBanList && listKeyForUpdate) {
-                                const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
-                                if (hiddenBanIndex > -1) {
-                                    targetBanList.splice(hiddenBanIndex, 1, optionName);
-                                }
+                                  const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
+                                  if (hiddenBanIndex !== -1) {
+                                      targetBanList[hiddenBanIndex] = optionName;
 
-                                bansRevealedStateChanged = true;
-                                newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
+                                      if (listKeyForUpdate === 'civBansHost') newCivBansHost = [...targetBanList];
+                                      else if (listKeyForUpdate === 'civBansGuest') newCivBansGuest = [...targetBanList];
+                                      else if (listKeyForUpdate === 'mapBansHost') newMapBansHost = [...targetBanList];
+                                      else if (listKeyForUpdate === 'mapBansGuest') newMapBansGuest = [...targetBanList];
+                                      else if (listKeyForUpdate === 'mapBansGlobal') newMapBansGlobal = [...targetBanList];
+
+                                      newRevealedBans.push(chosenOptionId);
+                                      bansRevealedStateChanged = true;
+                                      newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
+                                  } else {
+                                      console.warn(`[draftStore] Socket.IO "adminEvent" (REVEAL_BANS): "Hidden Ban" placeholder not found for revealed ban:`, revealedBanEvent);
+                                  }
                               }
                           });
 
