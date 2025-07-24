@@ -33,7 +33,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     mapBansGuest: state.mapBansGuest,
   }));
 
-  const deriveMaps = useCallback((picks: string[], bans: string[]): MapItemData[] => {
+  const deriveMaps = useCallback((picks: string[], bans: string[], player: 'player1' | 'player2'): MapItemData[] => {
     const pickedMaps = picks.map(mapName => ({
       name: mapName,
       status: 'picked' as const,
@@ -44,11 +44,16 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       status: 'banned' as const,
       imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
     }));
-    return [...pickedMaps, ...bannedMaps];
+
+    if (player === 'player1') {
+      return [...bannedMaps, ...pickedMaps].reverse();
+    }
+
+    return [...bannedMaps, ...pickedMaps];
   }, []);
 
-  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
-  const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || []);
+  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || [], 'player1');
+  const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || [], 'player2');
 
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
@@ -79,7 +84,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid} ${styles.reverseOrder}`}
+        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Maps.map((map, index) => (
