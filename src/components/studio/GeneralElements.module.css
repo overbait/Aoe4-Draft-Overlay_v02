@@ -92,6 +92,10 @@
   direction: rtl;
 }
 
+.reverseOrder {
+  flex-direction: row-reverse;
+}
+
 .player2CivGrid {
   /* No special direction needed, default is ltr */
 }

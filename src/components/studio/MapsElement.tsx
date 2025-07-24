@@ -44,10 +44,10 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       status: 'banned' as const,
       imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
     }));
-    return [...bans, ...picks];
+    return [...pickedMaps, ...bannedMaps];
   }, []);
 
-  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []).reverse();
+  const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []);
   const player2Maps = deriveMaps(mapPicksGuest || [], mapBansGuest || []);
 
   const p1TranslateX = -(horizontalSplitOffset || 0);
@@ -79,7 +79,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
+        className={`${styles.playerCivGrid} ${styles.player1CivGrid} ${styles.reverseOrder}`}
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Maps.map((map, index) => (
