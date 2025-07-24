@@ -1,6 +1,6 @@
 import React from 'react';
-import useDraftAnimation from '../../hooks/useDraftAnimation';
 import { StudioElement } from '../../types/draft';
+import useDraftAnimation from '../../hooks/useDraftAnimation';
 import styles from './GeneralElements.module.css';
 
 export interface MapItem {
@@ -13,26 +13,49 @@ interface MapItemElementProps {
   mapItem: MapItem;
   player: 1 | 2;
   element: StudioElement;
+  animation: ReturnType<typeof useDraftAnimation>;
 }
 
-const MapItemElement: React.FC<MapItemElementProps> = ({ mapItem, player, element }) => {
-  const animation = useDraftAnimation(mapItem.name, 'map', mapItem.status);
-  const statusClass = mapItem.status === 'picked' ? styles.picked : styles.banned;
-  const combinedClassName = `${styles.civItemVisualContent} ${statusClass} ${styles[animation.animationClass] || ''}`;
-
+const MapItemElement: React.FC<MapItemElementProps> = ({ mapItem, player, element, animation }) => {
   const mapItemWidth = 100;
   const mapItemHeight = 100;
 
+  const getGlowStyle = () => {
+    if (!element.showGlow) return 'none';
+    return mapItem.status === 'picked' ? '0 0 3.5px 1px #9CFF9C' : '0 0 3.5px 1px #FF9C9C';
+  };
+
+  const getGradient = () => {
+    return mapItem.status === 'banned'
+      ? 'linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%)'
+      : 'none';
+  };
+
+  const combinedClassName = `${styles.civItemVisualContent} ${styles[mapItem.status]} ${styles[animation.animationClass] || ''}`;
+
   return (
-    <div key={`p${player}-map-${mapItem.name}`} className={styles.civItemGridCell}>
+    <div className={styles.civItemGridCell} style={{ position: 'relative' }}>
+      {animation.isRevealing && animation.previousImageUrl && (
+        <div
+          className={`${styles.civItemVisualContent} ${styles.banned} ${styles.crossFadeOld}`}
+          style={{
+            width: `${mapItemWidth}px`,
+            height: `${mapItemHeight}px`,
+            backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${animation.previousImageUrl}')`,
+            boxShadow: getGlowStyle(),
+          }}
+        >
+          {(element.showText ?? true) && <span className={styles.civName}>Hidden Ban</span>}
+        </div>
+      )}
       <div
-        className={combinedClassName}
+        className={`${combinedClassName} ${animation.isRevealing ? styles.crossFadeNew : ''}`}
         style={{
           width: `${mapItemWidth}px`,
           height: `${mapItemHeight}px`,
-          backgroundImage: mapItem.status === 'banned' ? `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${mapItem.imageUrl}')` : `url('${mapItem.imageUrl}')`,
-          opacity: animation.imageOpacity,
-          boxShadow: element.showGlow ? (mapItem.status === 'picked' ? '0 0 3.5px 1px #9CFF9C' : '0 0 3.5px 1px #FF9C9C') : 'none',
+          backgroundImage: `${getGradient()}, url('${mapItem.imageUrl}')`,
+          opacity: animation.isRevealing ? 0 : animation.imageOpacity,
+          boxShadow: getGlowStyle(),
         }}
       >
         {(element.showText ?? true) && <span className={styles.civName}>{mapItem.name}</span>}

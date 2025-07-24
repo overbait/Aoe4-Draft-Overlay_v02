@@ -80,8 +80,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{
           transform: `translateX(${p1TranslateX}px)`,
-          flexDirection: 'row-reverse',
-          flexWrap: 'nowrap'
         }}
       >
         {player1Civs.map((civItem, index) => {
@@ -111,8 +109,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{
           transform: `translateX(${p2TranslateX}px)`,
-          flexDirection: 'row',
-          flexWrap: 'nowrap'
         }}
       >
         {player2Civs.map((civItem, index) => {

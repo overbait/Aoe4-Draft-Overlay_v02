@@ -78,22 +78,24 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{
           transform: `translateX(${p1TranslateX}px)`,
-          flexDirection: 'row-reverse',
-          flexWrap: 'nowrap'
         }}
       >
-        {player1Maps.map(map => <MapItemElement key={map.name} mapItem={map} player={1} element={element} />)}
+        {player1Maps.map((mapItem, index) => {
+          const animation = useDraftAnimation(mapItem.name, 'map', mapItem.imageUrl);
+          return <MapItemElement key={`${mapItem.name}-${index}`} mapItem={mapItem} player={1} element={element} animation={animation} />;
+        })}
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{
           transform: `translateX(${p2TranslateX}px)`,
-          flexDirection: 'row',
-          flexWrap: 'nowrap'
         }}
       >
-        {player2Maps.map(map => <MapItemElement key={map.name} mapItem={map} player={2} element={element} />)}
+        {player2Maps.map((mapItem, index) => {
+          const animation = useDraftAnimation(mapItem.name, 'map', mapItem.imageUrl);
+          return <MapItemElement key={`${mapItem.name}-${index}`} mapItem={mapItem} player={2} element={element} animation={animation} />;
+        })}
       </div>
     </div>
   );
