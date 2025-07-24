@@ -26,12 +26,20 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     horizontalSplitOffset = 0,
   } = element;
 
-  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
+  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest, adminEventProcessed } = useDraftStore(state => ({
     mapPicksHost: state.mapPicksHost,
     mapBansHost: state.mapBansHost,
     mapPicksGuest: state.mapPicksGuest,
     mapBansGuest: state.mapBansGuest,
+    adminEventProcessed: state.adminEventProcessed,
   }));
+
+  React.useEffect(() => {
+    if (adminEventProcessed) {
+      // Reset the flag in the store
+      useDraftStore.setState({ adminEventProcessed: false });
+    }
+  }, [adminEventProcessed]);
 
   const deriveMaps = useCallback((picks: string[], bans: string[]): MapItemData[] => {
     const pickedMaps = picks.map(mapName => ({
