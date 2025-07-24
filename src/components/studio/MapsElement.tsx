@@ -44,7 +44,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       status: 'banned' as const,
       imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
     }));
-    return [...pickedMaps, ...bannedMaps];
+    return [...bannedMaps, ...pickedMaps];
   }, []);
 
   const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || []).reverse();
