@@ -89,7 +89,8 @@
 }
 
 .player1CivGrid {
-  direction: rtl;
+  display: flex;
+  flex-direction: row-reverse;
 }
 
 .player2CivGrid {
