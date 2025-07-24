@@ -28,7 +28,6 @@ export interface CombinedDraftState extends OriginalCombinedDraftState {
   forceMapPoolUpdate: number;
   lastDraftAction: LastDraftAction | null; // Add the new state property
   revealedBans: string[];
-  adminEventProcessed: boolean;
 }
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
@@ -149,7 +148,6 @@ const initialCombinedState: CombinedDraftState = {
   forceMapPoolUpdate: 0,
   lastDraftAction: null, // Initialize lastDraftAction
   revealedBans: [],
-  adminEventProcessed: false,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -1042,28 +1040,18 @@ const useDraftStore = create<DraftStore>()(
                               }
 
                               if (targetBanList && listKeyForUpdate) {
-                                  const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
-                                  if (hiddenBanIndex !== -1) {
-                                      const updatedList = [...targetBanList];
-                                      updatedList[hiddenBanIndex] = optionName;
+                                const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
+                                if (hiddenBanIndex > -1) {
+                                    targetBanList.splice(hiddenBanIndex, 1, optionName);
+                                }
 
-                                      if (listKeyForUpdate === 'civBansHost') newCivBansHost = updatedList;
-                                      else if (listKeyForUpdate === 'civBansGuest') newCivBansGuest = updatedList;
-                                      else if (listKeyForUpdate === 'mapBansHost') newMapBansHost = updatedList;
-                                      else if (listKeyForUpdate === 'mapBansGuest') newMapBansGuest = updatedList;
-                                      else if (listKeyForUpdate === 'mapBansGlobal') newMapBansGlobal = updatedList;
-
-        newRevealedBans.push(optionName);
-                                      bansRevealedStateChanged = true;
-                                      newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
-                                  } else {
-                                      console.warn(`[draftStore] Socket.IO "adminEvent" (REVEAL_BANS): "Hidden Ban" placeholder not found for revealed ban:`, revealedBanEvent);
-                                  }
+                                bansRevealedStateChanged = true;
+                                newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
                               }
                           });
 
                           if (bansRevealedStateChanged) {
-                            return { ...state, civBansHost: newCivBansHost, civBansGuest: newCivBansGuest, mapBansHost: newMapBansHost, mapBansGuest: newMapBansGuest, mapBansGlobal: newMapBansGlobal, lastDraftAction: newLastDraftAction, revealedBans: newRevealedBans, adminEventProcessed: true };
+                            return { ...state, civBansHost: newCivBansHost, civBansGuest: newCivBansGuest, mapBansHost: newMapBansHost, mapBansGuest: newMapBansGuest, mapBansGlobal: newMapBansGlobal, lastDraftAction: newLastDraftAction, revealedBans: newRevealedBans };
                           }
                           return state;
                       });
