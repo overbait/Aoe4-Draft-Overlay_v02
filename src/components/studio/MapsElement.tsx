@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItemElement, { MapItem } from './MapItemElement';
+import useDraftAnimation from '../../hooks/useDraftAnimation';
 import styles from './GeneralElements.module.css';
 
 const formatMapNameForImagePath = (mapName: string): string => {
