@@ -1,15 +1,14 @@
 import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
-import useDraftAnimation from '../../hooks/useDraftAnimation';
+import CivItem from './CivItem';
+import styles from './GeneralElements.module.css';
 
-interface CivItem {
+interface CivItemData {
   name: string;
-  status: 'picked' | 'banned';
+  status: 'picked';
   imageUrl: string;
 }
-
-import styles from './GeneralElements.module.css';
 
 const formatCivNameForImagePath = (civName: string): string => {
   if (!civName) return 'random';
@@ -27,14 +26,12 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civPicksHost, civPicksGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
+  const { civPicksHost, civPicksGuest } = useDraftStore(state => ({
     civPicksHost: state.civPicksHost,
     civPicksGuest: state.civPicksGuest,
-    lastDraftAction: state.lastDraftAction,
-    civDraftStatus: state.civDraftStatus,
   }));
 
-  const derivePickedCivs = useCallback((playerPicks: string[]): CivItem[] => {
+  const derivePickedCivs = useCallback((playerPicks: string[]): CivItemData[] => {
     return playerPicks.map(civName => ({
       name: civName,
       status: 'picked',
@@ -48,14 +45,11 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
 
-  const civItemWidth = 100;
-  const civItemHeight = 100;
   const dynamicFontSize = 10;
 
   if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
     return null;
   }
-
 
   return (
     <div
@@ -78,60 +72,32 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
-        style={{
-          transform: `translateX(${p1TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
-        {player1Civs.map((civItem, index) => {
-          const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
-
-          return (
-            <div key={`p1-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
-              <div
-                className={combinedClassName}
-                style={{
-                  width: `${civItemWidth}px`,
-                  height: `${civItemHeight}px`,
-                  backgroundImage: `url('${civItem.imageUrl}')`,
-                  opacity: animation.imageOpacity,
-                  boxShadow: element.showGlow ? '0 0 3.5px 1px #9CFF9C' : 'none',
-                }}
-              >
-                {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
-              </div>
-            </div>
-          );
-        })}
+        {player1Civs.map((civ, index) => (
+          <CivItem
+            key={`p1-pick-${index}-${civ.name}`}
+            civName={civ.name}
+            civImageUrl={civ.imageUrl}
+            status="picked"
+            element={element}
+          />
+        ))}
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
-        style={{
-          transform: `translateX(${p2TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
-        {player2Civs.map((civItem, index) => {
-          const animation = useDraftAnimation(civItem.name, 'civ', civItem.status);
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.picked} ${styles[animation.animationClass] || ''}`;
-
-          return (
-            <div key={`p2-civ-${index}-${civItem.name}`} className={styles.civItemGridCell}>
-              <div
-                className={combinedClassName}
-                style={{
-                  width: `${civItemWidth}px`,
-                  height: `${civItemHeight}px`,
-                  backgroundImage: `url('${civItem.imageUrl}')`,
-                  opacity: animation.imageOpacity,
-                  boxShadow: element.showGlow ? '0 0 3.5px 1px #9CFF9C' : 'none',
-                }}
-              >
-                {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
-              </div>
-            </div>
-          );
-        })}
+        {player2Civs.map((civ, index) => (
+          <CivItem
+            key={`p2-pick-${index}-${civ.name}`}
+            civName={civ.name}
+            civImageUrl={civ.imageUrl}
+            status="picked"
+            element={element}
+          />
+        ))}
       </div>
     </div>
   );

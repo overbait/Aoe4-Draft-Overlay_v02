@@ -1,12 +1,17 @@
 import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
-import MapItemElement, { MapItem } from './MapItemElement';
-import useDraftAnimation from '../../hooks/useDraftAnimation';
+import MapItem from './MapItem';
 import styles from './GeneralElements.module.css';
 
+interface MapItemData {
+  name: string;
+  status: 'picked' | 'banned';
+  imageUrl: string;
+}
+
 const formatMapNameForImagePath = (mapName: string): string => {
-  if (!mapName) return 'random';
+  if (!mapName || mapName === 'Hidden Ban') return 'random';
   return mapName.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
 };
 
@@ -21,16 +26,14 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     horizontalSplitOffset = 0,
   } = element;
 
-  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest, lastDraftAction, mapDraftStatus } = useDraftStore(state => ({
+  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
     mapPicksHost: state.mapPicksHost,
     mapBansHost: state.mapBansHost,
     mapPicksGuest: state.mapPicksGuest,
     mapBansGuest: state.mapBansGuest,
-    lastDraftAction: state.lastDraftAction,
-    mapDraftStatus: state.mapDraftStatus,
   }));
 
-  const deriveMaps = useCallback((picks: string[], bans: string[]): MapItem[] => {
+  const deriveMaps = useCallback((picks: string[], bans: string[]): MapItemData[] => {
     const pickedMaps = picks.map(mapName => ({
       name: mapName,
       status: 'picked' as const,
@@ -77,26 +80,32 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
-        style={{
-          transform: `translateX(${p1TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
-        {player1Maps.map((mapItem, index) => {
-          const animation = useDraftAnimation(mapItem.name, 'map', mapItem.imageUrl);
-          return <MapItemElement key={`${mapItem.name}-${index}`} mapItem={mapItem} player={1} element={element} animation={animation} />;
-        })}
+        {player1Maps.map((map, index) => (
+          <MapItem
+            key={`p1-map-${index}-${map.name}`}
+            mapName={map.name}
+            mapImageUrl={map.imageUrl}
+            status={map.status}
+            element={element}
+          />
+        ))}
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
-        style={{
-          transform: `translateX(${p2TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
-        {player2Maps.map((mapItem, index) => {
-          const animation = useDraftAnimation(mapItem.name, 'map', mapItem.imageUrl);
-          return <MapItemElement key={`${mapItem.name}-${index}`} mapItem={mapItem} player={2} element={element} animation={animation} />;
-        })}
+        {player2Maps.map((map, index) => (
+          <MapItem
+            key={`p2-map-${index}-${map.name}`}
+            mapName={map.name}
+            mapImageUrl={map.imageUrl}
+            status={map.status}
+            element={element}
+          />
+        ))}
       </div>
     </div>
   );

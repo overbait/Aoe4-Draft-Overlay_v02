@@ -915,8 +915,8 @@ const useDraftStore = create<DraftStore>()(
                                         if (executingPlayer === 'HOST') tempCivPicksHost = [...new Set([...tempCivPicksHost, optionName])];
                                         else if (executingPlayer === 'GUEST') tempCivPicksGuest = [...new Set([...tempCivPicksGuest, optionName])];
                                     } else if (actionType === 'ban') {
-                                        if (executingPlayer === 'HOST') tempCivBansHost = [...tempCivBansHost, optionName];
-                                        else if (executingPlayer === 'GUEST') tempCivBansGuest = [...tempCivBansGuest, optionName];
+                                        if (executingPlayer === 'HOST') tempCivBansHost.push(optionName);
+                                        else if (executingPlayer === 'GUEST') tempCivBansGuest.push(optionName);
                                     } else if (actionType === 'snipe') {
                                         if (executingPlayer === 'HOST') tempCivBansGuest = [...new Set([...tempCivBansGuest, optionName])];
                                         else if (executingPlayer === 'GUEST') tempCivBansHost = [...new Set([...tempCivBansHost, optionName])];
@@ -934,9 +934,9 @@ const useDraftStore = create<DraftStore>()(
                                         else if (executingPlayer === 'GUEST') tempMapPicksGuest = [...new Set([...tempMapPicksGuest, optionName])];
                                         else if (executingPlayer === 'NONE') tempMapPicksGlobal = [...new Set([...tempMapPicksGlobal, optionName])];
                                     } else if (actionType === 'ban') {
-                                        if (executingPlayer === 'HOST') tempMapBansHost = [...tempMapBansHost, optionName];
-                                        else if (executingPlayer === 'GUEST') tempMapBansGuest = [...tempMapBansGuest, optionName];
-                                        else if (executingPlayer === 'NONE') tempMapBansGlobal = [...tempMapBansGlobal, optionName];
+                                        if (executingPlayer === 'HOST') tempMapBansHost.push(optionName);
+                                        else if (executingPlayer === 'GUEST') tempMapBansGuest.push(optionName);
+                                        else if (executingPlayer === 'NONE') tempMapBansGlobal.push(optionName);
                                     } else if (actionType === 'snipe') {
                                         if (executingPlayer === 'HOST') tempMapBansGuest = [...new Set([...tempMapBansGuest, optionName])];
                                         else if (executingPlayer === 'GUEST') tempMapBansHost = [...new Set([...tempMapBansHost, optionName])];

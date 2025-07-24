@@ -1,15 +1,14 @@
 import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
-import useDraftAnimation from '../../hooks/useDraftAnimation';
+import CivItem from './CivItem';
+import styles from './GeneralElements.module.css';
 
-interface CivItem {
+interface CivItemData {
   name: string;
   status: 'banned';
   imageUrl: string;
 }
-
-import styles from './GeneralElements.module.css';
 
 const formatCivNameForImagePath = (civName: string): string => {
   if (!civName || civName === 'Hidden Ban') return 'random';
@@ -27,14 +26,12 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civBansHost, civBansGuest, lastDraftAction, civDraftStatus } = useDraftStore(state => ({
+  const { civBansHost, civBansGuest } = useDraftStore(state => ({
     civBansHost: state.civBansHost,
     civBansGuest: state.civBansGuest,
-    lastDraftAction: state.lastDraftAction,
-    civDraftStatus: state.civDraftStatus,
   }));
 
-  const deriveBannedCivs = useCallback((playerBans: string[]): CivItem[] => {
+  const deriveBannedCivs = useCallback((playerBans: string[]): CivItemData[] => {
     return playerBans.map(civName => ({
       name: civName,
       status: 'banned',
@@ -48,14 +45,11 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
   const p1TranslateX = -(horizontalSplitOffset || 0);
   const p2TranslateX = (horizontalSplitOffset || 0);
 
-  const civItemWidth = 100;
-  const civItemHeight = 100;
   const dynamicFontSize = 10;
 
   if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
     return null;
   }
-
 
   return (
     <div
@@ -78,86 +72,32 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
-        style={{
-          transform: `translateX(${p1TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
-        {player1Civs.map((civItem, index) => {
-          const animation = useDraftAnimation(civItem.name, 'civ', civItem.imageUrl);
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
-
-          return (
-            <div key={`p1-civ-${index}-${civItem.name}`} className={styles.civItemGridCell} style={{ position: 'relative' }}>
-              {animation.isRevealing && animation.previousImageUrl && (
-                <div
-                  className={`${styles.civItemVisualContent} ${styles.banned} ${styles.crossFadeOld}`}
-                  style={{
-                    width: `${civItemWidth}px`,
-                    height: `${civItemHeight}px`,
-                    backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${animation.previousImageUrl}')`,
-                    boxShadow: element.showGlow ? '0 0 3.5px 1px #FF9C9C' : 'none',
-                  }}
-                >
-                  {(element.showText ?? true) && <span className={styles.civName}>Hidden Ban</span>}
-                </div>
-              )}
-              <div
-                className={`${combinedClassName} ${animation.isRevealing ? styles.crossFadeNew : ''}`}
-                style={{
-                  width: `${civItemWidth}px`,
-                  height: `${civItemHeight}px`,
-                  backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
-                  opacity: animation.isRevealing ? 0 : animation.imageOpacity,
-                  boxShadow: element.showGlow ? '0 0 3.5px 1px #FF9C9C' : 'none',
-                }}
-              >
-                {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
-              </div>
-            </div>
-          );
-        })}
+        {player1Civs.map((civ, index) => (
+          <CivItem
+            key={`p1-ban-${index}-${civ.name}`}
+            civName={civ.name}
+            civImageUrl={civ.imageUrl}
+            status="banned"
+            element={element}
+          />
+        ))}
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
-        style={{
-          transform: `translateX(${p2TranslateX}px)`,
-        }}
+        style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
-        {player2Civs.map((civItem, index) => {
-          const animation = useDraftAnimation(civItem.name, 'civ', civItem.imageUrl);
-          const combinedClassName = `${styles.civItemVisualContent} ${styles.banned} ${styles[animation.animationClass] || ''}`;
-
-          return (
-            <div key={`p2-civ-${index}-${civItem.name}`} className={styles.civItemGridCell} style={{ position: 'relative' }}>
-              {animation.isRevealing && animation.previousImageUrl && (
-                <div
-                  className={`${styles.civItemVisualContent} ${styles.banned} ${styles.crossFadeOld}`}
-                  style={{
-                    width: `${civItemWidth}px`,
-                    height: `${civItemHeight}px`,
-                    backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${animation.previousImageUrl}')`,
-                    boxShadow: element.showGlow ? '0 0 3.5px 1px #FF9C9C' : 'none',
-                  }}
-                >
-                  {(element.showText ?? true) && <span className={styles.civName}>Hidden Ban</span>}
-                </div>
-              )}
-              <div
-                className={`${combinedClassName} ${animation.isRevealing ? styles.crossFadeNew : ''}`}
-                style={{
-                  width: `${civItemWidth}px`,
-                  height: `${civItemHeight}px`,
-                  backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${civItem.imageUrl}')`,
-                  opacity: animation.isRevealing ? 0 : animation.imageOpacity,
-                  boxShadow: element.showGlow ? '0 0 3.5px 1px #FF9C9C' : 'none',
-                }}
-              >
-                {(element.showText ?? true) && <span className={styles.civName}>{civItem.name}</span>}
-              </div>
-            </div>
-          );
-        })}
+        {player2Civs.map((civ, index) => (
+          <CivItem
+            key={`p2-ban-${index}-${civ.name}`}
+            civName={civ.name}
+            civImageUrl={civ.imageUrl}
+            status="banned"
+            element={element}
+          />
+        ))}
       </div>
     </div>
   );
