@@ -45,13 +45,11 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       imageUrl: `/assets/maps/${formatMapNameForImagePath(mapName)}.png`,
     }));
 
-    const combinedMaps = [...pickedMaps, ...bannedMaps];
-
     if (player === 'player1') {
-      return combinedMaps.reverse();
+      return [...pickedMaps, ...bannedMaps.reverse()];
     }
 
-    return combinedMaps;
+    return [...bannedMaps, ...pickedMaps];
   }, []);
 
   const player1Maps = deriveMaps(mapPicksHost || [], mapBansHost || [], 'player1');
