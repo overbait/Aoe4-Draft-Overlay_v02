@@ -80,21 +80,50 @@
 
 .playerCivGrid {
   display: grid;
-  grid-template-columns: repeat(6, 120px); /* Updated for 6 columns of 120px width */
-  grid-template-rows: repeat(3, auto); /* Updated for 3 rows, height can be auto or fixed */
-  grid-auto-flow: column;
+  grid-template-columns: repeat(9, auto);
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
+  width: 100%;
 }
 
 .player1CivGrid {
-  /* Specific styles for player 1 grid if needed */
+  direction: rtl;
 }
 
 .player2CivGrid {
-  direction: rtl;
+  /* No special direction needed, default is ltr */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.crossFadeOld {
+  animation: fadeOut 0.5s ease-in-out forwards;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.crossFadeNew {
+  animation: fadeIn 0.5s ease-in-out 0.5s forwards;
+  opacity: 0;
 }
 
 .civItemGridCell {
@@ -135,13 +164,14 @@
 
 .civName {
   font-family: 'Cinzel', serif; /* from BoXSeriesOverview */
-  font-size: 1.76em; /* Changed from 1.6em */
+  font-size: 1.2em; /* Changed from 1.6em */
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
   padding: 2px 0;
+  line-height: 1.2;
 }
 
 .placeholderText {

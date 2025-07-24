@@ -8,6 +8,9 @@ import CountryFlagsElement from '../components/studio/CountryFlagsElement';
 import ColorGlowElement from '../components/studio/ColorGlowElement';
 import MapPoolElement from '../components/studio/MapPoolElement';
 import CivPoolElement from '../components/studio/CivPoolElement';
+import PickedCivsElement from '../components/studio/PickedCivsElement';
+import BannedCivsElement from '../components/studio/BannedCivsElement';
+import MapsElement from '../components/studio/MapsElement';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import new component
 // All elements are now imported.
 
@@ -114,7 +117,7 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
           boxSizing: 'border-box',
         };
 
-        const currentOverflow = (element.type === "MapPoolElement" || element.type === "CivPoolElement") ? 'visible' : 'hidden';
+        const currentOverflow = (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden';
 
         const innerDivStyle = {
           width: `${element.size.width}px`,
@@ -140,6 +143,12 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
           content = <MapPoolElement element={element} isBroadcast={true} />;
         } else if (element.type === "CivPoolElement") {
           content = <CivPoolElement element={element} isBroadcast={true} />;
+        } else if (element.type === "PickedCivs") {
+          content = <PickedCivsElement element={element} isBroadcast={true} />;
+        } else if (element.type === "BannedCivs") {
+            content = <BannedCivsElement element={element} isBroadcast={true} />;
+        } else if (element.type === "Maps") {
+            content = <MapsElement element={element} isBroadcast={true} />;
         } else if (element.type === "BackgroundImage") {
           content = <BackgroundImageElement element={element} isBroadcast={true} />;
         } else {

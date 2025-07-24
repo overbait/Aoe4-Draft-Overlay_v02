@@ -189,8 +189,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
          </div>
        </>
      )}
-      {(selectedElement.type === 'MapPoolElement' || selectedElement.type === 'CivPoolElement') && (
+      {(selectedElement.type === 'MapPoolElement' || selectedElement.type === 'CivPoolElement' || selectedElement.type === 'PickedCivs' || selectedElement.type === 'BannedCivs' || selectedElement.type === 'Maps') && (
         <>
+        <div style={settingRowStyle}>
+            <label htmlFor="showTextCheckbox" style={labelStyle}>Show Text:</label>
+            <input
+                type="checkbox"
+                id="showTextCheckbox"
+                style={checkboxStyle}
+                checked={selectedElement.showText ?? true}
+                onChange={(e) => handleSettingChange('showText', e.target.checked)}
+            />
+        </div>
+        <div style={settingRowStyle}>
+            <label htmlFor="showGlowCheckbox" style={labelStyle}>Show Glow:</label>
+            <input
+                type="checkbox"
+                id="showGlowCheckbox"
+                style={checkboxStyle}
+                checked={selectedElement.showGlow ?? true}
+                onChange={(e) => handleSettingChange('showGlow', e.target.checked)}
+            />
+        </div>
           <div className={styles.settingItem}>
             <label htmlFor="scale" className={styles.settingLabel}>Scale:</label>
             <input

@@ -7,6 +7,9 @@ import CountryFlagsElement from '../components/studio/CountryFlagsElement';
 import ColorGlowElement from '../components/studio/ColorGlowElement';
 import MapPoolElement from '../components/studio/MapPoolElement';
 import CivPoolElement from '../components/studio/CivPoolElement'; // Added CivPoolElement import
+import PickedCivsElement from '../components/studio/PickedCivsElement';
+import BannedCivsElement from '../components/studio/BannedCivsElement';
+import MapsElement from '../components/studio/MapsElement';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import BackgroundImageElement
 import { StudioElement, SavedStudioLayout } from '../types/draft';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -50,8 +53,18 @@ const StudioInterface: React.FC = () => {
   }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   const [newLayoutName, setNewLayoutName] = useState<string>("");
-  const [isElementsOpen, setIsElementsOpen] = useState<boolean>(true);
-  const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState<boolean>(true);
+  const [openToolboxSections, setOpenToolboxSections] = useState<Record<string, boolean>>({
+    elements: true,
+    general: true,
+    saveLayout: true,
+    layoutsList: true,
+    importExport: true,
+    canvasSettings: true,
+  });
+
+  const toggleToolboxSection = (section: string) => {
+    setOpenToolboxSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
   const [isLayoutsListOpen, setIsLayoutsListOpen] = useState<boolean>(true);
   const [isImportExportOpen, setIsImportExportOpen] = useState<boolean>(true); // New state for Import/Export
   const [isCanvasSettingsOpen, setIsCanvasSettingsOpen] = useState<boolean>(true);
@@ -117,7 +130,7 @@ const StudioInterface: React.FC = () => {
     if (element.isPivotLocked) {
     let newY_screen = element.position.y + data.deltaY;
 
-    if (element.type === "MapPoolElement" || element.type === "CivPoolElement") {
+    if (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") {
         let newHorizontalSplitOffset = element.horizontalSplitOffset || 0;
         const currentX_screen = element.position.x;
         const currentScale = element.scale || 1;
@@ -126,9 +139,9 @@ const StudioInterface: React.FC = () => {
             let changeInOffsetFactor = data.deltaX / currentScale;
 
             if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
-                newHorizontalSplitOffset = Math.max(0, (element.horizontalSplitOffset || 0) - changeInOffsetFactor);
+                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) - changeInOffsetFactor;
             } else {
-                newHorizontalSplitOffset = Math.max(0, (element.horizontalSplitOffset || 0) + changeInOffsetFactor);
+                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) + changeInOffsetFactor;
             }
         }
         updateStudioElementSettings(elementId, {
@@ -285,10 +298,10 @@ const StudioInterface: React.FC = () => {
       <aside style={{ width: '250px', borderRight: '1px solid #333', padding: '1rem', backgroundColor: '#1a1a1a', overflowY: 'auto', display: 'flex', flexDirection: 'column', zIndex: 1 }}>
         <h2 style={{ marginBottom: '1rem', color: '#a0a0a0', fontSize: '1.1em', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Toolbox</h2>
         <div style={toolboxSectionStyle}>
-         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsElementsOpen(!isElementsOpen)}>
-           Elements <span>{isElementsOpen ? '▼' : '▶'}</span>
+         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('elements')}>
+           Elements <span>{openToolboxSections.elements ? '▼' : '▶'}</span>
          </h3>
-         {isElementsOpen && (
+         {openToolboxSections.elements && (
            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
              <button onClick={handleAddScoreOnly} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Score</button>
              <button onClick={handleAddNicknamesOnly} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Nicknames</button>
@@ -298,6 +311,9 @@ const StudioInterface: React.FC = () => {
              <button onClick={handleAddMapPoolElement} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Map Pool</button>
              <button onClick={handleAddCivPoolElement} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Civ Pool</button>
              <button onClick={() => addStudioElement("BackgroundImage")} style={{ ...buttonStyle, width: 'calc(50% - 5px)' }}>Add Background Element</button>
+             <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
+             <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
+             <button onClick={() => addStudioElement("Maps")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Maps</button>
            </div>
          )}
         </div>
@@ -308,10 +324,10 @@ const StudioInterface: React.FC = () => {
           </div>
         )}
         <div style={toolboxSectionStyle}>
-         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => setIsSaveLayoutOpen(!isSaveLayoutOpen)}>
-           Save Current Layout <span>{isSaveLayoutOpen ? '▼' : '▶'}</span>
+         <h3 style={{...toolboxHeaderStyle, cursor: 'pointer', display: 'flex', justifyContent: 'space-between'}} onClick={() => toggleToolboxSection('saveLayout')}>
+           Save Current Layout <span>{openToolboxSections.saveLayout ? '▼' : '▶'}</span>
          </h3>
-         {isSaveLayoutOpen && (
+         {openToolboxSections.saveLayout && (
            <>
               <input type="text" placeholder="Layout Name" value={newLayoutName} onChange={(e) => setNewLayoutName(e.target.value)} style={inputStyle}/>
               <button onClick={handleSaveLayout} style={buttonStyle}>Save Layout</button>
@@ -506,6 +522,9 @@ const StudioInterface: React.FC = () => {
               else if (element.type === "ColorGlowElement") { content = <ColorGlowElement element={element} isSelected={element.id === selectedElementId} />; }
               else if (element.type === "MapPoolElement") { content = <MapPoolElement element={element} />; }
               else if (element.type === "CivPoolElement") { content = <CivPoolElement element={element} />; }
+              else if (element.type === "PickedCivs") { content = <PickedCivsElement element={element} />; }
+              else if (element.type === "BannedCivs") { content = <BannedCivsElement element={element} />; }
+              else if (element.type === "Maps") { content = <MapsElement element={element} />; }
               else if (element.type === "BackgroundImage") {
                 // Use BackgroundImageElement for preview in StudioInterface as well
                 content = <BackgroundImageElement element={element} isSelected={isSelected} />;
@@ -565,7 +584,7 @@ const StudioInterface: React.FC = () => {
                          style={{
                              width: element.size.width + 'px',
                              height: element.size.height + 'px',
-                             overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement") ? 'visible' : 'hidden',
+                             overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden',
                              boxSizing: 'border-box',
                              border: `1px solid ${element.borderColor || 'transparent'}`,
                              background: element.backgroundColor || 'transparent',
