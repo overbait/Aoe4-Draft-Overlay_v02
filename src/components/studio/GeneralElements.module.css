@@ -79,6 +79,11 @@
   gap: 8px;
 }
 
+.playerCivGridContainer {
+  width: 50%;
+  display: flex;
+}
+
 .playerCivGrid {
   display: flex;
   flex-wrap: nowrap;
@@ -90,10 +95,11 @@
 
 .player1CivGrid {
   direction: rtl;
+  justify-content: flex-end;
 }
 
 .player2CivGrid {
-  /* No special direction needed, default is ltr */
+  justify-content: flex-start;
 }
 
 @keyframes fadeIn {
