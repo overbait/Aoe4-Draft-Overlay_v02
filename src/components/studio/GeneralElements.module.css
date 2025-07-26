@@ -32,8 +32,6 @@
 }
 
 .civItemVisualContent {
-  width: 80px;
-  height: 80px;
   box-sizing: border-box;
   border: 1px solid #c19a49;
   border-radius: 3px;
@@ -82,11 +80,12 @@
 
 .playerCivGrid {
   display: grid;
-  grid-template-columns: repeat(9, 80px);
+  grid-template-columns: repeat(9, auto);
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
+  width: 100%;
 }
 
 .player1CivGrid {
@@ -133,11 +132,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: 80px;
   height: 100%;
 }
 
 .civItemVisualContent {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   box-sizing: border-box;
   border: 1px solid #c19a49; /* --aoe-gold-accent, from BoXSeriesOverview */
   border-radius: 3px; /* from BoXSeriesOverview */

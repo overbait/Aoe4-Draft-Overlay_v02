@@ -28,6 +28,7 @@ export interface CombinedDraftState extends OriginalCombinedDraftState {
   forceMapPoolUpdate: number;
   lastDraftAction: LastDraftAction | null; // Add the new state property
   revealedBans: string[];
+  banRevealCount: number;
 }
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
@@ -148,6 +149,7 @@ const initialCombinedState: CombinedDraftState = {
   forceMapPoolUpdate: 0,
   lastDraftAction: null, // Initialize lastDraftAction
   revealedBans: [],
+  banRevealCount: 0,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -1004,10 +1006,13 @@ const useDraftStore = create<DraftStore>()(
                           let newMapBansGlobal = [...state.mapBansGlobal];
                           let newLastDraftAction: LastDraftAction | null = state.lastDraftAction;
                           const newRevealedBans = [...state.revealedBans];
+                          const newBanRevealCount = state.banRevealCount + 1;
 
                           const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                          data.events.forEach(revealedBanEvent => {
+                          const eventsToReveal = data.events.slice((newBanRevealCount - 1) * 2, newBanRevealCount * 2);
+
+                          eventsToReveal.forEach(revealedBanEvent => {
                               if (!revealedBanEvent || typeof revealedBanEvent !== 'object' ||
                                   !revealedBanEvent.actionType || revealedBanEvent.actionType !== 'ban' ||
                                   !revealedBanEvent.hasOwnProperty('chosenOptionId') || typeof revealedBanEvent.chosenOptionId !== 'string' ||
@@ -1017,7 +1022,6 @@ const useDraftStore = create<DraftStore>()(
                               }
 
                               const { executingPlayer, chosenOptionId } = revealedBanEvent;
-
 
                               const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
                               let effectiveDraftType: 'civ' | 'map' | null = null;
@@ -1057,7 +1061,7 @@ const useDraftStore = create<DraftStore>()(
                           });
 
                           if (bansRevealedStateChanged) {
-                            return { ...state, civBansHost: newCivBansHost, civBansGuest: newCivBansGuest, mapBansHost: newMapBansHost, mapBansGuest: newMapBansGuest, mapBansGlobal: newMapBansGlobal, lastDraftAction: newLastDraftAction, revealedBans: newRevealedBans };
+                            return { ...state, civBansHost: newCivBansHost, civBansGuest: newCivBansGuest, mapBansHost: newMapBansHost, mapBansGuest: newMapBansGuest, mapBansGlobal: newMapBansGlobal, lastDraftAction: newLastDraftAction, revealedBans: newRevealedBans, banRevealCount: newBanRevealCount };
                           }
                           return state;
                       });
