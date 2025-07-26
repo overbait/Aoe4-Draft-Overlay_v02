@@ -80,12 +80,11 @@
 
 .playerCivGrid {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  grid-template-columns: repeat(9, 80px);
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
-  width: 100%;
 }
 
 .player1CivGrid {
