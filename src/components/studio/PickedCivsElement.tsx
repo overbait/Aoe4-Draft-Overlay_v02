@@ -71,41 +71,43 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{
           position: 'absolute',
           right: '50%',
           transform: `translateX(${p1TranslateX}px)`,
         }}
       >
-        {player1Civs.map((civ, index) => (
-          <CivItem
-            key={`p1-pick-${index}-${civ.name}`}
-            civName={civ.name}
-            civImageUrl={civ.imageUrl}
-            status="picked"
-            element={element}
-          />
-        ))}
+        <div className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}>
+          {player1Civs.map((civ, index) => (
+            <CivItem
+              key={`p1-pick-${index}-${civ.name}`}
+              civName={civ.name}
+              civImageUrl={civ.imageUrl}
+              status="picked"
+              element={element}
+            />
+          ))}
+        </div>
       </div>
 
       <div
-        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{
           position: 'absolute',
           left: '50%',
           transform: `translateX(${p2TranslateX}px)`,
         }}
       >
-        {player2Civs.map((civ, index) => (
-          <CivItem
-            key={`p2-pick-${index}-${civ.name}`}
-            civName={civ.name}
-            civImageUrl={civ.imageUrl}
-            status="picked"
-            element={element}
-          />
-        ))}
+        <div className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}>
+          {player2Civs.map((civ, index) => (
+            <CivItem
+              key={`p2-pick-${index}-${civ.name}`}
+              civName={civ.name}
+              civImageUrl={civ.imageUrl}
+              status="picked"
+              element={element}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
