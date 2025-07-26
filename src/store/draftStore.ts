@@ -1006,11 +1006,17 @@ const useDraftStore = create<DraftStore>()(
                           const newMapBansGlobal = [...state.mapBansGlobal];
                           let newLastDraftAction: LastDraftAction | null = state.lastDraftAction;
                           const newRevealedBans = [...state.revealedBans];
-                          const newBanRevealCount = state.banRevealCount + 1;
+                          let newBanRevealCount = state.banRevealCount;
 
                           const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                          const eventsToReveal = data.events.slice((newBanRevealCount - 1) * 2, newBanRevealCount * 2);
+                          const eventsToProcess = data.events.filter((event: any) => !newRevealedBans.includes(event.chosenOptionId));
+
+                          if (eventsToProcess.length > 0) {
+                            newBanRevealCount++;
+                          }
+
+                          const eventsToReveal = eventsToProcess.slice(0, 2);
 
                           eventsToReveal.forEach(revealedBanEvent => {
                               if (!revealedBanEvent || typeof revealedBanEvent !== 'object' ||
