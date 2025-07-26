@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItem from './MapItem';
-import styles from './GeneralElements.module.css';
+import './styles.css';
 
 interface MapItemData {
   name: string;
@@ -61,7 +61,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
 
   return (
     <div
-      className={styles.civPoolElement}
+      className="civ-pool-element"
       style={{
         fontFamily,
         fontSize: `${dynamicFontSize}px`,
@@ -79,7 +79,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
+        className="player-civ-grid player1-civ-grid"
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Maps.map((map, index) => (
@@ -89,12 +89,13 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-host-${index}`}
           />
         ))}
       </div>
 
       <div
-        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
+        className="player-civ-grid player2-civ-grid"
         style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
         {player2Maps.map((map, index) => (
@@ -104,6 +105,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-guest-${index}`}
           />
         ))}
       </div>

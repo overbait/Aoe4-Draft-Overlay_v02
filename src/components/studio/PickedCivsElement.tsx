@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
-import styles from './GeneralElements.module.css';
+import './styles.css';
 
 interface CivItemData {
   name: string;
@@ -53,7 +53,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
   return (
     <div
-      className={styles.civPoolElement}
+      className="civ-pool-element"
       style={{
         fontFamily,
         fontSize: `${dynamicFontSize}px`,
@@ -77,7 +77,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           transform: `translateX(${p1TranslateX}px)`,
         }}
       >
-        <div className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}>
+        <div className="player-civ-grid player1-civ-grid">
           {player1Civs.map((civ, index) => (
             <CivItem
               key={`p1-pick-${index}-${civ.name}`}
@@ -85,6 +85,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-host-${index}`}
             />
           ))}
         </div>
@@ -97,7 +98,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           transform: `translateX(${p2TranslateX}px)`,
         }}
       >
-        <div className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}>
+        <div className="player-civ-grid player2-civ-grid">
           {player2Civs.map((civ, index) => (
             <CivItem
               key={`p2-pick-${index}-${civ.name}`}
@@ -105,6 +106,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-guest-${index}`}
             />
           ))}
         </div>

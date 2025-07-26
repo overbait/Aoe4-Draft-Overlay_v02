@@ -585,19 +585,17 @@ const useDraftStore = create<DraftStore>()(
                                 if (executingPlayer === 'HOST') tempCivPicksHost = [...new Set([...state.civPicksHost, optionName])];
                                 else if (executingPlayer === 'GUEST') tempCivPicksGuest = [...new Set([...state.civPicksGuest, optionName])];
                                 else pickBanStateChanged = false; // Outer scope variable
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'pick', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'pick', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivPicksHost.length - 1 : tempCivPicksGuest.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'ban') {
                                 if (executingPlayer === 'HOST') tempCivBansHost = [...state.civBansHost, optionName];
                                 else if (executingPlayer === 'GUEST') tempCivBansGuest = [...state.civBansGuest, optionName];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivBansHost.length - 1 : tempCivBansGuest.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'snipe') {
                                 if (executingPlayer === 'HOST') tempCivBansGuest = [...new Set([...state.civBansGuest, optionName])];
                                 else if (executingPlayer === 'GUEST') tempCivBansHost = [...new Set([...state.civBansHost, optionName])];
                                 else pickBanStateChanged = false;
-                                // Snipes are like bans for the target player, consider if animation is needed
-                                // For now, let's assume snipes also trigger animation as a 'ban' on the item
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivBansGuest.length - 1 : tempCivBansHost.length - 1), timestamp: Date.now() };
                             } else pickBanStateChanged = false;
                         } else if (effectiveDraftType === 'map') {
                             if (actionType === 'pick') {
@@ -605,18 +603,18 @@ const useDraftStore = create<DraftStore>()(
                                 else if (executingPlayer === 'GUEST') tempMapPicksGuest = [...new Set([...state.mapPicksGuest, optionName])];
                                 else if (executingPlayer === 'NONE') tempMapPicksGlobal = [...new Set([...state.mapPicksGlobal, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'pick', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'pick', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapPicksHost.length - 1 : executingPlayer === 'GUEST' ? tempMapPicksGuest.length - 1 : tempMapPicksGlobal.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'ban') {
                                 if (executingPlayer === 'HOST') tempMapBansHost = [...state.mapBansHost, optionName];
                                 else if (executingPlayer === 'GUEST') tempMapBansGuest = [...state.mapBansGuest, optionName];
                                 else if (executingPlayer === 'NONE') tempMapBansGlobal = [...state.mapBansGlobal, optionName];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapBansHost.length - 1 : executingPlayer === 'GUEST' ? tempMapBansGuest.length - 1 : tempMapBansGlobal.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'snipe') {
                                 if (executingPlayer === 'HOST') tempMapBansGuest = [...new Set([...state.mapBansGuest, optionName])];
                                 else if (executingPlayer === 'GUEST') tempMapBansHost = [...new Set([...state.mapBansHost, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapBansGuest.length - 1 : tempMapBansHost.length - 1), timestamp: Date.now() };
                             } else pickBanStateChanged = false;
                         } else {
                              // This case is already logged outside and pickBanStateChanged is set to false there.
@@ -742,17 +740,17 @@ const useDraftStore = create<DraftStore>()(
                                 if (executingPlayer === 'HOST') tempCivPicksHost = [...new Set([...state.civPicksHost, optionName])];
                                 else if (executingPlayer === 'GUEST') tempCivPicksGuest = [...new Set([...state.civPicksGuest, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'pick', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'pick', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivPicksHost.length - 1 : tempCivPicksGuest.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'ban') {
                                 if (executingPlayer === 'HOST') tempCivBansHost = [...state.civBansHost, optionName];
                                 else if (executingPlayer === 'GUEST') tempCivBansGuest = [...state.civBansGuest, optionName];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivBansHost.length - 1 : tempCivBansGuest.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'snipe') {
                                 if (executingPlayer === 'HOST') tempCivBansGuest = [...new Set([...state.civBansGuest, optionName])];
                                 else if (executingPlayer === 'GUEST') tempCivBansHost = [...new Set([...state.civBansHost, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'civ', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempCivBansGuest.length - 1 : tempCivBansHost.length - 1), timestamp: Date.now() };
                             } else pickBanStateChanged = false;
                         } else if (effectiveDraftType === 'map') {
                             if (actionType === 'pick') {
@@ -760,18 +758,18 @@ const useDraftStore = create<DraftStore>()(
                                 else if (executingPlayer === 'GUEST') tempMapPicksGuest = [...new Set([...state.mapPicksGuest, optionName])];
                                 else if (executingPlayer === 'NONE') tempMapPicksGlobal = [...new Set([...state.mapPicksGlobal, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'pick', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'pick', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapPicksHost.length - 1 : executingPlayer === 'GUEST' ? tempMapPicksGuest.length - 1 : tempMapPicksGlobal.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'ban') {
                                 if (executingPlayer === 'HOST') tempMapBansHost = [...state.mapBansHost, optionName];
                                 else if (executingPlayer === 'GUEST') tempMapBansGuest = [...state.mapBansGuest, optionName];
                                 else if (executingPlayer === 'NONE') tempMapBansGlobal = [...state.mapBansGlobal, optionName];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapBansHost.length - 1 : executingPlayer === 'GUEST' ? tempMapBansGuest.length - 1 : tempMapBansGlobal.length - 1), timestamp: Date.now() };
                             } else if (actionType === 'snipe') {
                                 if (executingPlayer === 'HOST') tempMapBansGuest = [...new Set([...state.mapBansGuest, optionName])];
                                 else if (executingPlayer === 'GUEST') tempMapBansHost = [...new Set([...state.mapBansHost, optionName])];
                                 else pickBanStateChanged = false;
-                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', timestamp: Date.now() };
+                                if (optionName) newLastDraftAction = { item: optionName, itemType: 'map', action: 'ban', player: executingPlayer.toLowerCase(), index: (executingPlayer === 'HOST' ? tempMapBansGuest.length - 1 : tempMapBansHost.length - 1), timestamp: Date.now() };
                             } else pickBanStateChanged = false;
                         } else {
                             // This case is logged outside, and pickBanStateChanged is set to false there.
@@ -955,7 +953,9 @@ const useDraftStore = create<DraftStore>()(
                                     draftUpdateStateChanged = true; // If any event causes a change, the overall draft update caused a change
                                     // Update lastDraftAction for this specific event if it's a pick or ban
                                     if ((actionType === 'pick' || actionType === 'ban') && optionName && optionName !== "Hidden Ban") {
-                                        newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: actionType, timestamp: Date.now() };
+                                        const player = executingPlayer.toLowerCase();
+                                        const index = 0; // Placeholder, as we don't have enough info here
+                                        newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: actionType, player, index, timestamp: Date.now() };
                                     }
                                 }
                             });
@@ -1039,7 +1039,7 @@ const useDraftStore = create<DraftStore>()(
                             if (hiddenBanIndex !== -1) {
                               targetBanList[hiddenBanIndex] = optionName;
                               newRevealedBans.push(chosenOptionId);
-                              newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'ban', timestamp: Date.now() };
+                              newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'reveal', player: executingPlayer.toLowerCase(), index: hiddenBanIndex, timestamp: Date.now() };
                             }
                           }
                         });

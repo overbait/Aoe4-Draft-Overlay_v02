@@ -8,10 +8,11 @@ interface MapItemProps {
   mapImageUrl: string;
   status: 'picked' | 'banned';
   element: StudioElement;
+  identifier: string;
 }
 
-const MapItem: React.FC<MapItemProps> = ({ mapName, mapImageUrl, status, element }) => {
-  const animation = useDraftAnimation(mapName, 'map', mapImageUrl);
+const MapItem: React.FC<MapItemProps> = ({ mapName, mapImageUrl, status, element, identifier }) => {
+  const animation = useDraftAnimation(mapName, 'map', mapImageUrl, identifier);
   const itemWidth = 100;
   const itemHeight = 100;
 

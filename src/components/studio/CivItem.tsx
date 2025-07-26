@@ -8,10 +8,11 @@ interface CivItemProps {
   civImageUrl: string;
   status: 'picked' | 'banned';
   element: StudioElement;
+  identifier: string;
 }
 
-const CivItem: React.FC<CivItemProps> = ({ civName, civImageUrl, status, element }) => {
-  const animation = useDraftAnimation(civName, 'civ', civImageUrl);
+const CivItem: React.FC<CivItemProps> = ({ civName, civImageUrl, status, element, identifier }) => {
+  const animation = useDraftAnimation(civName, 'civ', civImageUrl, identifier);
   const itemWidth = 100;
   const itemHeight = 100;
 

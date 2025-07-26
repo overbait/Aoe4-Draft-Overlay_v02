@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
-import styles from './GeneralElements.module.css';
+import './styles.css';
 
 interface CivItemData {
   name: string;
@@ -53,7 +53,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
 
   return (
     <div
-      className={styles.civPoolElement}
+      className="civ-pool-element"
       style={{
         fontFamily,
         fontSize: `${dynamicFontSize}px`,
@@ -71,7 +71,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             }} />
         )}
       <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
+        className="player-civ-grid player1-civ-grid"
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Civs.map((civ, index) => (
@@ -81,12 +81,13 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-host-${index}`}
           />
         ))}
       </div>
 
       <div
-        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
+        className="player-civ-grid player2-civ-grid"
         style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
         {player2Civs.map((civ, index) => (
@@ -96,6 +97,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-guest-${index}`}
           />
         ))}
       </div>
