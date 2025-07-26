@@ -74,30 +74,34 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
-        {player1Civs.map((civ, index) => (
-          <CivItem
-            key={`p1-ban-${index}-${civ.name}`}
-            civName={civ.name}
-            civImageUrl={civ.imageUrl}
-            status="banned"
-            element={element}
-          />
-        ))}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+          {player1Civs.map((civ, index) => (
+            <CivItem
+              key={`p1-ban-${index}-${civ.name}`}
+              civName={civ.name}
+              civImageUrl={civ.imageUrl}
+              status="banned"
+              element={element}
+            />
+          ))}
+        </div>
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
-        {player2Civs.map((civ, index) => (
-          <CivItem
-            key={`p2-ban-${index}-${civ.name}`}
-            civName={civ.name}
-            civImageUrl={civ.imageUrl}
-            status="banned"
-            element={element}
-          />
-        ))}
+        <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+          {player2Civs.map((civ, index) => (
+            <CivItem
+              key={`p2-ban-${index}-${civ.name}`}
+              civName={civ.name}
+              civImageUrl={civ.imageUrl}
+              status="banned"
+              element={element}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
