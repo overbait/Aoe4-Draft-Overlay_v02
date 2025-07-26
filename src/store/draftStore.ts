@@ -1009,15 +1009,21 @@ const useDraftStore = create<DraftStore>()(
 
                         const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                        const eventsToProcess = data.events.filter((event: any) => !newRevealedBans.includes(event.chosenOptionId));
+                        // Determine the bans for this specific reveal event
+                        const allBanEvents = data.events.filter((event: any) => event.actionType === 'ban');
+                        const unrevealedBans = allBanEvents.filter((event: any) => !state.revealedBans.includes(event.chosenOptionId));
 
-                        if (eventsToProcess.length > 0) {
+                        // Increment banRevealCount only when we have new unrevealed bans to process
+                        if (unrevealedBans.length > 0) {
                           newBanRevealCount++;
                         }
 
-                        const eventsToReveal = eventsToProcess.slice(0, 2);
+                        // Identify the bans for the current reveal phase.
+                        // This assumes that each REVEAL_BANS admin event contains all bans up to that point.
+                        // We process up to two new bans per reveal action.
+                        const bansToRevealThisTime = unrevealedBans.slice(0, 2);
 
-                        eventsToReveal.forEach(revealedBanEvent => {
+                        bansToRevealThisTime.forEach(revealedBanEvent => {
                           const { executingPlayer, chosenOptionId } = revealedBanEvent;
                           const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
                           const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
@@ -1027,7 +1033,7 @@ const useDraftStore = create<DraftStore>()(
                           if (effectiveDraftType === 'civ') {
                             if (executingPlayer === 'HOST') targetBanList = newCivBansHost;
                             else if (executingPlayer === 'GUEST') targetBanList = newCivBansGuest;
-                          } else {
+                          } else { // 'map'
                             if (executingPlayer === 'HOST') targetBanList = newMapBansHost;
                             else if (executingPlayer === 'GUEST') targetBanList = newMapBansGuest;
                             else if (executingPlayer === 'NONE') targetBanList = newMapBansGlobal;
@@ -1037,7 +1043,7 @@ const useDraftStore = create<DraftStore>()(
                             const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
                             if (hiddenBanIndex !== -1) {
                               targetBanList[hiddenBanIndex] = optionName;
-                              newRevealedBans.push(chosenOptionId);
+                              newRevealedBans.push(chosenOptionId); // Mark this ban as revealed
                               newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'ban', timestamp: Date.now() };
                             }
                           }
@@ -1051,8 +1057,8 @@ const useDraftStore = create<DraftStore>()(
                           mapBansGuest: newMapBansGuest,
                           mapBansGlobal: newMapBansGlobal,
                           lastDraftAction: newLastDraftAction,
-                          revealedBans: newRevealedBans,
-                          banRevealCount: newBanRevealCount,
+                          revealedBans: newRevealedBans, // Update the list of revealed bans
+                          banRevealCount: newBanRevealCount, // Update the count of reveal actions
                         };
                       });
                       get()._updateActivePresetIfNeeded();
