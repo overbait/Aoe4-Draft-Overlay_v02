@@ -82,34 +82,30 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-          {player1Maps.map((map, index) => (
-            <MapItem
-              key={`p1-map-${index}-${map.name}`}
-              mapName={map.name}
-              mapImageUrl={map.imageUrl}
-              status={map.status}
-              element={element}
-            />
-          ))}
-        </div>
+        {player1Maps.map((map, index) => (
+          <MapItem
+            key={`p1-map-${index}-${map.name}`}
+            mapName={map.name}
+            mapImageUrl={map.imageUrl}
+            status={map.status}
+            element={element}
+          />
+        ))}
       </div>
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
-          {player2Maps.map((map, index) => (
-            <MapItem
-              key={`p2-map-${index}-${map.name}`}
-              mapName={map.name}
-              mapImageUrl={map.imageUrl}
-              status={map.status}
-              element={element}
-            />
-          ))}
-        </div>
+        {player2Maps.map((map, index) => (
+          <MapItem
+            key={`p2-map-${index}-${map.name}`}
+            mapName={map.name}
+            mapImageUrl={map.imageUrl}
+            status={map.status}
+            element={element}
+          />
+        ))}
       </div>
     </div>
   );

@@ -79,20 +79,20 @@
 }
 
 .playerCivGrid {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(9, 80px);
+  grid-gap: 8px;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
-  width: 100%;
 }
 
 .player1CivGrid {
-  justify-content: flex-start;
+  direction: rtl;
 }
 
 .player2CivGrid {
-  justify-content: flex-end;
+  /* No special direction needed, default is ltr */
 }
 
 @keyframes fadeIn {
