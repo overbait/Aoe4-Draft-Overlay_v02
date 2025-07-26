@@ -80,7 +80,7 @@
 
 .playerCivGrid {
   display: grid;
-  grid-template-columns: repeat(9, auto);
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
@@ -132,8 +132,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 80px;
-  height: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 .civItemVisualContent {
