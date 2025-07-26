@@ -80,12 +80,15 @@
 
 .playerCivGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  grid-template-columns: repeat(9, minmax(80px, 1fr));
+  grid-auto-rows: 0;
+  grid-template-rows: 1fr;
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
   width: 100%;
+  overflow-x: auto;
 }
 
 .player1CivGrid {
