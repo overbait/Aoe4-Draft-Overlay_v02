@@ -76,30 +76,25 @@
   overflow: visible;
   padding: 5px;
   background-color: transparent;
-  gap: 8px;
-}
-
-.playerCivGridContainer {
-  width: 50%;
-  display: flex;
+  position: relative;
 }
 
 .playerCivGrid {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(9, auto);
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
+  width: 100%;
 }
 
 .player1CivGrid {
   direction: rtl;
-  justify-content: flex-end;
 }
 
 .player2CivGrid {
-  justify-content: flex-start;
+  /* No special direction needed, default is ltr */
 }
 
 @keyframes fadeIn {
@@ -139,7 +134,7 @@
   justify-content: center;
   align-items: center;
   width: 80px;
-  height: 80px;
+  height: 100%;
 }
 
 .civItemVisualContent {
