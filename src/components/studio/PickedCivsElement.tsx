@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
-import './styles.css';
+import styles from './GeneralElements.module.css';
 
 interface CivItemData {
   name: string;
@@ -53,7 +53,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
   return (
     <div
-      className="civ-pool-element"
+      className={styles.civPoolElement}
       style={{
         fontFamily,
         fontSize: `${dynamicFontSize}px`,
@@ -77,7 +77,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           transform: `translateX(${p1TranslateX}px)`,
         }}
       >
-        <div className="player-civ-grid player1-civ-grid">
+        <div className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}>
           {player1Civs.map((civ, index) => (
             <CivItem
               key={`p1-pick-${index}-${civ.name}`}
@@ -98,7 +98,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           transform: `translateX(${p2TranslateX}px)`,
         }}
       >
-        <div className="player-civ-grid player2-civ-grid">
+        <div className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}>
           {player2Civs.map((civ, index) => (
             <CivItem
               key={`p2-pick-${index}-${civ.name}`}

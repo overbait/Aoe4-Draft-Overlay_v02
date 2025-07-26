@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItem from './MapItem';
-import './styles.css';
+import styles from './GeneralElements.module.css';
 
 interface MapItemData {
   name: string;
@@ -61,7 +61,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
 
   return (
     <div
-      className="civ-pool-element"
+      className={styles.civPoolElement}
       style={{
         fontFamily,
         fontSize: `${dynamicFontSize}px`,
@@ -79,7 +79,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             }} />
         )}
       <div
-        className="player-civ-grid player1-civ-grid"
+        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
         style={{ transform: `translateX(${p1TranslateX}px)` }}
       >
         {player1Maps.map((map, index) => (
@@ -95,7 +95,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       </div>
 
       <div
-        className="player-civ-grid player2-civ-grid"
+        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
         style={{ transform: `translateX(${p2TranslateX}px)` }}
       >
         {player2Maps.map((map, index) => (

@@ -12,7 +12,7 @@ interface MapItemProps {
 }
 
 const MapItem: React.FC<MapItemProps> = ({ mapName, mapImageUrl, status, element, identifier }) => {
-  const animation = useDraftAnimation(mapName, 'map', mapImageUrl, identifier);
+  const animation = useDraftAnimation(mapName, 'map', identifier);
   const itemWidth = 100;
   const itemHeight = 100;
 

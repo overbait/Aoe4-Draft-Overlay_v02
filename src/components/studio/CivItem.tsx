@@ -12,7 +12,7 @@ interface CivItemProps {
 }
 
 const CivItem: React.FC<CivItemProps> = ({ civName, civImageUrl, status, element, identifier }) => {
-  const animation = useDraftAnimation(civName, 'civ', civImageUrl, identifier);
+  const animation = useDraftAnimation(civName, 'civ', identifier);
   const itemWidth = 100;
   const itemHeight = 100;
 

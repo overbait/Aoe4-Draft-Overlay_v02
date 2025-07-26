@@ -11,7 +11,6 @@ interface AnimationOutput {
 const useDraftAnimation = (
   itemName: string | null | undefined,
   itemType: 'civ' | 'map',
-  currentImageUrl: string,
   identifier: string
 ): AnimationOutput => {
   const { lastDraftAction } = useDraftStore(state => ({
@@ -20,7 +19,6 @@ const useDraftAnimation = (
 
   const [isRevealing, setIsRevealing] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | undefined>(undefined);
-  const prevItemNameRef = useRef<string | null | undefined>(itemName);
 
   useEffect(() => {
     if (lastDraftAction?.action === 'reveal' &&

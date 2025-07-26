@@ -23,13 +23,7 @@ import {
 import { customLocalStorageWithBroadcast } from './customStorage'; // Adjust path if needed
 import { deleteImageFromDb } from '../services/imageDb'; //IndexedDB
 
-// Augment CombinedDraftState locally
-export interface CombinedDraftState extends OriginalCombinedDraftState {
-  forceMapPoolUpdate: number;
-  lastDraftAction: LastDraftAction | null; // Add the new state property
-  revealedBans: string[];
-  banRevealCount: number;
-}
+export interface CombinedDraftState extends OriginalCombinedDraftState {}
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
 // The imported CombinedDraftState from ../types/draft now includes isNewSessionAwaitingFirstDraft.
