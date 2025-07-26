@@ -84,7 +84,7 @@ async function runTest() {
 
         eventsToReveal.forEach(revealedBanEvent => {
             const { executingPlayer, chosenOptionId } = revealedBanEvent;
-            const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
+            const optionName = (state.aoe2cmRawDraftOptions?.find(opt => opt.id === chosenOptionId)?.name || chosenOptionId).replace('aoe4.', '');
             const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
 
             let targetBanList: string[] | null = null;
