@@ -34,8 +34,6 @@ const CivItem: React.FC<CivItemProps> = ({ civName, civImageUrl, status, element
         <div
           className={`${styles.civItemVisualContent} ${styles.banned} ${styles.crossFadeOld}`}
           style={{
-            width: `${itemWidth}px`,
-            height: `${itemHeight}px`,
             backgroundImage: `linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%), url('${animation.previousImageUrl}')`,
             boxShadow: getGlowStyle(),
           }}
@@ -46,8 +44,6 @@ const CivItem: React.FC<CivItemProps> = ({ civName, civImageUrl, status, element
       <div
         className={`${combinedClassName} ${animation.isRevealing ? styles.crossFadeNew : ''}`}
         style={{
-          width: `${itemWidth}px`,
-          height: `${itemHeight}px`,
           backgroundImage: `${getGradient()}, url('${civImageUrl}')`,
           opacity: animation.isRevealing ? 0 : animation.imageOpacity,
           boxShadow: getGlowStyle(),

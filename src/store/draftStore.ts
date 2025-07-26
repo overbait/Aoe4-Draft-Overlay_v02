@@ -28,6 +28,7 @@ export interface CombinedDraftState extends OriginalCombinedDraftState {
   forceMapPoolUpdate: number;
   lastDraftAction: LastDraftAction | null; // Add the new state property
   revealedBans: string[];
+  banRevealCount: number;
 }
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
@@ -148,6 +149,7 @@ const initialCombinedState: CombinedDraftState = {
   forceMapPoolUpdate: 0,
   lastDraftAction: null, // Initialize lastDraftAction
   revealedBans: [],
+  banRevealCount: 0,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -995,79 +997,66 @@ const useDraftStore = create<DraftStore>()(
                     console.log('Socket.IO "adminEvent" received:', data);
                     if (data && data.action === "REVEAL_BANS" && data.events && Array.isArray(data.events)) {
                       console.log('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
-                      let bansRevealedStateChanged = false;
                       set(state => {
-                          let newCivBansHost = [...state.civBansHost];
-                          let newCivBansGuest = [...state.civBansGuest];
-                          let newMapBansHost = [...state.mapBansHost];
-                          let newMapBansGuest = [...state.mapBansGuest];
-                          let newMapBansGlobal = [...state.mapBansGlobal];
-                          let newLastDraftAction: LastDraftAction | null = state.lastDraftAction;
-                          const newRevealedBans = [...state.revealedBans];
+                        const newCivBansHost = [...state.civBansHost];
+                        const newCivBansGuest = [...state.civBansGuest];
+                        const newMapBansHost = [...state.mapBansHost];
+                        const newMapBansGuest = [...state.mapBansGuest];
+                        const newMapBansGlobal = [...state.mapBansGlobal];
+                        let newLastDraftAction: LastDraftAction | null = null;
+                        const newRevealedBans = [...state.revealedBans];
+                        let newBanRevealCount = state.banRevealCount;
 
-                          const currentDraftOptions = state.aoe2cmRawDraftOptions;
+                        const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                          data.events.forEach(revealedBanEvent => {
-                              if (!revealedBanEvent || typeof revealedBanEvent !== 'object' ||
-                                  !revealedBanEvent.actionType || revealedBanEvent.actionType !== 'ban' ||
-                                  !revealedBanEvent.hasOwnProperty('chosenOptionId') || typeof revealedBanEvent.chosenOptionId !== 'string' ||
-                                  revealedBanEvent.chosenOptionId === "HIDDEN_BAN" || revealedBanEvent.chosenOptionId === "") {
-                                  console.warn('[draftStore] Socket.IO "adminEvent" (REVEAL_BANS): Skipping invalid event:', revealedBanEvent);
-                                  return;
-                              }
+                        const unrevealedBans = data.events.filter((event: any) => event.actionType === 'ban' && !state.revealedBans.includes(event.chosenOptionId));
 
-                              const { executingPlayer, chosenOptionId } = revealedBanEvent;
+                        if (unrevealedBans.length > 0) {
+                          newBanRevealCount++;
+                        }
 
-                              if (newRevealedBans.includes(chosenOptionId)) {
-                                  return;
-                              }
+                        const hostBansToReveal = unrevealedBans.filter((event: any) => event.executingPlayer === 'HOST').slice(0, 2);
+                        const guestBansToReveal = unrevealedBans.filter((event: any) => event.executingPlayer === 'GUEST').slice(0, 2);
 
-                              const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
-                              let effectiveDraftType: 'civ' | 'map' | null = null;
-                              if (chosenOptionId.startsWith('aoe4.')) effectiveDraftType = 'civ';
-                              else effectiveDraftType = 'map';
+                        [...hostBansToReveal, ...guestBansToReveal].forEach(revealedBanEvent => {
+                          const { executingPlayer, chosenOptionId } = revealedBanEvent;
+                          const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
+                          const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
 
-                              let targetBanList: string[] | null = null;
-                              let listKeyForUpdate: keyof CombinedDraftState | null = null;
+                          let targetBanList: string[] | null = null;
 
-                              if (effectiveDraftType === 'civ') {
-                                  if (executingPlayer === 'HOST') { targetBanList = newCivBansHost; listKeyForUpdate = 'civBansHost';}
-                                  else if (executingPlayer === 'GUEST') { targetBanList = newCivBansGuest; listKeyForUpdate = 'civBansGuest'; }
-                              } else if (effectiveDraftType === 'map') {
-                                  if (executingPlayer === 'HOST') { targetBanList = newMapBansHost; listKeyForUpdate = 'mapBansHost';}
-                                  else if (executingPlayer === 'GUEST') { targetBanList = newMapBansGuest; listKeyForUpdate = 'mapBansGuest';}
-                                  else if (executingPlayer === 'NONE') { targetBanList = newMapBansGlobal; listKeyForUpdate = 'mapBansGlobal';}
-                              }
-
-                              if (targetBanList && listKeyForUpdate) {
-                                  const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
-                                  if (hiddenBanIndex !== -1) {
-                                      targetBanList[hiddenBanIndex] = optionName;
-
-                                      if (listKeyForUpdate === 'civBansHost') newCivBansHost = [...targetBanList];
-                                      else if (listKeyForUpdate === 'civBansGuest') newCivBansGuest = [...targetBanList];
-                                      else if (listKeyForUpdate === 'mapBansHost') newMapBansHost = [...targetBanList];
-                                      else if (listKeyForUpdate === 'mapBansGuest') newMapBansGuest = [...targetBanList];
-                                      else if (listKeyForUpdate === 'mapBansGlobal') newMapBansGlobal = [...targetBanList];
-
-                                      newRevealedBans.push(chosenOptionId);
-                                      bansRevealedStateChanged = true;
-                                      newLastDraftAction = { item: optionName, itemType: effectiveDraftType as 'civ' | 'map', action: 'ban', timestamp: Date.now() };
-                                  } else {
-                                      console.warn(`[draftStore] Socket.IO "adminEvent" (REVEAL_BANS): "Hidden Ban" placeholder not found for revealed ban:`, revealedBanEvent);
-                                  }
-                              }
-                          });
-
-                          if (bansRevealedStateChanged) {
-                            return { ...state, civBansHost: newCivBansHost, civBansGuest: newCivBansGuest, mapBansHost: newMapBansHost, mapBansGuest: newMapBansGuest, mapBansGlobal: newMapBansGlobal, lastDraftAction: newLastDraftAction, revealedBans: newRevealedBans };
+                          if (effectiveDraftType === 'civ') {
+                            if (executingPlayer === 'HOST') targetBanList = newCivBansHost;
+                            else if (executingPlayer === 'GUEST') targetBanList = newCivBansGuest;
+                          } else {
+                            if (executingPlayer === 'HOST') targetBanList = newMapBansHost;
+                            else if (executingPlayer === 'GUEST') targetBanList = newMapBansGuest;
+                            else if (executingPlayer === 'NONE') targetBanList = newMapBansGlobal;
                           }
-                          return state;
+
+                          if (targetBanList) {
+                            const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
+                            if (hiddenBanIndex !== -1) {
+                              targetBanList[hiddenBanIndex] = optionName;
+                              newRevealedBans.push(chosenOptionId);
+                              newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'ban', timestamp: Date.now() };
+                            }
+                          }
+                        });
+
+                        return {
+                          ...state,
+                          civBansHost: newCivBansHost,
+                          civBansGuest: newCivBansGuest,
+                          mapBansHost: newMapBansHost,
+                          mapBansGuest: newMapBansGuest,
+                          mapBansGlobal: newMapBansGlobal,
+                          lastDraftAction: newLastDraftAction,
+                          revealedBans: newRevealedBans,
+                          banRevealCount: newBanRevealCount,
+                        };
                       });
-                      if (bansRevealedStateChanged) {
-                        console.log('[draftStore] Socket.IO "adminEvent" (REVEAL_BANS): State updated, calling _updateActivePresetIfNeeded.');
-                        get()._updateActivePresetIfNeeded();
-                      }
+                      get()._updateActivePresetIfNeeded();
                     } else if (data && data.action === "REVEAL_BANS") {
                         console.warn('[draftStore] Socket.IO "adminEvent": REVEAL_BANS action received but "events" array is missing or invalid.', data);
                     } else if (data && typeof data === 'object' && data.action) {
