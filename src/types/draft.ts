@@ -135,8 +135,11 @@ export interface CombinedDraftState {
 export interface LastDraftAction {
   item: string; // Name of the civ or map
   itemType: 'civ' | 'map';
-  action: 'pick' | 'ban'; // Type of action
-  timestamp: number; // Timestamp of the action
+  action: 'pick' | 'ban' | 'reveal';
+  player: 'host' | 'guest' | 'none';
+  index: number;
+  timestamp: number;
+  id?: string;
 }
 
 // Define StudioCanvas type

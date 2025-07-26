@@ -81,6 +81,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-host-${index}`}
           />
         ))}
       </div>
@@ -96,6 +97,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-guest-${index}`}
           />
         ))}
       </div>

@@ -85,6 +85,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-host-${index}`}
             />
           ))}
         </div>
@@ -105,6 +106,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-guest-${index}`}
             />
           ))}
         </div>

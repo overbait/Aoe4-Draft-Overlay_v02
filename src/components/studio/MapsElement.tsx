@@ -89,6 +89,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-host-${index}`}
           />
         ))}
       </div>
@@ -104,6 +105,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-guest-${index}`}
           />
         ))}
       </div>
