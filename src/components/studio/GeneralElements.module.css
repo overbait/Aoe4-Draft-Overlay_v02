@@ -70,22 +70,23 @@
   height: 100%;
   box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
   position: relative;
   overflow: visible;
   padding: 5px;
   background-color: transparent;
+  gap: 8px;
 }
 
 .playerCivGrid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min-content;
+  display: flex;
+  flex-wrap: nowrap;
   grid-gap: 8px;
   box-sizing: border-box;
   padding: 5px; /* Overall padding for the grid itself */
   transition: transform 0.2s ease-out;
+  width: 100%;
 }
 
 .player1CivGrid {
@@ -132,7 +133,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  aspect-ratio: 1 / 1;
+  width: 80px;
+  height: 80px;
 }
 
 .civItemVisualContent {
