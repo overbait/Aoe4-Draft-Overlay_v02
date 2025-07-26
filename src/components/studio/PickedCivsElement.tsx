@@ -70,10 +70,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
                 transform: 'translateX(-50%)',
             }} />
         )}
-      <div
-        className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
-        style={{ transform: `translateX(${p1TranslateX}px)` }}
-      >
+      <div className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}>
         {player1Civs.map((civ, index) => (
           <CivItem
             key={`p1-pick-${index}-${civ.name}`}
@@ -85,10 +82,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         ))}
       </div>
 
-      <div
-        className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
-        style={{ transform: `translateX(${p2TranslateX}px)` }}
-      >
+      <div className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}>
         {player2Civs.map((civ, index) => (
           <CivItem
             key={`p2-pick-${index}-${civ.name}`}
