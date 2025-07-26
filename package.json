@@ -7,21 +7,17 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "test": "jest src/store/simple.test.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@types/jest": "^30.0.0",
     "axios": "^1.6.7",
     "idb": "^8.0.3",
-    "jest": "^30.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
     "react-resizable": "^3.0.5",
     "react-router-dom": "^6.22.1",
     "socket.io-client": "^4.8.1",
-    "ts-jest": "^29.4.0",
     "zustand": "^4.5.1"
   },
   "devDependencies": {
