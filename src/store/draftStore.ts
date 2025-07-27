@@ -35,6 +35,7 @@ const DRAFT_DATA_API_BASE_URL = 'https://aoe2cm.net/api';
 const DRAFT_WEBSOCKET_URL_PLACEHOLDER = 'wss://aoe2cm.net'; // Base domain
 
 interface DraftStore extends CombinedDraftState {
+  highlightedAction: number;
   connectToDraft: (draftIdOrUrl: string, draftType: 'civ' | 'map') => Promise<boolean>;
   disconnectDraft: (draftType: 'civ' | 'map') => void;
   reconnectDraft: (draftType: 'civ' | 'map') => Promise<boolean>;
