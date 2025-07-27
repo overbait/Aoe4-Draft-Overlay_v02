@@ -220,3 +220,17 @@
 .bannedGlow {
   box-shadow: 0 0 35px 10px #FF9C9C;
 }
+
+.pending {
+  background-color: transparent;
+  border: 2px solid gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: gold;
+}
+
+.pendingTimer {
+  font-size: 1.5em;
+  font-weight: bold;
+}

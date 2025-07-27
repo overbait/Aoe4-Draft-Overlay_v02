@@ -3,6 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
+import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -26,7 +27,10 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civPicksHost, civPicksGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, civPicksHost, civPicksGuest } = useDraftStore(state => ({
+    draft: state.draft,
+    highlightedAction: state.highlightedAction,
+    countdown: state.countdown,
     civPicksHost: state.civPicksHost,
     civPicksGuest: state.civPicksGuest,
   }));
@@ -47,7 +51,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
+  if (!isBroadcast) {
     return null;
   }
 
@@ -88,6 +92,12 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-host-${index}`}
             />
           ))}
+          {(() => {
+            const next = draft.actions[highlightedAction];
+            return next?.type === 'pick' && next?.player === 'HOST'
+              ? <PendingSlot countdown={countdown} type="civ" />
+              : null;
+          })()}
         </div>
       </div>
 
@@ -109,6 +119,12 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-guest-${index}`}
             />
           ))}
+          {(() => {
+            const next = draft.actions[highlightedAction];
+            return next?.type === 'pick' && next?.player === 'GUEST'
+              ? <PendingSlot countdown={countdown} type="civ" />
+              : null;
+          })()}
         </div>
       </div>
     </div>

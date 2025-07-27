@@ -3,6 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
+import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -26,7 +27,10 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civBansHost, civBansGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, civBansHost, civBansGuest } = useDraftStore(state => ({
+    draft: state.draft,
+    highlightedAction: state.highlightedAction,
+    countdown: state.countdown,
     civBansHost: state.civBansHost,
     civBansGuest: state.civBansGuest,
   }));
@@ -47,7 +51,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
+  if (!isBroadcast) {
     return null;
   }
 
@@ -84,6 +88,12 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-host-${index}`}
           />
         ))}
+        {(() => {
+          const next = draft.actions[highlightedAction];
+          return next?.type === 'ban' && next?.player === 'HOST'
+            ? <PendingSlot countdown={countdown} type="civ" />
+            : null;
+        })()}
       </div>
 
       <div
@@ -100,6 +110,12 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-guest-${index}`}
           />
         ))}
+        {(() => {
+          const next = draft.actions[highlightedAction];
+          return next?.type === 'ban' && next?.player === 'GUEST'
+            ? <PendingSlot countdown={countdown} type="civ" />
+            : null;
+        })()}
       </div>
     </div>
   );
