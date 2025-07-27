@@ -86,6 +86,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
           />
         ))}
         {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.status !== 'completed' &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'HOST' &&
           <PendingSlot countdown={countdown} type="civ" />
@@ -107,6 +108,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
           />
         ))}
         {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.status !== 'completed' &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'GUEST' &&
           <PendingSlot countdown={countdown} type="civ" />

@@ -94,6 +94,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           />
         ))}
         {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.status !== 'completed' &&
           (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
           draft.actions[highlightedAction]?.player === 'HOST' &&
           <PendingSlot countdown={countdown} type="map" />
@@ -115,6 +116,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           />
         ))}
         {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.status !== 'completed' &&
           (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
           draft.actions[highlightedAction]?.player === 'GUEST' &&
           <PendingSlot countdown={countdown} type="map" />
