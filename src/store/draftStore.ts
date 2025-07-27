@@ -349,6 +349,10 @@ const useDraftStore = create<DraftStore>()(
                   currentSocket.on('draft_state', (data) => {
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
 
+                    if (data && data.preset) {
+                      set({ draft: data.preset, highlightedAction: data.nextAction });
+                    }
+
                     if (!data || typeof data !== 'object') {
                       console.warn('[draftStore] Socket.IO "draft_state": Received invalid data type or null/undefined data:', data);
                       return;
@@ -821,6 +825,7 @@ const useDraftStore = create<DraftStore>()(
                   });
 
                   currentSocket.on('countdown', (payload) => {
+                    console.log('Countdown payload:', payload);
                     if (payload && typeof payload.value === 'number') {
                       set({ countdown: payload.value });
                     }
