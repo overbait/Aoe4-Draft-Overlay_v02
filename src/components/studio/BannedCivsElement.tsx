@@ -3,7 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
-import PendingSlot from './PendingSlot';
+import DraftTimerPlaceholder from './DraftTimerPlaceholder';
 
 interface CivItemData {
   name: string;
@@ -88,7 +88,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         {draft && draft.actions && highlightedAction < draft.actions.length &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'HOST' &&
-          <PendingSlot countdown={countdown} type="civ" />
+          draft.actions[highlightedAction]?.draftType === 'civ' &&
+          <DraftTimerPlaceholder />
         }
       </div>
 
@@ -109,7 +110,8 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         {draft && draft.actions && highlightedAction < draft.actions.length &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'GUEST' &&
-          <PendingSlot countdown={countdown} type="civ" />
+          draft.actions[highlightedAction]?.draftType === 'civ' &&
+          <DraftTimerPlaceholder />
         }
       </div>
     </div>
