@@ -3,6 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
+import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -26,7 +27,10 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civBansHost, civBansGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, civBansHost, civBansGuest } = useDraftStore(state => ({
+    draft: state.draft,
+    highlightedAction: state.highlightedAction,
+    countdown: state.countdown,
     civBansHost: state.civBansHost,
     civBansGuest: state.civBansGuest,
   }));
@@ -47,9 +51,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
-    return null;
-  }
 
   return (
     <div
@@ -81,8 +82,14 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-host-${index}`}
           />
         ))}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.actions[highlightedAction]?.type === 'ban' &&
+          draft.actions[highlightedAction]?.player === 'HOST' &&
+          <PendingSlot countdown={countdown} type="civ" />
+        }
       </div>
 
       <div
@@ -96,8 +103,14 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             civImageUrl={civ.imageUrl}
             status="banned"
             element={element}
+            identifier={`ban-guest-${index}`}
           />
         ))}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.actions[highlightedAction]?.type === 'ban' &&
+          draft.actions[highlightedAction]?.player === 'GUEST' &&
+          <PendingSlot countdown={countdown} type="civ" />
+        }
       </div>
     </div>
   );

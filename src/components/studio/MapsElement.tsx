@@ -3,6 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItem from './MapItem';
 import styles from './GeneralElements.module.css';
+import PendingSlot from './PendingSlot';
 
 interface MapItemData {
   name: string;
@@ -26,7 +27,10 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     horizontalSplitOffset = 0,
   } = element;
 
-  const { mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
+    draft: state.draft,
+    highlightedAction: state.highlightedAction,
+    countdown: state.countdown,
     mapPicksHost: state.mapPicksHost,
     mapBansHost: state.mapBansHost,
     mapPicksGuest: state.mapPicksGuest,
@@ -55,9 +59,6 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
 
   const dynamicFontSize = 10;
 
-  if (isBroadcast && player1Maps.length === 0 && player2Maps.length === 0) {
-    return null;
-  }
 
   return (
     <div
@@ -89,8 +90,14 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-host-${index}`}
           />
         ))}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
+          draft.actions[highlightedAction]?.player === 'HOST' &&
+          <PendingSlot countdown={countdown} type="map" />
+        }
       </div>
 
       <div
@@ -104,8 +111,14 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
+            identifier={`${map.status}-guest-${index}`}
           />
         ))}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
+          draft.actions[highlightedAction]?.player === 'GUEST' &&
+          <PendingSlot countdown={countdown} type="map" />
+        }
       </div>
     </div>
   );

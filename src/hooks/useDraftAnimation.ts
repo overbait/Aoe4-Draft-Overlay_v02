@@ -11,20 +11,19 @@ interface AnimationOutput {
 const useDraftAnimation = (
   itemName: string | null | undefined,
   itemType: 'civ' | 'map',
-  currentImageUrl: string
+  identifier: string
 ): AnimationOutput => {
-  const { lastDraftAction, civDraftId, mapDraftId } = useDraftStore(state => ({
+  const { lastDraftAction } = useDraftStore(state => ({
     lastDraftAction: state.lastDraftAction,
-    civDraftId: state.civDraftId,
-    mapDraftId: state.mapDraftId,
   }));
 
   const [isRevealing, setIsRevealing] = useState(false);
   const [previousImageUrl, setPreviousImageUrl] = useState<string | undefined>(undefined);
-  const prevItemNameRef = useRef<string | null | undefined>(itemName);
 
   useEffect(() => {
-    if (prevItemNameRef.current === 'Hidden Ban' && itemName && itemName !== 'Hidden Ban') {
+    if (lastDraftAction?.action === 'reveal' &&
+        lastDraftAction.item === itemName &&
+        lastDraftAction.itemType === itemType) {
       setIsRevealing(true);
       setPreviousImageUrl('/assets/civflags_simplified/random.png');
 
@@ -35,22 +34,15 @@ const useDraftAnimation = (
 
       return () => clearTimeout(timer);
     }
-    prevItemNameRef.current = itemName;
-  }, [itemName]);
+  }, [lastDraftAction, itemName, itemType]);
 
   const itemIsTheLastAction = useMemo(() => {
     if (!itemName || !lastDraftAction) return false;
-    const isMatch = lastDraftAction.item === itemName && lastDraftAction.itemType === itemType;
-    if (!isMatch) return false;
-
-    if (itemType === 'civ') {
-      return civDraftId ? (!lastDraftAction.id || lastDraftAction.id === civDraftId) : false;
-    }
-    if (itemType === 'map') {
-      return mapDraftId ? (!lastDraftAction.id || lastDraftAction.id === mapDraftId) : false;
-    }
-    return false;
-  }, [itemName, itemType, lastDraftAction, civDraftId, mapDraftId]);
+    const isMatch = lastDraftAction.item === itemName &&
+                    lastDraftAction.itemType === itemType &&
+                    `${lastDraftAction.action}-${lastDraftAction.player}-${lastDraftAction.index}` === identifier;
+    return isMatch;
+  }, [itemName, itemType, lastDraftAction, identifier]);
 
   if (isRevealing) {
     return {

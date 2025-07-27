@@ -3,6 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
+import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -26,7 +27,10 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { civPicksHost, civPicksGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, civPicksHost, civPicksGuest } = useDraftStore(state => ({
+    draft: state.draft,
+    highlightedAction: state.highlightedAction,
+    countdown: state.countdown,
     civPicksHost: state.civPicksHost,
     civPicksGuest: state.civPicksGuest,
   }));
@@ -47,9 +51,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (isBroadcast && player1Civs.length === 0 && player2Civs.length === 0) {
-    return null;
-  }
 
   return (
     <div
@@ -85,8 +86,10 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-host-${index}`}
             />
           ))}
+          <PendingSlot countdown={countdown} type="civ" />
         </div>
       </div>
 
@@ -105,8 +108,14 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               civImageUrl={civ.imageUrl}
               status="picked"
               element={element}
+              identifier={`pick-guest-${index}`}
             />
           ))}
+          {draft && draft.actions && highlightedAction < draft.actions.length &&
+            draft.actions[highlightedAction]?.type === 'pick' &&
+            draft.actions[highlightedAction]?.player === 'GUEST' &&
+            <PendingSlot countdown={countdown} type="civ" />
+          }
         </div>
       </div>
     </div>
