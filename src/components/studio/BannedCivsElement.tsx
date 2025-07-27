@@ -51,9 +51,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (!isBroadcast) {
-    return null;
-  }
 
   return (
     <div
@@ -89,14 +86,13 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
           />
         ))}
         {(() => {
+          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
+            return null;
+          }
           const next = draft.actions[highlightedAction];
-          if (next?.type === 'ban' && next?.player === 'HOST') {
-            return <PendingSlot countdown={countdown} type="civ" />;
-          }
-          if (player1Civs.length === 0) {
-            return <PendingSlot countdown={countdown} type="civ" />;
-          }
-          return null;
+          return next?.type === 'ban' && next?.player === 'HOST'
+            ? <PendingSlot countdown={countdown} type="civ" />
+            : null;
         })()}
       </div>
 
@@ -115,6 +111,9 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
           />
         ))}
         {(() => {
+          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
+            return null;
+          }
           const next = draft.actions[highlightedAction];
           return next?.type === 'ban' && next?.player === 'GUEST'
             ? <PendingSlot countdown={countdown} type="civ" />

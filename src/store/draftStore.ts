@@ -144,6 +144,7 @@ const initialCombinedState: CombinedDraftState = {
   lastDraftAction: null, // Initialize lastDraftAction
   revealedBans: [],
   banRevealCount: 0,
+  countdown: 0,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -819,14 +820,9 @@ const useDraftStore = create<DraftStore>()(
                     }
                   });
 
-                  currentSocket.on('countdown', (countdownPayload) => {
-                    console.log('Socket.IO "countdown" event received:', countdownPayload);
-                    if (countdownPayload && typeof countdownPayload === 'object' && countdownPayload.hasOwnProperty('value')) {
-                      // TODO: Implement actual state update for countdown if needed by the UI
-                      // For example: set({ currentCountdownValue: countdownPayload.value, currentCountdownDisplay: countdownPayload.display });
-                      console.log('[draftStore] Socket.IO "countdown": Processed payload:', countdownPayload);
-                    } else {
-                      console.warn('[draftStore] Socket.IO "countdown": Received event with invalid payload:', countdownPayload);
+                  currentSocket.on('countdown', (payload) => {
+                    if (payload && typeof payload.value === 'number') {
+                      set({ countdown: payload.value });
                     }
                   });
 

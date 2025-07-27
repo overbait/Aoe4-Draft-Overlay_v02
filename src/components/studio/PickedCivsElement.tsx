@@ -51,9 +51,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
   const dynamicFontSize = 10;
 
-  if (!isBroadcast) {
-    return null;
-  }
 
   return (
     <div
@@ -93,14 +90,13 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
             />
           ))}
           {(() => {
+            if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
+              return null;
+            }
             const next = draft.actions[highlightedAction];
-            if (next?.type === 'pick' && next?.player === 'HOST') {
-              return <PendingSlot countdown={countdown} type="civ" />;
-            }
-            if (player1Civs.length === 0) {
-              return <PendingSlot countdown={countdown} type="civ" />;
-            }
-            return null;
+            return next?.type === 'pick' && next?.player === 'HOST'
+              ? <PendingSlot countdown={countdown} type="civ" />
+              : null;
           })()}
         </div>
       </div>
@@ -124,6 +120,9 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
             />
           ))}
           {(() => {
+            if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
+              return null;
+            }
             const next = draft.actions[highlightedAction];
             return next?.type === 'pick' && next?.player === 'GUEST'
               ? <PendingSlot countdown={countdown} type="civ" />
