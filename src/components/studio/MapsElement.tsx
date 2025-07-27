@@ -98,9 +98,13 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
         ))}
         {(() => {
           const next = draft.actions[highlightedAction];
-          return (next?.type === 'pick' || next?.type === 'ban') && next?.player === 'HOST'
-            ? <PendingSlot countdown={countdown} type="map" />
-            : null;
+          if ((next?.type === 'pick' || next?.type === 'ban') && next?.player === 'HOST') {
+            return <PendingSlot countdown={countdown} type="map" />;
+          }
+          if (player1Maps.length === 0) {
+            return <PendingSlot countdown={countdown} type="map" />;
+          }
+          return null;
         })()}
       </div>
 
