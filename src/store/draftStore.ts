@@ -998,10 +998,9 @@ const useDraftStore = create<DraftStore>()(
                     console.log('Socket.IO "adminEvent" received:', data);
                     if (data && data.action === "REVEAL_BANS" && data.events && Array.isArray(data.events)) {
                       console.log('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
-
                       const banEvents = data.events.filter((event: any) => event.actionType === 'ban');
 
-                      for (let i = 0; i < banEvents.length; i++) {
+                      banEvents.forEach((event, i) => {
                         setTimeout(() => {
                           set(state => {
                             const newCivBansHost = [...state.civBansHost];
@@ -1013,8 +1012,7 @@ const useDraftStore = create<DraftStore>()(
                             let newLastDraftAction: LastDraftAction | null = null;
                             const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                            const revealedBanEvent = banEvents[i];
-                            const { executingPlayer, chosenOptionId } = revealedBanEvent;
+                            const { executingPlayer, chosenOptionId } = event;
 
                             if(newRevealedBans.includes(chosenOptionId)) return state;
 
@@ -1053,8 +1051,8 @@ const useDraftStore = create<DraftStore>()(
                             };
                           });
                           get()._updateActivePresetIfNeeded();
-                        }, i * 500); // Stagger the reveals
-                      }
+                        }, i * 1100); // Stagger the reveals for animation
+                      });
                     } else if (data && data.action === "REVEAL_BANS") {
                         console.warn('[draftStore] Socket.IO "adminEvent": REVEAL_BANS action received but "events" array is missing or invalid.', data);
                     } else if (data && typeof data === 'object' && data.action) {

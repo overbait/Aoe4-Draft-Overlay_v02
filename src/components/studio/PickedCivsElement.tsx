@@ -92,6 +92,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           {draft && draft.actions && highlightedAction < draft.actions.length &&
             draft.actions[highlightedAction]?.type === 'pick' &&
             draft.actions[highlightedAction]?.player === 'HOST' &&
+          !draft.draftIsLikelyFinished &&
             <PendingSlot countdown={countdown} type="civ" />
           }
         </div>
@@ -118,6 +119,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           {draft && draft.actions && highlightedAction < draft.actions.length &&
             draft.actions[highlightedAction]?.type === 'pick' &&
             draft.actions[highlightedAction]?.player === 'GUEST' &&
+            !draft.draftIsLikelyFinished &&
             <PendingSlot countdown={countdown} type="civ" />
           }
         </div>
