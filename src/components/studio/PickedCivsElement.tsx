@@ -89,12 +89,11 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-host-${index}`}
             />
           ))}
-          {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-            const next = draft.actions[highlightedAction];
-            return next?.type === 'pick' && next?.player === 'HOST'
-              ? <PendingSlot countdown={countdown} type="civ" />
-              : null;
-          })()}
+          {draft && draft.actions && highlightedAction < draft.actions.length &&
+            draft.actions[highlightedAction]?.type === 'pick' &&
+            draft.actions[highlightedAction]?.player === 'HOST' &&
+            <PendingSlot countdown={countdown} type="civ" />
+          }
         </div>
       </div>
 
@@ -116,12 +115,11 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-guest-${index}`}
             />
           ))}
-          {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-            const next = draft.actions[highlightedAction];
-            return next?.type === 'pick' && next?.player === 'GUEST'
-              ? <PendingSlot countdown={countdown} type="civ" />
-              : null;
-          })()}
+          {draft && draft.actions && highlightedAction < draft.actions.length &&
+            draft.actions[highlightedAction]?.type === 'pick' &&
+            draft.actions[highlightedAction]?.player === 'GUEST' &&
+            <PendingSlot countdown={countdown} type="civ" />
+          }
         </div>
       </div>
     </div>

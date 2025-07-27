@@ -85,12 +85,11 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-host-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-          const next = draft.actions[highlightedAction];
-          return next?.type === 'ban' && next?.player === 'HOST'
-            ? <PendingSlot countdown={countdown} type="civ" />
-            : null;
-        })()}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.actions[highlightedAction]?.type === 'ban' &&
+          draft.actions[highlightedAction]?.player === 'HOST' &&
+          <PendingSlot countdown={countdown} type="civ" />
+        }
       </div>
 
       <div
@@ -107,12 +106,11 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-guest-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-          const next = draft.actions[highlightedAction];
-          return next?.type === 'ban' && next?.player === 'GUEST'
-            ? <PendingSlot countdown={countdown} type="civ" />
-            : null;
-        })()}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          draft.actions[highlightedAction]?.type === 'ban' &&
+          draft.actions[highlightedAction]?.player === 'GUEST' &&
+          <PendingSlot countdown={countdown} type="civ" />
+        }
       </div>
     </div>
   );

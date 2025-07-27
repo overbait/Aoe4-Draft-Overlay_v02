@@ -93,12 +93,11 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             identifier={`${map.status}-host-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-          const next = draft.actions[highlightedAction];
-          return (next?.type === 'pick' || next?.type === 'ban') && next?.player === 'HOST'
-            ? <PendingSlot countdown={countdown} type="map" />
-            : null;
-        })()}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
+          draft.actions[highlightedAction]?.player === 'HOST' &&
+          <PendingSlot countdown={countdown} type="map" />
+        }
       </div>
 
       <div
@@ -115,12 +114,11 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             identifier={`${map.status}-guest-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
-          const next = draft.actions[highlightedAction];
-          return (next?.type === 'pick' || next?.type === 'ban') && next?.player === 'GUEST'
-            ? <PendingSlot countdown={countdown} type="map" />
-            : null;
-        })()}
+        {draft && draft.actions && highlightedAction < draft.actions.length &&
+          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
+          draft.actions[highlightedAction]?.player === 'GUEST' &&
+          <PendingSlot countdown={countdown} type="map" />
+        }
       </div>
     </div>
   );
