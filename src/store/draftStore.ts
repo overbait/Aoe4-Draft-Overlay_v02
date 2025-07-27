@@ -23,7 +23,10 @@ import {
 import { customLocalStorageWithBroadcast } from './customStorage'; // Adjust path if needed
 import { deleteImageFromDb } from '../services/imageDb'; //IndexedDB
 
-export interface CombinedDraftState extends OriginalCombinedDraftState {}
+export interface CombinedDraftState extends OriginalCombinedDraftState {
+  draft: any;
+  highlightedAction: number;
+}
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
 // The imported CombinedDraftState from ../types/draft now includes isNewSessionAwaitingFirstDraft.
@@ -145,6 +148,8 @@ const initialCombinedState: CombinedDraftState = {
   revealedBans: [],
   banRevealCount: 0,
   countdown: 0,
+  draft: null,
+  highlightedAction: 0,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.

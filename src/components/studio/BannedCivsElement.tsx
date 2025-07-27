@@ -85,10 +85,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-host-${index}`}
           />
         ))}
-        {(() => {
-          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
-            return null;
-          }
+        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
           const next = draft.actions[highlightedAction];
           return next?.type === 'ban' && next?.player === 'HOST'
             ? <PendingSlot countdown={countdown} type="civ" />
@@ -110,10 +107,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-guest-${index}`}
           />
         ))}
-        {(() => {
-          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
-            return null;
-          }
+        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
           const next = draft.actions[highlightedAction];
           return next?.type === 'ban' && next?.player === 'GUEST'
             ? <PendingSlot countdown={countdown} type="civ" />

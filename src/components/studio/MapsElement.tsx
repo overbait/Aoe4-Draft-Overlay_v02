@@ -93,10 +93,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             identifier={`${map.status}-host-${index}`}
           />
         ))}
-        {(() => {
-          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
-            return null;
-          }
+        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
           const next = draft.actions[highlightedAction];
           return (next?.type === 'pick' || next?.type === 'ban') && next?.player === 'HOST'
             ? <PendingSlot countdown={countdown} type="map" />
@@ -118,10 +115,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
             identifier={`${map.status}-guest-${index}`}
           />
         ))}
-        {(() => {
-          if (!draft || !draft.actions || highlightedAction >= draft.actions.length) {
-            return null;
-          }
+        {draft && draft.actions && highlightedAction < draft.actions.length && (() => {
           const next = draft.actions[highlightedAction];
           return (next?.type === 'pick' || next?.type === 'ban') && next?.player === 'GUEST'
             ? <PendingSlot countdown={countdown} type="map" />
