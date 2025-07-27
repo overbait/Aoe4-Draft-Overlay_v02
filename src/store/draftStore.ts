@@ -998,9 +998,10 @@ const useDraftStore = create<DraftStore>()(
                     console.log('Socket.IO "adminEvent" received:', data);
                     if (data && data.action === "REVEAL_BANS" && data.events && Array.isArray(data.events)) {
                       console.log('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
-                      const revealedBans = data.events;
 
-                      for (let i = 0; i < revealedBans.length; i++) {
+                      const banEvents = data.events.filter((event: any) => event.actionType === 'ban');
+
+                      for (let i = 0; i < banEvents.length; i++) {
                         setTimeout(() => {
                           set(state => {
                             const newCivBansHost = [...state.civBansHost];
@@ -1012,8 +1013,11 @@ const useDraftStore = create<DraftStore>()(
                             let newLastDraftAction: LastDraftAction | null = null;
                             const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                            const revealedBanEvent = revealedBans[i];
+                            const revealedBanEvent = banEvents[i];
                             const { executingPlayer, chosenOptionId } = revealedBanEvent;
+
+                            if(newRevealedBans.includes(chosenOptionId)) return state;
+
                             const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
                             const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
 

@@ -3,7 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
-import DraftTimerPlaceholder from './DraftTimerPlaceholder';
+import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -92,7 +92,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           {draft && draft.actions && highlightedAction < draft.actions.length &&
             draft.actions[highlightedAction]?.type === 'pick' &&
             draft.actions[highlightedAction]?.player === 'HOST' &&
-            <DraftTimerPlaceholder />
+            <PendingSlot countdown={countdown} type="civ" />
           }
         </div>
       </div>
@@ -118,7 +118,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
           {draft && draft.actions && highlightedAction < draft.actions.length &&
             draft.actions[highlightedAction]?.type === 'pick' &&
             draft.actions[highlightedAction]?.player === 'GUEST' &&
-            <DraftTimerPlaceholder />
+            <PendingSlot countdown={countdown} type="civ" />
           }
         </div>
       </div>

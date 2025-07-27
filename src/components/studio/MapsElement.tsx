@@ -3,7 +3,7 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItem from './MapItem';
 import styles from './GeneralElements.module.css';
-import DraftTimerPlaceholder from './DraftTimerPlaceholder';
+import PendingSlot from './PendingSlot';
 
 interface MapItemData {
   name: string;
@@ -97,7 +97,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
           draft.actions[highlightedAction]?.player === 'HOST' &&
           draft.actions[highlightedAction]?.draftType === 'map' &&
-          <DraftTimerPlaceholder />
+          <PendingSlot countdown={countdown} type="map" />
         }
       </div>
 
@@ -119,7 +119,7 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
           (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
           draft.actions[highlightedAction]?.player === 'GUEST' &&
           draft.actions[highlightedAction]?.draftType === 'map' &&
-          <DraftTimerPlaceholder />
+          <PendingSlot countdown={countdown} type="map" />
         }
       </div>
     </div>
