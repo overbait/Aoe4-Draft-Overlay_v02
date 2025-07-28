@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import MapItem from './MapItem';
+import useNextPendingPosition from '../../hooks/useNextPendingPosition';
 import styles from './GeneralElements.module.css';
 import PendingSlot from './PendingSlot';
 
@@ -27,15 +28,14 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
-    draft: state.draft,
-    highlightedAction: state.highlightedAction,
+  const { countdown, mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
     countdown: state.countdown,
     mapPicksHost: state.mapPicksHost,
     mapBansHost: state.mapBansHost,
     mapPicksGuest: state.mapPicksGuest,
     mapBansGuest: state.mapBansGuest,
   }));
+  const nextPendingPosition = useNextPendingPosition();
 
   const deriveMaps = useCallback((picks: string[], bans: string[]): MapItemData[] => {
     const pickedMaps = picks.map(mapName => ({
@@ -85,19 +85,17 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       >
         {player1Maps.map((map, index) => (
           <MapItem
-            key={`p1-map-${index}-${map.name}`}
+            key={`p1-map-${index}`}
             mapName={map.name}
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
-            identifier={`${map.status}-host-${index}`}
+            identifier={`map-${map.status}-host-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
-          draft.actions[highlightedAction]?.player === 'HOST' &&
+        {((nextPendingPosition.type === 'mapPick' || nextPendingPosition.type === 'mapBan') && nextPendingPosition.player === 'HOST') && (
           <PendingSlot countdown={countdown} type="map" />
-        }
+        )}
       </div>
 
       <div
@@ -106,19 +104,17 @@ const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
       >
         {player2Maps.map((map, index) => (
           <MapItem
-            key={`p2-map-${index}-${map.name}`}
+            key={`p2-map-${index}`}
             mapName={map.name}
             mapImageUrl={map.imageUrl}
             status={map.status}
             element={element}
-            identifier={`${map.status}-guest-${index}`}
+            identifier={`map-${map.status}-guest-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          (draft.actions[highlightedAction]?.type === 'pick' || draft.actions[highlightedAction]?.type === 'ban') &&
-          draft.actions[highlightedAction]?.player === 'GUEST' &&
+        {((nextPendingPosition.type === 'mapPick' || nextPendingPosition.type === 'mapBan') && nextPendingPosition.player === 'GUEST') && (
           <PendingSlot countdown={countdown} type="map" />
-        }
+        )}
       </div>
     </div>
   );

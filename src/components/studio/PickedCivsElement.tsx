@@ -4,6 +4,7 @@ import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
 import PendingSlot from './PendingSlot';
+import useNextPendingPosition from '../../hooks/useNextPendingPosition';
 
 interface CivItemData {
   name: string;
@@ -27,13 +28,12 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, civPicksHost, civPicksGuest } = useDraftStore(state => ({
-    draft: state.draft,
-    highlightedAction: state.highlightedAction,
+  const { countdown, civPicksHost, civPicksGuest } = useDraftStore(state => ({
     countdown: state.countdown,
     civPicksHost: state.civPicksHost,
     civPicksGuest: state.civPicksGuest,
   }));
+  const nextPendingPosition = useNextPendingPosition();
 
   const derivePickedCivs = useCallback((playerPicks: string[]): CivItemData[] => {
     return playerPicks.map(civName => ({
@@ -81,7 +81,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         <div className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}>
           {player1Civs.map((civ, index) => (
             <CivItem
-              key={`p1-pick-${index}-${civ.name}`}
+              key={`p1-pick-${index}`}
               civName={civ.name}
               civImageUrl={civ.imageUrl}
               status="picked"
@@ -89,7 +89,9 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-host-${index}`}
             />
           ))}
-          <PendingSlot countdown={countdown} type="civ" />
+          {nextPendingPosition.type === 'civPick' && nextPendingPosition.player === 'HOST' && (
+            <PendingSlot countdown={countdown} type="civ" />
+          )}
         </div>
       </div>
 
@@ -103,7 +105,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         <div className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}>
           {player2Civs.map((civ, index) => (
             <CivItem
-              key={`p2-pick-${index}-${civ.name}`}
+              key={`p2-pick-${index}`}
               civName={civ.name}
               civImageUrl={civ.imageUrl}
               status="picked"
@@ -111,11 +113,9 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-guest-${index}`}
             />
           ))}
-          {draft && draft.actions && highlightedAction < draft.actions.length &&
-            draft.actions[highlightedAction]?.type === 'pick' &&
-            draft.actions[highlightedAction]?.player === 'GUEST' &&
+          {nextPendingPosition.type === 'civPick' && nextPendingPosition.player === 'GUEST' && (
             <PendingSlot countdown={countdown} type="civ" />
-          }
+          )}
         </div>
       </div>
     </div>

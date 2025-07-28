@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
+import useNextPendingPosition from '../../hooks/useNextPendingPosition';
 import styles from './GeneralElements.module.css';
 import PendingSlot from './PendingSlot';
 
@@ -27,13 +28,12 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, civBansHost, civBansGuest } = useDraftStore(state => ({
-    draft: state.draft,
-    highlightedAction: state.highlightedAction,
+  const { countdown, civBansHost, civBansGuest } = useDraftStore(state => ({
     countdown: state.countdown,
     civBansHost: state.civBansHost,
     civBansGuest: state.civBansGuest,
   }));
+  const nextPendingPosition = useNextPendingPosition();
 
   const deriveBannedCivs = useCallback((playerBans: string[]): CivItemData[] => {
     return playerBans.map(civName => ({
@@ -85,11 +85,9 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-host-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          draft.actions[highlightedAction]?.type === 'ban' &&
-          draft.actions[highlightedAction]?.player === 'HOST' &&
+        {nextPendingPosition.type === 'civBan' && nextPendingPosition.player === 'HOST' && (
           <PendingSlot countdown={countdown} type="civ" />
-        }
+        )}
       </div>
 
       <div
@@ -106,11 +104,9 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-guest-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          draft.actions[highlightedAction]?.type === 'ban' &&
-          draft.actions[highlightedAction]?.player === 'GUEST' &&
+        {nextPendingPosition.type === 'civBan' && nextPendingPosition.player === 'GUEST' && (
           <PendingSlot countdown={countdown} type="civ" />
-        }
+        )}
       </div>
     </div>
   );
