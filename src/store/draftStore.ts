@@ -356,7 +356,11 @@ const useDraftStore = create<DraftStore>()(
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
 
                     if (data && data.preset) {
-                      set({ draft: data.preset, highlightedAction: data.nextAction });
+                      if (data.nextAction < data.preset.actions.length) {
+                        set({ draft: data.preset, highlightedAction: data.nextAction });
+                      } else {
+                        set({ draft: data.preset });
+                      }
                     }
 
                     if (!data || typeof data !== 'object') {
