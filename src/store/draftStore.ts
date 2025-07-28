@@ -356,7 +356,11 @@ const useDraftStore = create<DraftStore>()(
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
 
                     if (data && data.preset) {
-                      set({ draft: data.preset, highlightedAction: data.nextAction });
+                      if (data.nextAction < data.preset.actions.length) {
+                        set({ draft: data.preset, highlightedAction: data.nextAction });
+                      } else {
+                        set({ draft: data.preset });
+                      }
                     }
 
                     if (!data || typeof data !== 'object') {
@@ -998,61 +1002,66 @@ const useDraftStore = create<DraftStore>()(
                     console.log('Socket.IO "adminEvent" received:', data);
                     if (data && data.action === "REVEAL_BANS" && data.events && Array.isArray(data.events)) {
                       console.log('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
-                      const banEvents = data.events.filter((event: any) => event.actionType === 'ban');
+                      set(state => {
+                        const newCivBansHost = [...state.civBansHost];
+                        const newCivBansGuest = [...state.civBansGuest];
+                        const newMapBansHost = [...state.mapBansHost];
+                        const newMapBansGuest = [...state.mapBansGuest];
+                        const newMapBansGlobal = [...state.mapBansGlobal];
+                        let newLastDraftAction: LastDraftAction | null = null;
+                        const newRevealedBans = [...state.revealedBans];
+                        let newBanRevealCount = state.banRevealCount;
 
-                      banEvents.forEach((event, i) => {
-                        setTimeout(() => {
-                          set(state => {
-                            const newCivBansHost = [...state.civBansHost];
-                            const newCivBansGuest = [...state.civBansGuest];
-                            const newMapBansHost = [...state.mapBansHost];
-                            const newMapBansGuest = [...state.mapBansGuest];
-                            const newMapBansGlobal = [...state.mapBansGlobal];
-                            const newRevealedBans = [...state.revealedBans];
-                            let newLastDraftAction: LastDraftAction | null = null;
-                            const currentDraftOptions = state.aoe2cmRawDraftOptions;
+                        const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                            const { executingPlayer, chosenOptionId } = event;
+                        const unrevealedBans = data.events.filter((event: any) => event.actionType === 'ban' && !state.revealedBans.includes(event.chosenOptionId));
 
-                            if(newRevealedBans.includes(chosenOptionId)) return state;
+                        if (unrevealedBans.length > 0) {
+                          newBanRevealCount++;
+                        }
 
-                            const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
-                            const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
+                        const hostBansToReveal = unrevealedBans.filter((event: any) => event.executingPlayer === 'HOST').slice(0, 2);
+                        const guestBansToReveal = unrevealedBans.filter((event: any) => event.executingPlayer === 'GUEST').slice(0, 2);
 
-                            let targetBanList: string[] | null = null;
-                            if (effectiveDraftType === 'civ') {
-                              if (executingPlayer === 'HOST') targetBanList = newCivBansHost;
-                              else if (executingPlayer === 'GUEST') targetBanList = newCivBansGuest;
-                            } else {
-                              if (executingPlayer === 'HOST') targetBanList = newMapBansHost;
-                              else if (executingPlayer === 'GUEST') targetBanList = newMapBansGuest;
-                              else if (executingPlayer === 'NONE') targetBanList = newMapBansGlobal;
+                        [...hostBansToReveal, ...guestBansToReveal].forEach(revealedBanEvent => {
+                          const { executingPlayer, chosenOptionId } = revealedBanEvent;
+                          const optionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
+                          const effectiveDraftType: 'civ' | 'map' = chosenOptionId.startsWith('aoe4.') ? 'civ' : 'map';
+
+                          let targetBanList: string[] | null = null;
+
+                          if (effectiveDraftType === 'civ') {
+                            if (executingPlayer === 'HOST') targetBanList = newCivBansHost;
+                            else if (executingPlayer === 'GUEST') targetBanList = newCivBansGuest;
+                          } else {
+                            if (executingPlayer === 'HOST') targetBanList = newMapBansHost;
+                            else if (executingPlayer === 'GUEST') targetBanList = newMapBansGuest;
+                            else if (executingPlayer === 'NONE') targetBanList = newMapBansGlobal;
+                          }
+
+                          if (targetBanList) {
+                            const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
+                            if (hiddenBanIndex !== -1) {
+                              targetBanList[hiddenBanIndex] = optionName;
+                              newRevealedBans.push(chosenOptionId);
+                              newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'reveal', player: executingPlayer.toLowerCase(), index: hiddenBanIndex, timestamp: Date.now() };
                             }
+                          }
+                        });
 
-                            if (targetBanList) {
-                              const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
-                              if (hiddenBanIndex !== -1) {
-                                targetBanList[hiddenBanIndex] = optionName;
-                                newRevealedBans.push(chosenOptionId);
-                                newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'reveal', player: executingPlayer.toLowerCase(), index: hiddenBanIndex, timestamp: Date.now() };
-                              }
-                            }
-
-                            return {
-                              ...state,
-                              civBansHost: newCivBansHost,
-                              civBansGuest: newCivBansGuest,
-                              mapBansHost: newMapBansHost,
-                              mapBansGuest: newMapBansGuest,
-                              mapBansGlobal: newMapBansGlobal,
-                              lastDraftAction: newLastDraftAction,
-                              revealedBans: newRevealedBans,
-                              banRevealCount: state.banRevealCount + 1,
-                            };
-                          });
-                          get()._updateActivePresetIfNeeded();
-                        }, i * 1100); // Stagger the reveals for animation
+                        return {
+                          ...state,
+                          civBansHost: newCivBansHost,
+                          civBansGuest: newCivBansGuest,
+                          mapBansHost: newMapBansHost,
+                          mapBansGuest: newMapBansGuest,
+                          mapBansGlobal: newMapBansGlobal,
+                          lastDraftAction: newLastDraftAction,
+                          revealedBans: newRevealedBans,
+                          banRevealCount: newBanRevealCount,
+                        };
                       });
+                      get()._updateActivePresetIfNeeded();
                     } else if (data && data.action === "REVEAL_BANS") {
                         console.warn('[draftStore] Socket.IO "adminEvent": REVEAL_BANS action received but "events" array is missing or invalid.', data);
                     } else if (data && typeof data === 'object' && data.action) {

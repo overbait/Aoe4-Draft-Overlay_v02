@@ -77,7 +77,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player1Civs.map((civ, index) => (
           <CivItem
-            key={`p1-ban-${index}-${civ.name}`}
+            key={`p1-ban-${index}`}
             civName={civ.name}
             civImageUrl={civ.imageUrl}
             status="banned"
@@ -88,8 +88,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         {draft && draft.actions && highlightedAction < draft.actions.length &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'HOST' &&
-          !draft.draftIsLikelyFinished &&
-          draft.actions[highlightedAction]?.draftType === 'civ' &&
           <PendingSlot countdown={countdown} type="civ" />
         }
       </div>
@@ -100,7 +98,7 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
       >
         {player2Civs.map((civ, index) => (
           <CivItem
-            key={`p2-ban-${index}-${civ.name}`}
+            key={`p2-ban-${index}`}
             civName={civ.name}
             civImageUrl={civ.imageUrl}
             status="banned"
@@ -111,8 +109,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
         {draft && draft.actions && highlightedAction < draft.actions.length &&
           draft.actions[highlightedAction]?.type === 'ban' &&
           draft.actions[highlightedAction]?.player === 'GUEST' &&
-          !draft.draftIsLikelyFinished &&
-          draft.actions[highlightedAction]?.draftType === 'civ' &&
           <PendingSlot countdown={countdown} type="civ" />
         }
       </div>

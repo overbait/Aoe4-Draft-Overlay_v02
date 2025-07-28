@@ -12,7 +12,6 @@ import PickedCivsElement from '../components/studio/PickedCivsElement';
 import BannedCivsElement from '../components/studio/BannedCivsElement';
 import MapsElement from '../components/studio/MapsElement';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import new component
-import DraftTimerPlaceholder from '../components/studio/DraftTimerPlaceholder';
 // All elements are now imported.
 
 interface BroadcastViewProps {
@@ -179,7 +178,6 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
           </div>
         );
       })}
-      {/* <DraftTimerPlaceholder /> */}
       {/* Debug Overlay Start */}
       {/*
       <div
