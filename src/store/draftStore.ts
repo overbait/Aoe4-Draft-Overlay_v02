@@ -23,7 +23,10 @@ import {
 import { customLocalStorageWithBroadcast } from './customStorage'; // Adjust path if needed
 import { deleteImageFromDb } from '../services/imageDb'; //IndexedDB
 
-export interface CombinedDraftState extends OriginalCombinedDraftState {}
+export interface CombinedDraftState extends OriginalCombinedDraftState {
+  draft: any;
+  highlightedAction: number;
+}
 
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
 // The imported CombinedDraftState from ../types/draft now includes isNewSessionAwaitingFirstDraft.
@@ -32,6 +35,7 @@ const DRAFT_DATA_API_BASE_URL = 'https://aoe2cm.net/api';
 const DRAFT_WEBSOCKET_URL_PLACEHOLDER = 'wss://aoe2cm.net'; // Base domain
 
 interface DraftStore extends CombinedDraftState {
+  highlightedAction: number;
   connectToDraft: (draftIdOrUrl: string, draftType: 'civ' | 'map') => Promise<boolean>;
   disconnectDraft: (draftType: 'civ' | 'map') => void;
   reconnectDraft: (draftType: 'civ' | 'map') => Promise<boolean>;
@@ -144,6 +148,9 @@ const initialCombinedState: CombinedDraftState = {
   lastDraftAction: null, // Initialize lastDraftAction
   revealedBans: [],
   banRevealCount: 0,
+  countdown: 0,
+  draft: null,
+  highlightedAction: 0,
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -347,6 +354,14 @@ const useDraftStore = create<DraftStore>()(
                 if (currentSocket) {
                   currentSocket.on('draft_state', (data) => {
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
+
+                    if (data && data.preset) {
+                      if (data.nextAction < data.preset.actions.length) {
+                        set({ draft: data.preset, highlightedAction: data.nextAction });
+                      } else {
+                        set({ draft: data.preset });
+                      }
+                    }
 
                     if (!data || typeof data !== 'object') {
                       console.warn('[draftStore] Socket.IO "draft_state": Received invalid data type or null/undefined data:', data);
@@ -819,14 +834,10 @@ const useDraftStore = create<DraftStore>()(
                     }
                   });
 
-                  currentSocket.on('countdown', (countdownPayload) => {
-                    console.log('Socket.IO "countdown" event received:', countdownPayload);
-                    if (countdownPayload && typeof countdownPayload === 'object' && countdownPayload.hasOwnProperty('value')) {
-                      // TODO: Implement actual state update for countdown if needed by the UI
-                      // For example: set({ currentCountdownValue: countdownPayload.value, currentCountdownDisplay: countdownPayload.display });
-                      console.log('[draftStore] Socket.IO "countdown": Processed payload:', countdownPayload);
-                    } else {
-                      console.warn('[draftStore] Socket.IO "countdown": Received event with invalid payload:', countdownPayload);
+                  currentSocket.on('countdown', (payload) => {
+                    console.log('Countdown payload:', payload);
+                    if (payload && typeof payload.value === 'number') {
+                      set({ countdown: payload.value });
                     }
                   });
 
