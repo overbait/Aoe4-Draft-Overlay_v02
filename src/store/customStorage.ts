@@ -1,60 +1,5 @@
 import { StateStorage } from 'zustand/middleware';
 import useDraftStore from './draftStore';
-import { io } from 'socket.io-client';
-
-// --- Socket.io setup for server communication ---
-const socket = io('http://localhost:4000');
-socket.on('connect', () => {
-  console.log('[CustomStorage] Socket connected to overlay server.');
-});
-socket.on('disconnect', () => {
-  console.log('[CustomStorage] Socket disconnected from overlay server.');
-});
-
-// Helper to strip functions and other non-serializable data from the store state
-const getSerializableDraftState = (state: any) => {
-  if (!state || typeof state !== 'object') return {};
-  return {
-    civDraftId: state.civDraftId,
-    mapDraftId: state.mapDraftId,
-    hostName: state.hostName,
-    guestName: state.guestName,
-    scores: state.scores,
-    civPicksHost: state.civPicksHost,
-    civBansHost: state.civBansHost,
-    civPicksGuest: state.civPicksGuest,
-    civBansGuest: state.civBansGuest,
-    mapPicksHost: state.mapPicksHost,
-    mapBansHost: state.mapBansHost,
-    mapPicksGuest: state.mapPicksGuest,
-    mapBansGuest: state.mapBansGuest,
-    mapPicksGlobal: state.mapPicksGlobal,
-    mapBansGlobal: state.mapBansGlobal,
-    civDraftStatus: state.civDraftStatus,
-    mapDraftStatus: state.mapDraftStatus,
-    socketStatus: state.socketStatus,
-    aoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
-    boxSeriesFormat: state.boxSeriesFormat,
-    boxSeriesGames: state.boxSeriesGames,
-    hostColor: state.hostColor,
-    guestColor: state.guestColor,
-    hostFlag: state.hostFlag,
-    guestFlag: state.guestFlag,
-    lastDraftAction: state.lastDraftAction,
-    revealedBans: state.revealedBans,
-    banRevealCount: state.banRevealCount,
-    countdown: state.countdown,
-    draft: state.draft,
-    highlightedAction: state.highlightedAction,
-    // explicitly exclude layout properties as they are handled separately
-    // currentCanvases: state.currentCanvases,
-    // activeCanvasId: state.activeCanvasId,
-    // savedStudioLayouts: state.savedStudioLayouts,
-    // selectedElementId: state.selectedElementId,
-    // activeStudioLayoutId: state.activeStudioLayoutId,
-  };
-};
-
 
 const STORE_NAME = 'aoe4-draft-overlay-storage-v1';
 const BROADCAST_CHANNEL_NAME = 'zustand_store_sync_channel';
@@ -213,18 +158,6 @@ export const customLocalStorageWithBroadcast: StateStorage = {
     localStorageWriteInProgressByThisTab = true;
     localStorage.setItem(name, valueToStore);
     setTimeout(() => { localStorageWriteInProgressByThisTab = false; }, 0); // Reset for storage event
-
-    // --- New logic: Send state to the Node.js server ---
-    try {
-      const parsedValue = JSON.parse(valueToStore);
-      if (parsedValue && parsedValue.state) {
-        const serializableState = getSerializableDraftState(parsedValue.state);
-        socket.emit('updateDraft', serializableState);
-      }
-    } catch (e) {
-      console.error('[CustomStorage] Failed to parse or emit state to socket server:', e);
-    }
-    // --- End of new logic ---
 
     if (channel) {
       isOriginTab = true; // Set BEFORE postMessage

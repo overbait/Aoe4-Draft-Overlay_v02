@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { io } from 'socket.io-client';
 import useDraftStore from '../store/draftStore';
 import ScoreOnlyElement from '../components/studio/ScoreOnlyElement'; // New
 import NicknamesOnlyElement from '../components/studio/NicknamesOnlyElement'; // New
@@ -17,21 +16,6 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import SettingsPanel from '../components/studio/SettingsPanel';
-
-// Socket.io connection to the overlay server
-const socket = io('http://localhost:4000', {
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 3000,
-});
-
-socket.on('connect', () => {
-    // Studio connected to overlay server
-});
-
-socket.on('disconnect', () => {
-    // Studio disconnected from overlay server
-});
 
 const MIN_ELEMENT_WIDTH = 50;
 
@@ -130,27 +114,6 @@ const StudioInterface: React.FC = () => {
   const activeCanvas = useMemo(() => currentCanvases.find(c => c.id === activeCanvasId), [currentCanvases, activeCanvasId]);
   const activeLayout = useMemo(() => activeCanvas?.layout || [], [activeCanvas]);
   const selectedElement = useMemo(() => activeLayout.find(el => el.id === selectedElementId) || null, [selectedElementId, activeLayout]);
-
-  // --- SERVER COMMUNICATION ---
-
-  // Effect 1: Handles sending layout updates for the active canvas
-  useEffect(() => {
-    if (!activeCanvas) return;
-    socket.emit('updateLayout', activeCanvas);
-  }, [activeCanvas]);
-
-  // Effect 2: Primes the server with initial layout data.
-  // Draft data is now sent globally from customStorage.ts
-  useEffect(() => {
-    const allCanvases = useDraftStore.getState().currentCanvases;
-    if (allCanvases && allCanvases.length > 0) {
-      const layoutsToPrime = allCanvases.reduce((acc, canvas) => {
-        acc[canvas.id] = canvas;
-        return acc;
-      }, {} as Record<string, any>);
-      socket.emit('initLayouts', layoutsToPrime);
-    }
-  }, []);
 
   const handleAddScoreOnly = () => { addStudioElement("ScoreOnly"); };
   const handleAddNicknamesOnly = () => { addStudioElement("NicknamesOnly"); };
@@ -482,8 +445,12 @@ const StudioInterface: React.FC = () => {
                       title="Copy OBS Link"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // The server now handles data distribution. The URL only needs the canvasId.
-                        const obsUrl = `${window.location.origin}/?view=broadcast&canvasId=${canvas.id}`;
+                        // The 'canvas' object is available from the map loop.
+                        // We serialize the entire canvas object and encode it for the URL.
+                        const canvasDataString = JSON.stringify(canvas);
+                        const encodedData = encodeURIComponent(canvasDataString);
+                        const obsUrl = `${window.location.origin}/?view=broadcast&canvasId=${canvas.id}&data=${encodedData}`;
+
                         navigator.clipboard.writeText(obsUrl);
 
                         // Provide visual feedback on the button
