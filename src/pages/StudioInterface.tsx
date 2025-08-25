@@ -127,43 +127,46 @@ const StudioInterface: React.FC = () => {
     const element = activeLayout.find(el => el.id === elementId);
     if (!element) return;
 
-    if (element.isPivotLocked) {
-    let newY_screen = element.position.y + data.deltaY;
+    // Unscale mouse delta values by the overall canvas scale factor
+    const unscaledDeltaX = data.deltaX / studioCanvasScaleFactor;
+    const unscaledDeltaY = data.deltaY / studioCanvasScaleFactor;
 
-    if (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") {
+    if (element.isPivotLocked) {
+      // For pivoted elements, dragging modifies properties other than direct position (e.g., size or offset).
+      // The Y position is updated based on the unscaled delta.
+      let newY_position = element.position.y + unscaledDeltaY;
+
+      if (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") {
+        // These elements use a horizontal split offset, which is adjusted by the drag.
         let newHorizontalSplitOffset = element.horizontalSplitOffset || 0;
-        const currentX_screen = element.position.x;
         const currentScale = element.scale || 1;
 
         if (data.deltaX !== 0 && dragStartContext && dragStartContext.elementId === elementId) {
-            let changeInOffsetFactor = data.deltaX / currentScale;
+          // The change in offset is the unscaled drag delta, further divided by the element's own scale.
+          let changeInOffsetFactor = unscaledDeltaX / currentScale;
 
-            if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
-                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) - changeInOffsetFactor;
-            } else {
-                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) + changeInOffsetFactor;
-            }
+          if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
+            newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) - changeInOffsetFactor;
+          } else {
+            newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) + changeInOffsetFactor;
+          }
         }
         updateStudioElementSettings(elementId, {
-            position: { x: currentX_screen, y: newY_screen },
-            horizontalSplitOffset: newHorizontalSplitOffset
+          position: { x: element.position.x, y: newY_position },
+          horizontalSplitOffset: newHorizontalSplitOffset
         });
         return;
-    }
+      }
 
-    const currentX_screen = element.position.x;
-    const currentUnscaledWidth = element.size.width;
-    const currentUnscaledHeight = element.size.height;
-    const currentScale = element.scale || 1;
-    const currentPivotOffset_unscaled = element.pivotInternalOffset || 0;
+      // Handle other types of pivoted elements, which resize based on drag.
+      const currentScale = element.scale || 1;
+      let finalX_position = element.position.x;
+      let finalUnscaledWidth = element.size.width;
+      let finalPivotOffset_unscaled = element.pivotInternalOffset || 0;
 
-    let finalX_screen = currentX_screen;
-    let finalUnscaledWidth = currentUnscaledWidth;
-    let finalPivotOffset_unscaled = currentPivotOffset_unscaled;
-
-    if (data.deltaX !== 0) {
-        const pivotScreenX_fixed = currentX_screen + (currentUnscaledWidth / 2) * currentScale;
-        const effectiveUnscaledDrag = data.deltaX / currentScale;
+      if (data.deltaX !== 0) {
+        const pivotScreenX_fixed = element.position.x + (element.size.width / 2) * currentScale;
+        const effectiveUnscaledDrag = unscaledDeltaX / currentScale;
         let actualEffectiveUnscaledDrag = effectiveUnscaledDrag;
 
         if (dragStartContext && dragStartContext.elementId === elementId) {
@@ -171,24 +174,29 @@ const StudioInterface: React.FC = () => {
             actualEffectiveUnscaledDrag = -effectiveUnscaledDrag;
           }
         }
-        finalUnscaledWidth = Math.max(MIN_ELEMENT_WIDTH, currentUnscaledWidth + (2 * actualEffectiveUnscaledDrag));
-        const actualUnscaledDragAppliedToEdge = (currentUnscaledWidth - finalUnscaledWidth) / 2;
-        finalX_screen = pivotScreenX_fixed - (finalUnscaledWidth / 2) * currentScale;
+
+        finalUnscaledWidth = Math.max(MIN_ELEMENT_WIDTH, element.size.width + (2 * actualEffectiveUnscaledDrag));
+        const actualUnscaledDragAppliedToEdge = (element.size.width - finalUnscaledWidth) / 2;
+        finalX_position = pivotScreenX_fixed - (finalUnscaledWidth / 2) * currentScale;
 
         if (element.type === "ScoreOnly") {
-          finalPivotOffset_unscaled = Math.max(0, currentPivotOffset_unscaled - (2 * actualUnscaledDragAppliedToEdge));
+          finalPivotOffset_unscaled = Math.max(0, element.pivotInternalOffset || 0 - (2 * actualUnscaledDragAppliedToEdge));
         } else if (element.type === "BoXSeriesOverview") {
-          finalPivotOffset_unscaled = Math.max(0, currentPivotOffset_unscaled - actualUnscaledDragAppliedToEdge);
+          finalPivotOffset_unscaled = Math.max(0, element.pivotInternalOffset || 0 - actualUnscaledDragAppliedToEdge);
         }
-    }
-    updateStudioElementSettings(elementId, {
-        position: { x: finalX_screen, y: newY_screen },
-        size: { width: finalUnscaledWidth, height: currentUnscaledHeight },
+      }
+
+      updateStudioElementSettings(elementId, {
+        position: { x: finalX_position, y: newY_position },
+        size: { width: finalUnscaledWidth, height: element.size.height },
         pivotInternalOffset: finalPivotOffset_unscaled
-    });
+      });
 
     } else {
-      updateStudioElementPosition(elementId, { x: data.x, y: data.y });
+      // For non-pivoted elements, simply update the position after unscaling.
+      const unscaledX = data.x / studioCanvasScaleFactor;
+      const unscaledY = data.y / studioCanvasScaleFactor;
+      updateStudioElementPosition(elementId, { x: unscaledX, y: unscaledY });
     }
   };
 
@@ -433,6 +441,34 @@ const StudioInterface: React.FC = () => {
                         lineHeight: '10px', // Adjust for vertical centering if needed
                       }}
                     ></button>
+                   <button
+                      title="Copy OBS Link"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const obsUrl = `${window.location.origin}/?view=broadcast&canvasId=${canvas.id}`;
+                        navigator.clipboard.writeText(obsUrl);
+                        const target = e.currentTarget;
+                        const originalText = target.innerText;
+                        target.innerText = 'Copied!';
+                        target.style.backgroundColor = '#28a745'; // Green for success
+                        setTimeout(() => {
+                          target.innerText = originalText;
+                          target.style.backgroundColor = '#007bff'; // Revert to blue
+                        }, 1500);
+                      }}
+                      style={{
+                        backgroundColor: '#007bff', // Blue color
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        padding: '2px 8px',
+                        marginLeft: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.9em'
+                      }}
+                    >
+                      Copy Link
+                    </button>
                    {currentCanvases.length > 1 && ( <button title="Remove canvas" onClick={(e) => { e.stopPropagation(); if(confirm(`Are you sure you want to delete canvas "${canvas.name}"?`)) removeCanvas(canvas.id); }} style={{ background: 'transparent', border: 'none', color: '#aaa', marginLeft: '5px', cursor: 'pointer', fontSize: '1.2em', padding: '0 3px', lineHeight: '1', fontWeight: 'bold' }} > &times; </button> )}
                  </>
                )}
