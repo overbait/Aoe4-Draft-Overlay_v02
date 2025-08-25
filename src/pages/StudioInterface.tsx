@@ -133,39 +133,36 @@ const StudioInterface: React.FC = () => {
 
   // --- SERVER COMMUNICATION ---
 
-  // On initial load, send all existing canvases to the server to prime its cache.
-  useEffect(() => {
-    const allCanvases = useDraftStore.getState().currentCanvases;
-    if (allCanvases && allCanvases.length > 0) {
-      const canvasesToPrime = allCanvases.reduce((acc, canvas) => {
-        // The server expects a flat object with canvasId as keys
-        acc[canvas.id] = {
-          ...canvas,
-          canvasId: canvas.id // Ensure canvasId is present for server logic
-        };
-        return acc;
-      }, {} as Record<string, any>);
-      socket.emit('initCanvases', canvasesToPrime);
-    }
-  }, []); // Runs once on component mount
-
-  // When the active canvas changes, send its updated state to the server.
+  // Effect 1: Handles sending layout updates for the active canvas
   useEffect(() => {
     if (!activeCanvas) return;
+    // Note: The 'activeCanvas' object from the store already contains all necessary properties
+    // like id, name, layout, backgroundColor, etc.
+    socket.emit('updateLayout', activeCanvas);
+  }, [activeCanvas]); // Depends on the memoized activeCanvas, which includes layout changes
 
-    const payload = {
-      // Pass all relevant properties for the broadcast view
-      id: activeCanvas.id,
-      canvasId: activeCanvas.id, // Explicitly for server-side keying
-      name: activeCanvas.name,
-      layout: activeLayout,
-      backgroundColor: activeCanvas.backgroundColor,
-      showBroadcastBorder: activeCanvas.showBroadcastBorder,
-    };
+  // Effect 2: Subscribes to the draft store and handles initial data push + continuous draft updates
+  useEffect(() => {
+    // A. Prime the server with initial data on component mount
+    const initialState = useDraftStore.getState();
+    const allCanvases = initialState.currentCanvases;
+    if (allCanvases && allCanvases.length > 0) {
+      const layoutsToPrime = allCanvases.reduce((acc, canvas) => {
+        acc[canvas.id] = canvas;
+        return acc;
+      }, {} as Record<string, any>);
+      socket.emit('initLayouts', layoutsToPrime);
+    }
+    socket.emit('initDraft', initialState);
 
-    socket.emit('updateCanvas', payload);
+    // B. Subscribe to all store changes to send the new draft state to the server
+    const unsubscribe = useDraftStore.subscribe((state) => {
+      socket.emit('updateDraft', state);
+    });
 
-  }, [activeCanvas, activeLayout]); // Re-runs when the active canvas or its layout changes
+    // C. Clean up the subscription when the component unmounts
+    return unsubscribe;
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleAddScoreOnly = () => { addStudioElement("ScoreOnly"); };
   const handleAddNicknamesOnly = () => { addStudioElement("NicknamesOnly"); };

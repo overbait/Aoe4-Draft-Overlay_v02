@@ -16,13 +16,11 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true);
   }
 };
 
@@ -35,11 +33,14 @@ const io = new Server(server, {
   }
 });
 
-// In-memory storage for canvases.
+// --- In-memory Storage ---
 // The Studio Interface is the source of truth. This is just a cache.
-const canvases = {};
+const canvases = {};      // Stores layout data per canvasId
+let draftState = {};      // Stores the global draft state
 
-// REST endpoint for Broadcast View to get initial canvas data.
+// --- REST Endpoints ---
+
+// Endpoint for Broadcast View to get initial canvas layout data.
 app.get('/canvas/:id', (req, res) => {
   const { id } = req.params;
   const canvasData = canvases[id] || {};
@@ -47,27 +48,49 @@ app.get('/canvas/:id', (req, res) => {
   res.json(canvasData);
 });
 
-// Socket.io connection handler
+// New endpoint for Broadcast View to get initial global draft state.
+app.get('/draft', (req, res) => {
+  console.log(`[HTTP] GET /draft`);
+  res.json(draftState);
+});
+
+
+// --- Socket.io Logic ---
 io.on('connection', (socket) => {
   console.log(`[Socket] A user connected: ${socket.id}`);
 
-  // Listener for initial bulk canvas data from Studio Interface
-  socket.on('initCanvases', (allCanvases) => {
+  // Listener for initial bulk layout data from Studio
+  socket.on('initLayouts', (allCanvases) => {
     if (allCanvases && typeof allCanvases === 'object') {
-        // Replace the entire cache with the data from the source of truth
         Object.assign(canvases, allCanvases);
-        console.log(`[Socket] Received 'initCanvases'. Cache is now primed with ${Object.keys(allCanvases).length} canvases.`);
+        console.log(`[Socket] Received 'initLayouts'. Cache primed with ${Object.keys(allCanvases).length} layouts.`);
     }
   });
 
-  // Listener for a single canvas update from Studio Interface
-  socket.on('updateCanvas', (data) => {
-    if (data && data.canvasId) {
-      canvases[data.canvasId] = data;
-      // Broadcast the update to all connected clients (all OBS instances)
-      io.emit('canvasUpdated', data);
-      console.log(`[Socket] Received 'updateCanvas' for ${data.canvasId}. Broadcasting to all clients.`);
+  // Listener for initial draft state from Studio
+  socket.on('initDraft', (initialDraftState) => {
+      if (initialDraftState && typeof initialDraftState === 'object') {
+          draftState = initialDraftState;
+          console.log(`[Socket] Received 'initDraft'. Draft state cache primed.`);
+      }
+  });
+
+  // Listener for layout updates for a single canvas
+  socket.on('updateLayout', (data) => {
+    if (data && data.id) {
+      canvases[data.id] = data;
+      io.emit('layoutUpdated', data); // Broadcast layout change
+      console.log(`[Socket] 'updateLayout' for ${data.id}. Broadcasting 'layoutUpdated'.`);
     }
+  });
+
+  // Listener for global draft state updates
+  socket.on('updateDraft', (newDraftState) => {
+      if (newDraftState && typeof newDraftState === 'object') {
+          draftState = newDraftState;
+          io.emit('draftUpdated', draftState); // Broadcast draft change
+          console.log(`[Socket] Received 'updateDraft'. Broadcasting 'draftUpdated'.`);
+      }
   });
 
   socket.on('disconnect', () => {

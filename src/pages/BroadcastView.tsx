@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import useDraftStore, { DraftStore } from '../store/draftStore';
 import { StudioElement, StudioCanvas as Canvas } from '../types/draft';
 import ScoreOnlyElement from '../components/studio/ScoreOnlyElement';
 import NicknamesOnlyElement from '../components/studio/NicknamesOnlyElement';
@@ -18,7 +19,7 @@ interface BroadcastViewProps {
 }
 
 const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
-  const [canvasData, setCanvasData] = useState<Canvas | null>(null);
+  const [canvasLayout, setCanvasLayout] = useState<Canvas | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,21 +32,26 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
       return;
     }
 
-    // 1. Initial Data Fetch from Server
-    const fetchCanvasData = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/canvas/${targetCanvasId}`);
-        if (!response.ok) {
-          throw new Error(`Server responded with status ${response.status}.`);
+        const [layoutRes, draftRes] = await Promise.all([
+          fetch(`http://localhost:4000/canvas/${targetCanvasId}`),
+          fetch(`http://localhost:4000/draft`)
+        ]);
+
+        if (!layoutRes.ok) throw new Error(`Failed to fetch layout: Server responded with ${layoutRes.status}`);
+        if (!draftRes.ok) throw new Error(`Failed to fetch draft: Server responded with ${draftRes.status}`);
+
+        const layoutData = await layoutRes.json();
+        const draftData = await draftRes.json();
+
+        if (layoutData && Object.keys(layoutData).length > 0) {
+          setCanvasLayout(layoutData);
         }
-        const data = await response.json();
-        if (data && Object.keys(data).length > 0) {
-          setCanvasData(data);
-        } else {
-          // This is not a connection error, but a "not found" state.
-          // The UI will show a "waiting" message.
-          console.log(`Canvas ${targetCanvasId} not yet cached on server. Waiting for update from Studio...`);
+        if (draftData && Object.keys(draftData).length > 0) {
+          useDraftStore.setState(draftData as Partial<DraftStore>);
         }
+
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setError(`Could not connect to the overlay server at http://localhost:4000.\n\n- Is the main application running ('npm run dev')?\n- Is a firewall or ad-blocker preventing the connection?\n\nDetails: ${message}`);
@@ -54,24 +60,24 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
       }
     };
 
-    fetchCanvasData();
+    fetchInitialData();
 
-    // 2. Real-time Updates with Socket.io
     const socket = io('http://localhost:4000');
 
-    socket.on('connect', () => {
-      // Connected
-    });
-
-    socket.on('canvasUpdated', (updatedData: Canvas) => {
-      if (updatedData.id === targetCanvasId) {
-        setCanvasData(updatedData);
-        if (error) setError(null); // Clear error on first successful update.
+    socket.on('layoutUpdated', (updatedLayout: Canvas) => {
+      if (updatedLayout.id === targetCanvasId) {
+        setCanvasLayout(updatedLayout);
+        if (error) setError(null);
       }
     });
 
+    socket.on('draftUpdated', (updatedDraft: DraftStore) => {
+      useDraftStore.setState(updatedDraft as Partial<DraftStore>);
+      if (error) setError(null);
+    });
+
     socket.on('connect_error', (err) => {
-        if (!error) { // Don't overwrite a more specific fetch error
+        if (!error) {
             setError(`Socket.io connection failed: ${err.message}. The server might be down or unreachable.`);
         }
     });
@@ -82,14 +88,8 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     };
   }, [targetCanvasId, error]);
 
-  // --- Render Logic ---
-
   if (isLoading) {
-    return (
-      <div style={messageBoxStyle}>
-        Loading canvas...
-      </div>
-    );
+    return <div style={messageBoxStyle}>Loading...</div>;
   }
 
   if (error) {
@@ -100,10 +100,10 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     );
   }
 
-  if (!canvasData) {
+  if (!canvasLayout) {
     return (
       <div style={messageBoxStyle}>
-        Waiting for data from Studio Interface for canvas ID: {targetCanvasId}
+        Waiting for layout data from Studio Interface for canvas ID: {targetCanvasId}
       </div>
     );
   }
@@ -115,11 +115,11 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
         height: '1080px',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: canvasData.backgroundColor || 'transparent',
-        border: canvasData.showBroadcastBorder === false ? '1px dashed transparent' : '1px dashed #777',
+        backgroundColor: canvasLayout.backgroundColor || 'transparent',
+        border: canvasLayout.showBroadcastBorder === false ? '1px dashed transparent' : '1px dashed #777',
       }}
     >
-      {canvasData.layout.map((element: StudioElement) => {
+      {canvasLayout.layout.map((element: StudioElement) => {
         const currentScale = element.scale || 1;
         const outerDivStyle: React.CSSProperties = {
           position: 'absolute',
