@@ -136,13 +136,48 @@ const StudioInterface: React.FC = () => {
   // Effect 1: Handles sending layout updates for the active canvas
   useEffect(() => {
     if (!activeCanvas) return;
-    // Note: The 'activeCanvas' object from the store already contains all necessary properties
-    // like id, name, layout, backgroundColor, etc.
     socket.emit('updateLayout', activeCanvas);
-  }, [activeCanvas]); // Depends on the memoized activeCanvas, which includes layout changes
+  }, [activeCanvas]);
 
   // Effect 2: Subscribes to the draft store and handles initial data push + continuous draft updates
   useEffect(() => {
+    // Helper to strip functions and other non-serializable data from the store state
+    const getSerializableDraftState = (state: any) => {
+      return {
+        civDraftId: state.civDraftId,
+        mapDraftId: state.mapDraftId,
+        hostName: state.hostName,
+        guestName: state.guestName,
+        scores: state.scores,
+        civPicksHost: state.civPicksHost,
+        civBansHost: state.civBansHost,
+        civPicksGuest: state.civPicksGuest,
+        civBansGuest: state.civBansGuest,
+        mapPicksHost: state.mapPicksHost,
+        mapBansHost: state.mapBansHost,
+        mapPicksGuest: state.mapPicksGuest,
+        mapBansGuest: state.mapBansGuest,
+        mapPicksGlobal: state.mapPicksGlobal,
+        mapBansGlobal: state.mapBansGlobal,
+        civDraftStatus: state.civDraftStatus,
+        mapDraftStatus: state.mapDraftStatus,
+        socketStatus: state.socketStatus,
+        aoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
+        boxSeriesFormat: state.boxSeriesFormat,
+        boxSeriesGames: state.boxSeriesGames,
+        hostColor: state.hostColor,
+        guestColor: state.guestColor,
+        hostFlag: state.hostFlag,
+        guestFlag: state.guestFlag,
+        lastDraftAction: state.lastDraftAction,
+        revealedBans: state.revealedBans,
+        banRevealCount: state.banRevealCount,
+        countdown: state.countdown,
+        draft: state.draft,
+        highlightedAction: state.highlightedAction,
+      };
+    };
+
     // A. Prime the server with initial data on component mount
     const initialState = useDraftStore.getState();
     const allCanvases = initialState.currentCanvases;
@@ -153,16 +188,16 @@ const StudioInterface: React.FC = () => {
       }, {} as Record<string, any>);
       socket.emit('initLayouts', layoutsToPrime);
     }
-    socket.emit('initDraft', initialState);
+    socket.emit('initDraft', getSerializableDraftState(initialState));
 
     // B. Subscribe to all store changes to send the new draft state to the server
     const unsubscribe = useDraftStore.subscribe((state) => {
-      socket.emit('updateDraft', state);
+      socket.emit('updateDraft', getSerializableDraftState(state));
     });
 
     // C. Clean up the subscription when the component unmounts
     return unsubscribe;
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   const handleAddScoreOnly = () => { addStudioElement("ScoreOnly"); };
   const handleAddNicknamesOnly = () => { addStudioElement("NicknamesOnly"); };
