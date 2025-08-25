@@ -86,17 +86,10 @@ import { StudioCanvas } from './types/draft';
 
 // --- Socket.io setup for server communication ---
 const socket = io('http://localhost:4000');
-socket.on('connect', () => {
-  console.log('[App.tsx] Socket connected to overlay server.');
-});
-socket.on('disconnect', () => {
-  console.log('[App.tsx] Socket disconnected from overlay server.');
-});
 
 const App: React.FC = () => {
   // Centralized state synchronization logic
   useEffect(() => {
-    // Helper to strip functions and other non-serializable data from the store state
     const getSerializableDraftState = (state: any) => {
       if (!state || typeof state !== 'object') return {};
       return {
@@ -131,39 +124,25 @@ const App: React.FC = () => {
       };
     };
 
-    // 1. Prime the server with initial data on component mount
+    const constructPayload = (state: any) => {
+        const activeCanvas = state.currentCanvases.find((c: StudioCanvas) => c.id === state.activeCanvasId);
+        return {
+            layout: activeCanvas || null,
+            draft: getSerializableDraftState(state),
+        };
+    };
+
+    // 1. Prime the server with initial data
     const initialState = useDraftStore.getState();
-    const allCanvases = initialState.currentCanvases;
-    if (allCanvases && allCanvases.length > 0) {
-      const layoutsToPrime = allCanvases.reduce((acc, canvas) => {
-        acc[canvas.id] = canvas;
-        return acc;
-      }, {} as Record<string, any>);
-      socket.emit('initLayouts', layoutsToPrime);
-    }
-    socket.emit('initDraft', getSerializableDraftState(initialState));
+    socket.emit('initState', constructPayload(initialState));
 
-    // 2. Subscribe to DRAFT changes and push updates
-    const draftUnsubscribe = useDraftStore.subscribe((state) => {
-      socket.emit('updateDraft', getSerializableDraftState(state));
-    });
-
-    // 3. Subscribe to LAYOUT changes and push updates
-    let previousActiveCanvas: StudioCanvas | undefined = initialState.currentCanvases.find(c => c.id === initialState.activeCanvasId);
-    const layoutUnsubscribe = useDraftStore.subscribe((state) => {
-      const currentActiveCanvas = state.currentCanvases.find(c => c.id === state.activeCanvasId);
-
-      if (JSON.stringify(currentActiveCanvas) !== JSON.stringify(previousActiveCanvas)) {
-        if (currentActiveCanvas) {
-          socket.emit('updateLayout', currentActiveCanvas);
-        }
-        previousActiveCanvas = JSON.parse(JSON.stringify(currentActiveCanvas)); // Deep copy for next comparison
-      }
+    // 2. Subscribe to all store changes and push updates
+    const unsubscribe = useDraftStore.subscribe((state) => {
+      socket.emit('updateState', constructPayload(state));
     });
 
     return () => {
-      draftUnsubscribe();
-      layoutUnsubscribe();
+      unsubscribe();
     };
   }, []);
 

@@ -38,25 +38,34 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
       return;
     }
 
+    const handleStateUpdate = (state: any) => {
+        if (state && typeof state === 'object') {
+            // The received state has { layout, draft }
+            // We need to find the specific canvas layout for this view
+            if (state.layout && state.layout.id === targetCanvasId) {
+                setCanvasLayout(state.layout);
+            } else {
+                // This can happen if the active canvas in the studio is different
+                // from the one this broadcast view is targeting. We don't update the layout
+                // but we still update the draft state.
+            }
+
+            if (state.draft) {
+                useDraftStore.setState(state.draft as Partial<DraftStore>);
+            }
+
+            if (error) setError(null);
+        }
+    };
+
+    // 1. Initial Data Fetch from Server
     const fetchInitialData = async () => {
       try {
-        const [layoutRes, draftRes] = await Promise.all([
-          fetch(`http://localhost:4000/canvas/${targetCanvasId}`),
-          fetch(`http://localhost:4000/draft`)
-        ]);
+        const response = await fetch(`http://localhost:4000/state`);
+        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
 
-        if (!layoutRes.ok) throw new Error(`Failed to fetch layout: Server responded with ${layoutRes.status}`);
-        if (!draftRes.ok) throw new Error(`Failed to fetch draft: Server responded with ${draftRes.status}`);
-
-        const layoutData = await layoutRes.json();
-        const draftData = await draftRes.json();
-
-        if (layoutData && Object.keys(layoutData).length > 0) {
-          setCanvasLayout(layoutData);
-        }
-        if (draftData && Object.keys(draftData).length > 0) {
-          useDraftStore.setState(draftData as Partial<DraftStore>);
-        }
+        const initialState = await response.json();
+        handleStateUpdate(initialState);
 
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -68,18 +77,11 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
 
     fetchInitialData();
 
+    // 2. Real-time Updates with Socket.io
     const socket = io('http://localhost:4000');
 
-    socket.on('layoutUpdated', (updatedLayout: Canvas) => {
-      if (updatedLayout.id === targetCanvasId) {
-        setCanvasLayout(updatedLayout);
-        if (error) setError(null);
-      }
-    });
-
-    socket.on('draftUpdated', (updatedDraft: DraftStore) => {
-      useDraftStore.setState(updatedDraft as Partial<DraftStore>);
-      if (error) setError(null);
+    socket.on('stateUpdated', (newState: any) => {
+      handleStateUpdate(newState);
     });
 
     socket.on('connect_error', (err) => {
@@ -91,7 +93,6 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     return () => {
       // Revert body and root background color on unmount
       document.body.style.backgroundColor = '';
-      const root = document.getElementById('root');
       if (root) {
         root.style.backgroundColor = '';
       }
@@ -115,7 +116,7 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
   if (!canvasLayout) {
     return (
       <div style={messageBoxStyle}>
-        Waiting for layout data from Studio Interface for canvas ID: {targetCanvasId}
+        Waiting for data from Studio Interface for canvas ID: {targetCanvasId}
       </div>
     );
   }
