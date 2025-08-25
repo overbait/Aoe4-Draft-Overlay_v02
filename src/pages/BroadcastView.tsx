@@ -26,6 +26,10 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
   useEffect(() => {
     // Force transparent background for OBS
     document.body.style.backgroundColor = 'transparent';
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.backgroundColor = 'transparent';
+    }
     (window as any).IS_BROADCAST_VIEW = true;
 
     if (!targetCanvasId) {
@@ -85,8 +89,12 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     });
 
     return () => {
-      // Revert body background color on unmount
+      // Revert body and root background color on unmount
       document.body.style.backgroundColor = '';
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.backgroundColor = '';
+      }
       (window as any).IS_BROADCAST_VIEW = false;
       socket.disconnect();
     };
