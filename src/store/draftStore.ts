@@ -93,6 +93,7 @@ interface DraftStore extends CombinedDraftState {
 
   // Import/Export Actions
   importLayoutsFromFile: (data: { savedStudioLayouts: SavedStudioLayout[], currentCanvases: StudioCanvas[], activeCanvasId: string | null }) => void;
+  loadCanvasFromEncodedData: (encodedData: string) => void;
 
   // WebSocket Actions
   connectToWebSocket: (draftId: string, draftType: 'civ' | 'map') => void;
@@ -2319,6 +2320,28 @@ const useDraftStore = create<DraftStore>()(
           // After importing, there's no specific "active" layout from the file to auto-save to,
           // so we don't call _autoSaveOrUpdateActiveStudioLayout here.
           // The user will need to save or select a layout to make it active for auto-saving.
+        },
+
+        loadCanvasFromEncodedData: (encodedData: string) => {
+          try {
+            const decodedData = decodeURIComponent(encodedData);
+            const canvasObject = JSON.parse(decodedData) as StudioCanvas;
+
+            // Basic validation of the parsed object
+            if (canvasObject && typeof canvasObject === 'object' && canvasObject.id && canvasObject.name && Array.isArray(canvasObject.layout)) {
+              set({
+                currentCanvases: [canvasObject],
+                activeCanvasId: canvasObject.id,
+                // Also reset other properties to ensure a clean state for the broadcast view
+                selectedElementId: null,
+                activeStudioLayoutId: null,
+              });
+            } else {
+              console.error("Failed to load canvas from data: Invalid canvas object structure.", canvasObject);
+            }
+          } catch (error) {
+            console.error("Failed to decode or parse canvas data from URL:", error);
+          }
         },
 
         resetActiveCanvasLayout: () => {

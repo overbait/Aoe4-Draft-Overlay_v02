@@ -445,8 +445,15 @@ const StudioInterface: React.FC = () => {
                       title="Copy OBS Link"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const obsUrl = `${window.location.origin}/?view=broadcast&canvasId=${canvas.id}`;
+                        // The 'canvas' object is available from the map loop.
+                        // We serialize the entire canvas object and encode it for the URL.
+                        const canvasDataString = JSON.stringify(canvas);
+                        const encodedData = encodeURIComponent(canvasDataString);
+                        const obsUrl = `${window.location.origin}/?view=broadcast&canvasId=${canvas.id}&data=${encodedData}`;
+
                         navigator.clipboard.writeText(obsUrl);
+
+                        // Provide visual feedback on the button
                         const target = e.currentTarget;
                         const originalText = target.innerText;
                         target.innerText = 'Copied!';

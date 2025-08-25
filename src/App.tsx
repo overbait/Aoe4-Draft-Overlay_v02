@@ -80,14 +80,25 @@ const Navigation = () => {
   );
 };
 
+import useDraftStore from './store/draftStore';
+
 const App: React.FC = () => {
   const queryParams = new URLSearchParams(window.location.search);
   const viewType = queryParams.get('view');
   const canvasId = queryParams.get('canvasId');
+  const data = queryParams.get('data');
+
+  // If data is present for a broadcast view, load it into the store first.
+  // This is a one-time action on component mount.
+  useEffect(() => {
+    if (viewType === 'broadcast' && data) {
+      useDraftStore.getState().loadCanvasFromEncodedData(data);
+    }
+  }, [viewType, data]); // Run only when these params change (effectively once on load)
 
   if (viewType === 'broadcast' && canvasId) {
-    // For Suspense to work with BroadcastView if it were lazy-loaded (it's not currently, but good practice)
-    // Or if BroadcastView itself uses Suspense internally.
+    // The store is now populated with the canvas from 'data' if it was present.
+    // BroadcastView will find it in the store.
     return (
       <Suspense fallback={<LoadingScreen />}>
         <BroadcastView targetCanvasId={canvasId} />
