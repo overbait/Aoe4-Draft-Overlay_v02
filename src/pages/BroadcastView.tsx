@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import useDraftStore, { DraftStore } from '../store/draftStore';
-import { StudioElement, StudioCanvas as Canvas } from '../types/draft';
+import { StudioElement, StudioCanvas } from '../types/draft';
 import ScoreOnlyElement from '../components/studio/ScoreOnlyElement';
 import NicknamesOnlyElement from '../components/studio/NicknamesOnlyElement';
 import BoXSeriesOverviewElement from '../components/studio/BoXSeriesOverviewElement';
@@ -19,12 +19,11 @@ interface BroadcastViewProps {
 }
 
 const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
-  const [canvasLayout, setCanvasLayout] = useState<Canvas | null>(null);
+  const [canvasLayout, setCanvasLayout] = useState<StudioCanvas | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Force transparent background for OBS
     document.body.style.backgroundColor = 'transparent';
     const root = document.getElementById('root');
     if (root) {
@@ -33,43 +32,40 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     (window as any).IS_BROADCAST_VIEW = true;
 
     if (!targetCanvasId) {
-      setError("Error: No Canvas ID specified in the URL.\nPlease use a valid link from the 'Copy OBS Link' button.");
+      setError("Error: No Canvas ID specified in the URL.");
       setIsLoading(false);
       return;
     }
 
-    const handleStateUpdate = (state: any) => {
-        if (state && typeof state === 'object') {
-            // The received state has { layout, draft }
-            // We need to find the specific canvas layout for this view
-            if (state.layout && state.layout.id === targetCanvasId) {
-                setCanvasLayout(state.layout);
-            } else {
-                // This can happen if the active canvas in the studio is different
-                // from the one this broadcast view is targeting. We don't update the layout
-                // but we still update the draft state.
-            }
+    const handleStateUpdate = (fullState: Partial<DraftStore>) => {
+        if (fullState && typeof fullState === 'object') {
+            // Hydrate the entire store with the received data.
+            // This ensures all child components have the correct draft context.
+            useDraftStore.setState(fullState, true); // `true` replaces the state
 
-            if (state.draft) {
-                useDraftStore.setState(state.draft as Partial<DraftStore>);
+            // Find the specific canvas this view is supposed to display
+            if (fullState.currentCanvases && Array.isArray(fullState.currentCanvases)) {
+                const myCanvas = fullState.currentCanvases.find(c => c.id === targetCanvasId);
+                if (myCanvas) {
+                    setCanvasLayout(myCanvas);
+                }
             }
 
             if (error) setError(null);
         }
     };
 
-    // 1. Initial Data Fetch from Server
     const fetchInitialData = async () => {
       try {
         const response = await fetch(`http://localhost:4000/state`);
         if (!response.ok) throw new Error(`Server responded with ${response.status}`);
-
         const initialState = await response.json();
-        handleStateUpdate(initialState);
-
+        if (initialState && Object.keys(initialState).length > 0) {
+            handleStateUpdate(initialState);
+        }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        setError(`Could not connect to the overlay server at http://localhost:4000.\n\n- Is the main application running ('npm run dev')?\n- Is a firewall or ad-blocker preventing the connection?\n\nDetails: ${message}`);
+        setError(`Could not connect to the overlay server at http://localhost:4000. Details: ${message}`);
       } finally {
         setIsLoading(false);
       }
@@ -77,21 +73,17 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
 
     fetchInitialData();
 
-    // 2. Real-time Updates with Socket.io
     const socket = io('http://localhost:4000');
-
     socket.on('stateUpdated', (newState: any) => {
       handleStateUpdate(newState);
     });
-
     socket.on('connect_error', (err) => {
         if (!error) {
-            setError(`Socket.io connection failed: ${err.message}. The server might be down or unreachable.`);
+            setError(`Socket.io connection failed: ${err.message}.`);
         }
     });
 
     return () => {
-      // Revert body and root background color on unmount
       document.body.style.backgroundColor = '';
       if (root) {
         root.style.backgroundColor = '';

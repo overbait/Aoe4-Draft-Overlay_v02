@@ -1,5 +1,8 @@
 import { StateStorage } from 'zustand/middleware';
 import useDraftStore from './draftStore';
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:4000');
 
 const STORE_NAME = 'aoe4-draft-overlay-storage-v1';
 const BROADCAST_CHANNEL_NAME = 'zustand_store_sync_channel';
@@ -158,6 +161,18 @@ export const customLocalStorageWithBroadcast: StateStorage = {
     localStorageWriteInProgressByThisTab = true;
     localStorage.setItem(name, valueToStore);
     setTimeout(() => { localStorageWriteInProgressByThisTab = false; }, 0); // Reset for storage event
+
+    // --- New simplified logic: Send the entire raw state to the Node.js server ---
+    try {
+      const parsedWrapper = JSON.parse(valueToStore);
+      if (parsedWrapper && parsedWrapper.state) {
+        // Emit the raw state object. The server is a dumb mirror.
+        // The BroadcastView client will be responsible for picking the data it needs.
+        socket.emit('updateState', parsedWrapper.state);
+      }
+    } catch (e) {
+      console.error('[CustomStorage] Failed to parse or emit state to socket server:', e);
+    }
 
     if (channel) {
       isOriginTab = true; // Set BEFORE postMessage

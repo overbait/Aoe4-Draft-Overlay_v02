@@ -81,71 +81,8 @@ const Navigation = () => {
 };
 
 import useDraftStore from './store/draftStore';
-import { io } from 'socket.io-client';
-import { StudioCanvas } from './types/draft';
-
-// --- Socket.io setup for server communication ---
-const socket = io('http://localhost:4000');
 
 const App: React.FC = () => {
-  // Centralized state synchronization logic
-  useEffect(() => {
-    const getSerializableDraftState = (state: any) => {
-      if (!state || typeof state !== 'object') return {};
-      return {
-        civDraftId: state.civDraftId,
-        mapDraftId: state.mapDraftId,
-        hostName: state.hostName,
-        guestName: state.guestName,
-        scores: state.scores,
-        civPicksHost: state.civPicksHost,
-        civBansHost: state.civBansHost,
-        civPicksGuest: state.civPicksGuest,
-        civBansGuest: state.civBansGuest,
-        mapPicksHost: state.mapPicksHost,
-        mapBansHost: state.mapBansHost,
-        mapPicksGuest: state.mapPicksGuest,
-        mapBansGuest: state.mapBansGuest,
-        mapPicksGlobal: state.mapPicksGlobal,
-        mapBansGlobal: state.mapBansGlobal,
-        aoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
-        boxSeriesFormat: state.boxSeriesFormat,
-        boxSeriesGames: state.boxSeriesGames,
-        hostColor: state.hostColor,
-        guestColor: state.guestColor,
-        hostFlag: state.hostFlag,
-        guestFlag: state.guestFlag,
-        lastDraftAction: state.lastDraftAction,
-        revealedBans: state.revealedBans,
-        banRevealCount: state.banRevealCount,
-        countdown: state.countdown,
-        draft: state.draft,
-        highlightedAction: state.highlightedAction,
-      };
-    };
-
-    const constructPayload = (state: any) => {
-        const activeCanvas = state.currentCanvases.find((c: StudioCanvas) => c.id === state.activeCanvasId);
-        return {
-            layout: activeCanvas || null,
-            draft: getSerializableDraftState(state),
-        };
-    };
-
-    // 1. Prime the server with initial data
-    const initialState = useDraftStore.getState();
-    socket.emit('initState', constructPayload(initialState));
-
-    // 2. Subscribe to all store changes and push updates
-    const unsubscribe = useDraftStore.subscribe((state) => {
-      socket.emit('updateState', constructPayload(state));
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   const queryParams = new URLSearchParams(window.location.search);
   const viewType = queryParams.get('view');
   const canvasId = queryParams.get('canvasId');
