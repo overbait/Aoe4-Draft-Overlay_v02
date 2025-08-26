@@ -41,7 +41,7 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
         if (fullState && typeof fullState === 'object') {
             // Hydrate the entire store with the received data.
             // This ensures all child components have the correct draft context.
-            useDraftStore.setState(fullState, true); // `true` replaces the state
+            useDraftStore.setState(fullState); // This is a shallow merge, not a replacement.
 
             // Find the specific canvas this view is supposed to display
             if (fullState.currentCanvases && Array.isArray(fullState.currentCanvases)) {
