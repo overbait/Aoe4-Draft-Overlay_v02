@@ -19,21 +19,26 @@ const formatCivNameForImagePath = (civName: string): string => {
 interface PickedCivsElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  civPicksHost?: string[];
+  civPicksGuest?: string[];
 }
 
-const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadcast }) => {
+const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadcast, civPicksHost: propsCivPicksHost, civPicksGuest: propsCivPicksGuest }) => {
   const {
     fontFamily = 'Arial, sans-serif',
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, civPicksHost, civPicksGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, storeCivPicksHost, storeCivPicksGuest } = useDraftStore(state => ({
     draft: state.draft,
     highlightedAction: state.highlightedAction,
     countdown: state.countdown,
-    civPicksHost: state.civPicksHost,
-    civPicksGuest: state.civPicksGuest,
+    storeCivPicksHost: state.civPicksHost,
+    storeCivPicksGuest: state.civPicksGuest,
   }));
+
+  const civPicksHost = propsCivPicksHost !== undefined ? propsCivPicksHost : storeCivPicksHost;
+  const civPicksGuest = propsCivPicksGuest !== undefined ? propsCivPicksGuest : storeCivPicksGuest;
 
   const derivePickedCivs = useCallback((playerPicks: string[]): CivItemData[] => {
     return playerPicks.map(civName => ({

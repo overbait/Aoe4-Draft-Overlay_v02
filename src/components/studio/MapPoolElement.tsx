@@ -44,6 +44,13 @@ const reorderMapsForDisplay = (maps: MapItem[], numRows: number): (MapItem | nul
 interface MapPoolElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  aoe2cmRawDraftOptions?: Aoe2cmRawDraftData['preset']['draftOptions'];
+  mapPicksHost?: string[];
+  mapBansHost?: string[];
+  mapPicksGuest?: string[];
+  mapBansGuest?: string[];
+  mapPicksGlobal?: string[];
+  forceMapPoolUpdate?: number;
 }
 
 // Helper function (similar to BoXSeriesOverviewElement)
@@ -52,7 +59,17 @@ const formatMapNameForImagePath = (mapName: string): string => {
   return mapName.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
 };
 
-const MapPoolElement: React.FC<MapPoolElementProps> = ({ element, isBroadcast }) => {
+const MapPoolElement: React.FC<MapPoolElementProps> = ({
+  element,
+  isBroadcast,
+  aoe2cmRawDraftOptions: propsAoe2cmRawDraftOptions,
+  mapPicksHost: propsMapPicksHost,
+  mapBansHost: propsMapBansHost,
+  mapPicksGuest: propsMapPicksGuest,
+  mapBansGuest: propsMapBansGuest,
+  mapPicksGlobal: propsMapPicksGlobal,
+  forceMapPoolUpdate: propsForceMapPoolUpdate,
+}) => {
   const {
     fontFamily = 'Arial, sans-serif',
     isPivotLocked = false,
@@ -61,22 +78,30 @@ const MapPoolElement: React.FC<MapPoolElementProps> = ({ element, isBroadcast })
 
   // Get data from the store
   const {
-    aoe2cmRawDraftOptions,
-    mapPicksHost,
-    mapBansHost,
-    mapPicksGuest,
-    mapBansGuest,
-    mapPicksGlobal,
-    forceMapPoolUpdate, // Add this line
+    storeAoe2cmRawDraftOptions,
+    storeMapPicksHost,
+    storeMapBansHost,
+    storeMapPicksGuest,
+    storeMapBansGuest,
+    storeMapPicksGlobal,
+    storeForceMapPoolUpdate,
   } = useDraftStore(state => ({
-    aoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
-    mapPicksHost: state.mapPicksHost,
-    mapBansHost: state.mapBansHost,
-    mapPicksGuest: state.mapPicksGuest,
-    mapBansGuest: state.mapBansGuest,
-    mapPicksGlobal: state.mapPicksGlobal,
-    forceMapPoolUpdate: state.forceMapPoolUpdate, // Add this line
+    storeAoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
+    storeMapPicksHost: state.mapPicksHost,
+    storeMapBansHost: state.mapBansHost,
+    storeMapPicksGuest: state.mapPicksGuest,
+    storeMapBansGuest: state.mapBansGuest,
+    storeMapPicksGlobal: state.mapPicksGlobal,
+    storeForceMapPoolUpdate: state.forceMapPoolUpdate,
   }));
+
+  const aoe2cmRawDraftOptions = propsAoe2cmRawDraftOptions !== undefined ? propsAoe2cmRawDraftOptions : storeAoe2cmRawDraftOptions;
+  const mapPicksHost = propsMapPicksHost !== undefined ? propsMapPicksHost : storeMapPicksHost;
+  const mapBansHost = propsMapBansHost !== undefined ? propsMapBansHost : storeMapBansHost;
+  const mapPicksGuest = propsMapPicksGuest !== undefined ? propsMapPicksGuest : storeMapPicksGuest;
+  const mapBansGuest = propsMapBansGuest !== undefined ? propsMapBansGuest : storeMapBansGuest;
+  const mapPicksGlobal = propsMapPicksGlobal !== undefined ? propsMapPicksGlobal : storeMapPicksGlobal;
+  const forceMapPoolUpdate = propsForceMapPoolUpdate !== undefined ? propsForceMapPoolUpdate : storeForceMapPoolUpdate;
 
   const deriveMapPool = useCallback((playerType: 'host' | 'guest'): MapItem[] => {
     if (!aoe2cmRawDraftOptions) return []; // Guard clause

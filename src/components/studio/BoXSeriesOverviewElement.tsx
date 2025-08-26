@@ -16,9 +16,11 @@ const formatMapNameForImagePath = (mapName: string): string => {
 interface BoXSeriesOverviewElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  boxSeriesFormat?: 'bo1' | 'bo3' | 'bo5' | 'bo7' | null;
+  boxSeriesGames?: BoxSeriesGame[];
 }
 
-const BoXSeriesOverviewElement: React.FC<BoXSeriesOverviewElementProps> = ({ element, isBroadcast }) => {
+const BoXSeriesOverviewElement: React.FC<BoXSeriesOverviewElementProps> = ({ element, isBroadcast, boxSeriesFormat: propsBoxSeriesFormat, boxSeriesGames: propsBoxSeriesGames }) => {
   const {
     fontFamily = 'Arial, sans-serif',
     showCivNames = true,
@@ -30,9 +32,13 @@ const BoXSeriesOverviewElement: React.FC<BoXSeriesOverviewElementProps> = ({ ele
     pivotInternalOffset = 0,
   } = element;
 
-  const { boxSeriesGames } = useDraftStore(state => ({
-    boxSeriesGames: state.boxSeriesGames,
+  const { storeBoxSeriesGames, storeBoxSeriesFormat } = useDraftStore(state => ({
+    storeBoxSeriesGames: state.boxSeriesGames,
+    storeBoxSeriesFormat: state.boxSeriesFormat,
   }));
+
+  const boxSeriesGames = propsBoxSeriesGames !== undefined ? propsBoxSeriesGames : storeBoxSeriesGames;
+  const boxSeriesFormat = propsBoxSeriesFormat !== undefined ? propsBoxSeriesFormat : storeBoxSeriesFormat;
 
   // Filter games based on the isVisible flag
   const visibleGames = boxSeriesGames.filter(game => game.isVisible === undefined ? false : game.isVisible);

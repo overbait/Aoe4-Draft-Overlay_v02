@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import useDraftStore, { DraftStore } from '../store/draftStore';
-import { StudioElement, StudioCanvas } from '../types/draft';
+import { StudioElement, BroadcastState } from '../types/draft';
 import ScoreOnlyElement from '../components/studio/ScoreOnlyElement';
 import NicknamesOnlyElement from '../components/studio/NicknamesOnlyElement';
 import BoXSeriesOverviewElement from '../components/studio/BoXSeriesOverviewElement';
@@ -19,7 +18,7 @@ interface BroadcastViewProps {
 }
 
 const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
-  const [canvasLayout, setCanvasLayout] = useState<StudioCanvas | null>(null);
+  const [broadcastState, setBroadcastState] = useState<BroadcastState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,31 +36,13 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
       return;
     }
 
-    const handleStateUpdate = (fullState: Partial<DraftStore>) => {
-        if (fullState && typeof fullState === 'object') {
-            // Hydrate the entire store with the received data.
-            // This ensures all child components have the correct draft context.
-            useDraftStore.setState(fullState); // This is a shallow merge, not a replacement.
-
-            // Find the specific canvas this view is supposed to display
-            if (fullState.currentCanvases && Array.isArray(fullState.currentCanvases)) {
-                const myCanvas = fullState.currentCanvases.find(c => c.id === targetCanvasId);
-                if (myCanvas) {
-                    setCanvasLayout(myCanvas);
-                }
-            }
-
-            if (error) setError(null);
-        }
-    };
-
     const fetchInitialData = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/state`);
+        const response = await fetch(`http://localhost:4000/broadcast_state`);
         if (!response.ok) throw new Error(`Server responded with ${response.status}`);
         const initialState = await response.json();
         if (initialState && Object.keys(initialState).length > 0) {
-            handleStateUpdate(initialState);
+          setBroadcastState(initialState);
         }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -74,13 +55,34 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     fetchInitialData();
 
     const socket = io('http://localhost:4000');
-    socket.on('stateUpdated', (newState: any) => {
-      handleStateUpdate(newState);
+
+    socket.on('canvasUpdated', (data) => {
+      if (data && data.canvasId) {
+        setBroadcastState(prevState => {
+          if (!prevState) return null;
+          const newCanvases = { ...prevState.canvases };
+          newCanvases[data.canvasId] = {
+            ...newCanvases[data.canvasId],
+            ...data
+          };
+          return { ...prevState, canvases: newCanvases };
+        });
+      }
     });
+
+    socket.on('draftDataUpdated', (data) => {
+      if (data && typeof data === 'object') {
+        setBroadcastState(prevState => {
+          if (!prevState) return null;
+          return { ...prevState, ...data };
+        });
+      }
+    });
+
     socket.on('connect_error', (err) => {
-        if (!error) {
-            setError(`Socket.io connection failed: ${err.message}.`);
-        }
+      if (!error) {
+        setError(`Socket.io connection failed: ${err.message}.`);
+      }
     });
 
     return () => {
@@ -105,6 +107,8 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     );
   }
 
+  const canvasLayout = broadcastState?.canvases[targetCanvasId];
+
   if (!canvasLayout) {
     return (
       <div style={messageBoxStyle}>
@@ -115,6 +119,7 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
 
   return (
     <div
+      className="broadcast-view"
       style={{
         width: '1920px',
         height: '1080px',
@@ -145,16 +150,16 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
         };
 
         let content = null;
-        if (element.type === "ScoreOnly") content = <ScoreOnlyElement element={element} isBroadcast={true} />;
-        else if (element.type === "NicknamesOnly") content = <NicknamesOnlyElement element={element} isBroadcast={true} />;
-        else if (element.type === "BoXSeriesOverview") content = <BoXSeriesOverviewElement element={element} isBroadcast={true} />;
-        else if (element.type === "CountryFlags") content = <CountryFlagsElement element={element} isBroadcast={true} />;
-        else if (element.type === "ColorGlowElement") content = <ColorGlowElement element={element} isBroadcast={true} />;
-        else if (element.type === "MapPoolElement") content = <MapPoolElement element={element} isBroadcast={true} />;
-        else if (element.type === "CivPoolElement") content = <CivPoolElement element={element} isBroadcast={true} />;
-        else if (element.type === "PickedCivs") content = <PickedCivsElement element={element} isBroadcast={true} />;
-        else if (element.type === "BannedCivs") content = <BannedCivsElement element={element} isBroadcast={true} />;
-        else if (element.type === "Maps") content = <MapsElement element={element} isBroadcast={true} />;
+        if (element.type === "ScoreOnly") content = <ScoreOnlyElement element={element} scores={broadcastState.scores} />;
+        else if (element.type === "NicknamesOnly") content = <NicknamesOnlyElement element={element} hostName={broadcastState.hostName} guestName={broadcastState.guestName} />;
+        else if (element.type === "BoXSeriesOverview") content = <BoXSeriesOverviewElement element={element} boxSeriesFormat={broadcastState.boxSeriesFormat} boxSeriesGames={broadcastState.boxSeriesGames} />;
+        else if (element.type === "CountryFlags") content = <CountryFlagsElement element={element} hostFlag={broadcastState.hostFlag} guestFlag={broadcastState.guestFlag} />;
+        else if (element.type === "ColorGlowElement") content = <ColorGlowElement element={element} hostColor={broadcastState.hostColor} guestColor={broadcastState.guestColor} />;
+        else if (element.type === "MapPoolElement") content = <MapPoolElement element={element} mapPicksHost={broadcastState.mapPicksHost} mapBansHost={broadcastState.mapBansHost} mapPicksGuest={broadcastState.mapPicksGuest} mapBansGuest={broadcastState.mapBansGuest} mapPicksGlobal={broadcastState.mapPicksGlobal} aoe2cmRawDraftOptions={broadcastState.aoe2cmRawDraftOptions} forceMapPoolUpdate={broadcastState.forceMapPoolUpdate} />;
+        else if (element.type === "CivPoolElement") content = <CivPoolElement element={element} civPicksHost={broadcastState.civPicksHost} civBansHost={broadcastState.civBansHost} civPicksGuest={broadcastState.civPicksGuest} civBansGuest={broadcastState.civBansGuest} civPicksGlobal={broadcastState.civPicksGlobal} aoe2cmRawDraftOptions={broadcastState.aoe2cmRawDraftOptions} />;
+        else if (element.type === "PickedCivs") content = <PickedCivsElement element={element} civPicksHost={broadcastState.civPicksHost} civPicksGuest={broadcastState.civPicksGuest} />;
+        else if (element.type === "BannedCivs") content = <BannedCivsElement element={element} civBansHost={broadcastState.civBansHost} civBansGuest={broadcastState.civBansGuest} />;
+        else if (element.type === "Maps") content = <MapsElement element={element} mapPicksHost={broadcastState.mapPicksHost} mapBansHost={broadcastState.mapBansHost} mapPicksGuest={broadcastState.mapPicksGuest} mapBansGuest={broadcastState.mapBansGuest} />;
         else if (element.type === "BackgroundImage") content = <BackgroundImageElement element={element} isBroadcast={true} />;
         else content = <div>Unknown Element: {element.type}</div>;
 

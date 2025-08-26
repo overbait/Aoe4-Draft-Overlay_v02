@@ -111,6 +111,12 @@
   .broadcast-container {
     @apply bg-transparent overflow-hidden;
   }
+
+  body:has(.broadcast-view),
+  html:has(.broadcast-view) {
+    background-color: transparent !important;
+    overflow: hidden !important;
+  }
   
   .broadcast-view {
     background-color: transparent !important;

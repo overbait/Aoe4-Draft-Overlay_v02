@@ -52,6 +52,12 @@ const reorderCivsForDisplay = (civs: CivItem[], numRows: number): (CivItem | nul
 interface CivPoolElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  aoe2cmRawDraftOptions?: Aoe2cmRawDraftData['preset']['draftOptions'];
+  civPicksHost?: string[];
+  civBansHost?: string[];
+  civPicksGuest?: string[];
+  civBansGuest?: string[];
+  civPicksGlobal?: string[];
 }
 
 // Helper function (similar to BoXSeriesOverviewElement)
@@ -70,7 +76,16 @@ const PREDEFINED_CIV_POOL: string[] = [
   'aoe4.Rus', 'aoe4.ZhuXiLegacy'
 ];
 
-const CivPoolElement: React.FC<CivPoolElementProps> = ({ element, isBroadcast }) => {
+const CivPoolElement: React.FC<CivPoolElementProps> = ({
+  element,
+  isBroadcast,
+  aoe2cmRawDraftOptions: propsAoe2cmRawDraftOptions,
+  civPicksHost: propsCivPicksHost,
+  civBansHost: propsCivBansHost,
+  civPicksGuest: propsCivPicksGuest,
+  civBansGuest: propsCivBansGuest,
+  civPicksGlobal: propsCivPicksGlobal,
+}) => {
   const {
     fontFamily = 'Arial, sans-serif',
     isPivotLocked = false,
@@ -79,20 +94,27 @@ const CivPoolElement: React.FC<CivPoolElementProps> = ({ element, isBroadcast })
 
   // Get data from the store
   const {
-    aoe2cmRawDraftOptions,
-    civPicksHost,
-    civBansHost,
-    civPicksGuest,
-    civBansGuest,
-    civPicksGlobal,
+    storeAoe2cmRawDraftOptions,
+    storeCivPicksHost,
+    storeCivBansHost,
+    storeCivPicksGuest,
+    storeCivBansGuest,
+    storeCivPicksGlobal,
   } = useDraftStore(state => ({
-    aoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
-    civPicksHost: state.civPicksHost,
-    civBansHost: state.civBansHost,
-    civPicksGuest: state.civPicksGuest,
-    civBansGuest: state.civBansGuest,
-    civPicksGlobal: state.civPicksGlobal,
+    storeAoe2cmRawDraftOptions: state.aoe2cmRawDraftOptions,
+    storeCivPicksHost: state.civPicksHost,
+    storeCivBansHost: state.civBansHost,
+    storeCivPicksGuest: state.civPicksGuest,
+    storeCivBansGuest: state.civBansGuest,
+    storeCivPicksGlobal: state.civPicksGlobal,
   }));
+
+  const aoe2cmRawDraftOptions = propsAoe2cmRawDraftOptions !== undefined ? propsAoe2cmRawDraftOptions : storeAoe2cmRawDraftOptions;
+  const civPicksHost = propsCivPicksHost !== undefined ? propsCivPicksHost : storeCivPicksHost;
+  const civBansHost = propsCivBansHost !== undefined ? propsCivBansHost : storeCivBansHost;
+  const civPicksGuest = propsCivPicksGuest !== undefined ? propsCivPicksGuest : storeCivPicksGuest;
+  const civBansGuest = propsCivBansGuest !== undefined ? propsCivBansGuest : storeCivBansGuest;
+  const civPicksGlobal = propsCivPicksGlobal !== undefined ? propsCivPicksGlobal : storeCivPicksGlobal;
 
   const deriveCivPool = useCallback((playerType: 'host' | 'guest'): CivItem[] => {
     let availableCivsData: { id: string; name: string }[];

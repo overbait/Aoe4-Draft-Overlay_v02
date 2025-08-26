@@ -151,3 +151,34 @@ export interface StudioCanvas {
   showBroadcastBorder?: boolean; // Added for toggling broadcast view border
   // backgroundImage?: string | null; // Removed, will be handled by BackgroundImageElement
 }
+
+export interface BroadcastState {
+  canvases: {
+    [canvasId: string]: {
+      layout: StudioElement[];
+      backgroundColor?: string | null;
+      showBroadcastBorder?: boolean;
+    };
+  };
+  scores: { host: number; guest: number };
+  hostName: string;
+  guestName: string;
+  civPicksHost: string[];
+  civBansHost: string[];
+  civPicksGuest: string[];
+  civBansGuest: string[];
+  mapPicksHost: string[];
+  mapBansHost: string[];
+  mapPicksGuest: string[];
+  mapBansGuest: string[];
+  mapPicksGlobal: string[];
+  mapBansGlobal: string[];
+  hostColor?: string | null;
+  guestColor?: string | null;
+  hostFlag?: string | null;
+  guestFlag?: string | null;
+  boxSeriesFormat: 'bo1' | 'bo3' | 'bo5' | 'bo7' | null;
+  boxSeriesGames: BoxSeriesGame[];
+  aoe2cmRawDraftOptions?: Aoe2cmRawDraftData['preset']['draftOptions'];
+  forceMapPoolUpdate?: number;
+}

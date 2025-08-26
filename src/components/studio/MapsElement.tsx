@@ -19,23 +19,32 @@ const formatMapNameForImagePath = (mapName: string): string => {
 interface MapsElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  mapPicksHost?: string[];
+  mapBansHost?: string[];
+  mapPicksGuest?: string[];
+  mapBansGuest?: string[];
 }
 
-const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast }) => {
+const MapsElement: React.FC<MapsElementProps> = ({ element, isBroadcast, mapPicksHost: propsMapPicksHost, mapBansHost: propsMapBansHost, mapPicksGuest: propsMapPicksGuest, mapBansGuest: propsMapBansGuest }) => {
   const {
     fontFamily = 'Arial, sans-serif',
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, mapPicksHost, mapBansHost, mapPicksGuest, mapBansGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, storeMapPicksHost, storeMapBansHost, storeMapPicksGuest, storeMapBansGuest } = useDraftStore(state => ({
     draft: state.draft,
     highlightedAction: state.highlightedAction,
     countdown: state.countdown,
-    mapPicksHost: state.mapPicksHost,
-    mapBansHost: state.mapBansHost,
-    mapPicksGuest: state.mapPicksGuest,
-    mapBansGuest: state.mapBansGuest,
+    storeMapPicksHost: state.mapPicksHost,
+    storeMapBansHost: state.mapBansHost,
+    storeMapPicksGuest: state.mapPicksGuest,
+    storeMapBansGuest: state.mapBansGuest,
   }));
+
+  const mapPicksHost = propsMapPicksHost !== undefined ? propsMapPicksHost : storeMapPicksHost;
+  const mapBansHost = propsMapBansHost !== undefined ? propsMapBansHost : storeMapBansHost;
+  const mapPicksGuest = propsMapPicksGuest !== undefined ? propsMapPicksGuest : storeMapPicksGuest;
+  const mapBansGuest = propsMapBansGuest !== undefined ? propsMapBansGuest : storeMapBansGuest;
 
   const deriveMaps = useCallback((picks: string[], bans: string[]): MapItemData[] => {
     const pickedMaps = picks.map(mapName => ({

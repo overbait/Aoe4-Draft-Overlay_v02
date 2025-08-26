@@ -19,21 +19,26 @@ const formatCivNameForImagePath = (civName: string): string => {
 interface BannedCivsElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
+  civBansHost?: string[];
+  civBansGuest?: string[];
 }
 
-const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadcast }) => {
+const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadcast, civBansHost: propsCivBansHost, civBansGuest: propsCivBansGuest }) => {
   const {
     fontFamily = 'Arial, sans-serif',
     horizontalSplitOffset = 0,
   } = element;
 
-  const { draft, highlightedAction, countdown, civBansHost, civBansGuest } = useDraftStore(state => ({
+  const { draft, highlightedAction, countdown, storeCivBansHost, storeCivBansGuest } = useDraftStore(state => ({
     draft: state.draft,
     highlightedAction: state.highlightedAction,
     countdown: state.countdown,
-    civBansHost: state.civBansHost,
-    civBansGuest: state.civBansGuest,
+    storeCivBansHost: state.civBansHost,
+    storeCivBansGuest: state.civBansGuest,
   }));
+
+  const civBansHost = propsCivBansHost !== undefined ? propsCivBansHost : storeCivBansHost;
+  const civBansGuest = propsCivBansGuest !== undefined ? propsCivBansGuest : storeCivBansGuest;
 
   const deriveBannedCivs = useCallback((playerBans: string[]): CivItemData[] => {
     return playerBans.map(civName => ({

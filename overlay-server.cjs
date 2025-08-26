@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const cors = require('cors');
 
 const app = express();
+app.use(express.json()); // Middleware to parse JSON bodies
 const server = http.createServer(app);
 
 const allowedOrigins = [
@@ -32,36 +33,65 @@ const io = new Server(server, {
   }
 });
 
-// --- In-memory Storage ---
-// A single store for the combined state (layout + draft)
-let fullState = {};
+// --- In-memory Storage for Broadcast State ---
+let broadcastState = {
+  canvases: {},
+  scores: { host: 0, guest: 0 },
+  hostName: 'Player 1',
+  guestName: 'Player 2',
+  civPicksHost: [],
+  civBansHost: [],
+  civPicksGuest: [],
+  civBansGuest: [],
+  mapPicksHost: [],
+  mapBansHost: [],
+  mapPicksGuest: [],
+  mapBansGuest: [],
+  mapPicksGlobal: [],
+  mapBansGlobal: [],
+  hostColor: null,
+  guestColor: null,
+  hostFlag: null,
+  guestFlag: null,
+  boxSeriesFormat: null,
+  boxSeriesGames: [],
+  aoe2cmRawDraftOptions: undefined,
+  forceMapPoolUpdate: 0,
+};
 
 // --- REST Endpoint ---
-// A single endpoint for the Broadcast View to get the initial combined state.
-app.get('/state', (req, res) => {
-  console.log(`[HTTP] GET /state`);
-  res.json(fullState);
+app.get('/broadcast_state', (req, res) => {
+  console.log(`[HTTP] GET /broadcast_state`);
+  res.json(broadcastState);
 });
 
 // --- Socket.io Logic ---
 io.on('connection', (socket) => {
   console.log(`[Socket] A user connected: ${socket.id}`);
 
-  // Listener for the initial combined state from the main app
-  socket.on('initState', (initialState) => {
-    if (initialState && typeof initialState === 'object') {
-        fullState = initialState;
-        console.log(`[Socket] Received 'initState'. State cache primed.`);
+  // Listener for canvas updates
+  socket.on('updateCanvas', (data) => {
+    if (data && data.canvasId) {
+      if (!broadcastState.canvases[data.canvasId]) {
+        broadcastState.canvases[data.canvasId] = {};
+      }
+      broadcastState.canvases[data.canvasId] = {
+        ...broadcastState.canvases[data.canvasId],
+        ...data
+      };
+      // Broadcast the specific canvas update to all clients
+      io.emit('canvasUpdated', data);
+      console.log(`[Socket] Received 'updateCanvas' for ${data.canvasId}. Broadcasting 'canvasUpdated'.`);
     }
   });
 
-  // Listener for subsequent state updates
-  socket.on('updateState', (newState) => {
-    if (newState && typeof newState === 'object') {
-        fullState = newState;
-        // Broadcast the full state to all clients
-        io.emit('stateUpdated', fullState);
-        console.log(`[Socket] Received 'updateState'. Broadcasting 'stateUpdated'.`);
+  // Listener for draft data updates
+  socket.on('updateDraftData', (data) => {
+    if (data && typeof data === 'object') {
+      broadcastState = { ...broadcastState, ...data };
+      // Broadcast the draft data update to all clients
+      io.emit('draftDataUpdated', data);
+      console.log(`[Socket] Received 'updateDraftData'. Broadcasting 'draftDataUpdated'.`);
     }
   });
 

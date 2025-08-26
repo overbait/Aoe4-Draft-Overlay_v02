@@ -6,9 +6,11 @@ interface NicknamesOnlyElementProps {
   element: StudioElement;
   isSelected?: boolean;
   isBroadcast?: boolean; // Keep for prop consistency, though not actively used for major logic here
+  hostName?: string;
+  guestName?: string;
 }
 
-const NicknamesOnlyElement: React.FC<NicknamesOnlyElementProps> = ({ element, isSelected, isBroadcast }) => {
+const NicknamesOnlyElement: React.FC<NicknamesOnlyElementProps> = ({ element, isSelected, isBroadcast, hostName, guestName }) => {
   const {
     fontFamily,
     textColor,
@@ -19,8 +21,10 @@ const NicknamesOnlyElement: React.FC<NicknamesOnlyElementProps> = ({ element, is
     // For now, focusing on text visibility and centering.
   } = element;
 
-  const liveHostName = useDraftStore((state) => state.hostName);
-  const liveGuestName = useDraftStore((state) => state.guestName); // Corrected: useDraftStore
+  const storeHostName = useDraftStore((state) => state.hostName);
+  const storeGuestName = useDraftStore((state) => state.guestName);
+  const liveHostName = hostName !== undefined ? hostName : storeHostName;
+  const liveGuestName = guestName !== undefined ? guestName : storeGuestName;
 
   // Default values
   const currentFontFamily = fontFamily || 'Arial, sans-serif';

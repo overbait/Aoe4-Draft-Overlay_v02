@@ -6,9 +6,10 @@ interface ScoreOnlyElementProps {
   element: StudioElement;
   isBroadcast?: boolean;
   isSelected?: boolean;
+  scores?: { host: number; guest: number };
 }
 
-const ScoreOnlyElement: React.FC<ScoreOnlyElementProps> = ({ element, isBroadcast, isSelected }) => {
+const ScoreOnlyElement: React.FC<ScoreOnlyElementProps> = ({ element, isBroadcast, isSelected, scores }) => {
   const {
     fontFamily,
     backgroundColor,
@@ -19,6 +20,9 @@ const ScoreOnlyElement: React.FC<ScoreOnlyElementProps> = ({ element, isBroadcas
     size
   } = element;
 
+  const storeScores = useDraftStore((state) => state.scores);
+  const liveScores = scores || storeScores;
+
   const REFERENCE_PIXEL_HEIGHT_FOR_FONT = 40; // Reference height in pixels
   const BASELINE_FONT_SIZE_PX = 18;          // Font size for that reference height
 
@@ -28,8 +32,6 @@ const ScoreOnlyElement: React.FC<ScoreOnlyElementProps> = ({ element, isBroadcas
   const currentBackgroundColor = backgroundColor || 'transparent';
   const currentBorderColor = borderColor || 'transparent';
   const currentPivotOffset = pivotInternalOffset || 0;
-
-  const liveScores = useDraftStore((state) => state.scores);
 
   const scoreSpanStyle: React.CSSProperties = {
     display: 'inline-block',

@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 import useDraftStore from '../store/draftStore';
 import ScoreOnlyElement from '../components/studio/ScoreOnlyElement'; // New
 import NicknamesOnlyElement from '../components/studio/NicknamesOnlyElement'; // New
@@ -40,7 +41,112 @@ const StudioInterface: React.FC = () => {
     importLayoutsFromFile, // Added import action
     toggleCanvasBroadcastBorder, // Added for border toggle
     // setCanvasBackgroundImage, // This action was removed from the store
+    scores,
+    hostName,
+    guestName,
+    civPicksHost,
+    civBansHost,
+    civPicksGuest,
+    civBansGuest,
+    mapPicksHost,
+    mapBansHost,
+    mapPicksGuest,
+    mapBansGuest,
+    mapPicksGlobal,
+    mapBansGlobal,
+    hostColor,
+    guestColor,
+    hostFlag,
+    guestFlag,
+    boxSeriesFormat,
+    boxSeriesGames,
+    aoe2cmRawDraftOptions,
+    forceMapPoolUpdate,
   } = useDraftStore(state => state);
+
+  const socket = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    socket.current = io('http://localhost:4000');
+
+    socket.current.on('connect', () => {
+      console.log('[Socket] Connected to server from StudioInterface.');
+    });
+
+    socket.current.on('disconnect', () => {
+      console.log('[Socket] Disconnected from server.');
+    });
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+  }, []);
+
+  const activeCanvas = useMemo(() => currentCanvases.find(c => c.id === activeCanvasId), [currentCanvases, activeCanvasId]);
+
+  useEffect(() => {
+    if (socket.current && activeCanvas) {
+      const { id, layout, backgroundColor, showBroadcastBorder } = activeCanvas;
+      socket.current.emit('updateCanvas', {
+        canvasId: id,
+        layout,
+        backgroundColor,
+        showBroadcastBorder,
+      });
+    }
+  }, [activeCanvas]);
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.emit('updateDraftData', {
+        scores,
+        hostName,
+        guestName,
+        civPicksHost,
+        civBansHost,
+        civPicksGuest,
+        civBansGuest,
+        mapPicksHost,
+        mapBansHost,
+        mapPicksGuest,
+        mapBansGuest,
+        mapPicksGlobal,
+        mapBansGlobal,
+        hostColor,
+        guestColor,
+        hostFlag,
+        guestFlag,
+        boxSeriesFormat,
+        boxSeriesGames,
+        aoe2cmRawDraftOptions,
+        forceMapPoolUpdate,
+      });
+    }
+  }, [
+    scores,
+    hostName,
+    guestName,
+    civPicksHost,
+    civBansHost,
+    civPicksGuest,
+    civBansGuest,
+    mapPicksHost,
+    mapBansHost,
+    mapPicksGuest,
+    mapBansGuest,
+    mapPicksGlobal,
+    mapBansGlobal,
+    hostColor,
+    guestColor,
+    hostFlag,
+    guestFlag,
+    boxSeriesFormat,
+    boxSeriesGames,
+    aoe2cmRawDraftOptions,
+    forceMapPoolUpdate,
+  ]);
 
   // Logging for savedStudioLayouts and activeStudioLayoutId
   console.log('LOGAOEINFO: [StudioInterface Render] savedStudioLayouts from store:', savedStudioLayouts, 'Active Studio Layout ID:', activeStudioLayoutId);
@@ -193,10 +299,10 @@ const StudioInterface: React.FC = () => {
       });
 
     } else {
-      // For non-pivoted elements, simply update the position after unscaling.
-      const unscaledX = data.x / studioCanvasScaleFactor;
-      const unscaledY = data.y / studioCanvasScaleFactor;
-      updateStudioElementPosition(elementId, { x: unscaledX, y: unscaledY });
+      // For non-pivoted elements, update position based on unscaled delta.
+      const newX = element.position.x + unscaledDeltaX;
+      const newY = element.position.y + unscaledDeltaY;
+      updateStudioElementPosition(elementId, { x: newX, y: newY });
     }
   };
 

@@ -6,6 +6,8 @@ interface ColorGlowElementProps {
   element: StudioElement;
   isSelected?: boolean;
   isBroadcast?: boolean;
+  hostColor?: string | null;
+  guestColor?: string | null;
 }
 
 // Helper function to convert HEX to RGB
@@ -21,7 +23,7 @@ const hexToRgb = (hex: string | null | undefined): { r: number; g: number; b: nu
     : null;
 };
 
-const ColorGlowElement: React.FC<ColorGlowElementProps> = ({ element, isSelected }) => {
+const ColorGlowElement: React.FC<ColorGlowElementProps> = ({ element, isSelected, hostColor: propsHostColor, guestColor: propsGuestColor }) => {
   const {
     isPivotLocked,
     pivotInternalOffset,
@@ -31,8 +33,10 @@ const ColorGlowElement: React.FC<ColorGlowElementProps> = ({ element, isSelected
     // borderColor, // Could be used for the base div
   } = element;
 
-  const hostColor = useDraftStore((state) => state.hostColor);
-  const guestColor = useDraftStore((state) => state.guestColor);
+  const storeHostColor = useDraftStore((state) => state.hostColor);
+  const storeGuestColor = useDraftStore((state) => state.guestColor);
+  const hostColor = propsHostColor !== undefined ? propsHostColor : storeHostColor;
+  const guestColor = propsGuestColor !== undefined ? propsGuestColor : storeGuestColor;
 
   const currentPivotOffset = pivotInternalOffset || 0;
   const currentBorderColor = element.borderColor || 'transparent'; // Use if element needs its own border

@@ -6,9 +6,11 @@ interface CountryFlagsElementProps {
   element: StudioElement;
   isSelected?: boolean; // For pivot line visibility
   isBroadcast?: boolean; // (Currently unused by this element but good for consistency)
+  hostFlag?: string | null;
+  guestFlag?: string | null;
 }
 
-const CountryFlagsElement: React.FC<CountryFlagsElementProps> = ({ element, isSelected, isBroadcast }) => {
+const CountryFlagsElement: React.FC<CountryFlagsElementProps> = ({ element, isSelected, isBroadcast, hostFlag, guestFlag }) => {
   const {
     // fontFamily, // Not directly used for text
     // backgroundColor, // Applied to baseDivStyle if needed, but flags are images
@@ -19,22 +21,12 @@ const CountryFlagsElement: React.FC<CountryFlagsElementProps> = ({ element, isSe
     size // Used for dynamic font size if we had text, and for main div dimensions
   } = element;
 
-console.log('[CountryFlagsElement] Rendering in context:');
-console.log('[CountryFlagsElement] isBroadcast prop:', isBroadcast);
-console.log('[CountryFlagsElement] element prop:', element ? JSON.parse(JSON.stringify(element)) : undefined);
+  const storeHostFlag = useDraftStore((state) => state.hostFlag);
+  const storeGuestFlag = useDraftStore((state) => state.guestFlag);
+  const liveHostFlag = hostFlag !== undefined ? hostFlag : storeHostFlag;
+  const liveGuestFlag = guestFlag !== undefined ? guestFlag : storeGuestFlag;
 
-  // const REFERENCE_PIXEL_HEIGHT_FOR_FONT = 40; // Example if text was primary
-  // const BASELINE_FONT_SIZE_PX = 18;
-  // const dynamicFontSize = Math.max(8, (size.height / REFERENCE_PIXEL_HEIGHT_FOR_FONT) * BASELINE_FONT_SIZE_PX);
-
-  // const currentFontFamily = fontFamily || 'Arial, sans-serif';
-  // const currentBackgroundColor = backgroundColor || 'transparent';
-  // const currentBorderColor = borderColor || 'transparent';
-  // const currentTextColor = textColor || 'white';
   const currentPivotOffset = pivotInternalOffset || 0;
-
-  const liveHostFlag = useDraftStore((state) => state.hostFlag);
-  const liveGuestFlag = useDraftStore((state) => state.guestFlag);
 
   const flagBaseStyle: React.CSSProperties = {
     width: '100%', // Make flag take width of its container cell
