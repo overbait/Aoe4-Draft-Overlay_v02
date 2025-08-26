@@ -247,47 +247,49 @@ if (channel) {
 }
 
 // Add this towards the end of the file
-window.addEventListener('storage', (event: StorageEvent) => {
-  if (event.key !== STORE_NAME) {
-    return; // Only process events for our store
-  }
-
-  // Controller tabs should ignore storage events to prevent self-update loops.
-  // They rely on BroadcastChannel for updates from other tabs.
-  // IS_BROADCAST_STUDIO will be added as a flag in the next plan step.
-  if ((window as any).IS_TECHNICAL_INTERFACE || (window as any).IS_BROADCAST_STUDIO) {
-    console.debug('[CustomStorage storage.event] Event ignored: running in a controller tab (TechnicalInterface or BroadcastStudio).');
-    return;
-  }
-
-  // The localStorageWriteInProgressByThisTab check is a general safeguard,
-  // primarily for tabs that might both write and listen to storage events.
-  if (localStorageWriteInProgressByThisTab) {
-    console.debug('[CustomStorage storage.event] Event ignored: localStorageWriteInProgressByThisTab is true in this listening tab.');
-    return;
-  }
-
-  const isBroadcastViewContext = (window as any).IS_BROADCAST_VIEW === true;
-  let sourceIdentifier = isBroadcastViewContext ? 'BroadcastView via StorageEvent' : 'OtherListener via StorageEvent';
-
-  console.debug(`[CustomStorage storage.event - ${sourceIdentifier}] Received event. Applying state.`);
-
-  if (isBroadcastViewContext) {
-    try {
-      const rawState = localStorage.getItem(STORE_NAME);
-      console.log(`[CustomStorage storage.event - ${sourceIdentifier}] Raw data from localStorage:`, rawState ? rawState.substring(0, 300) + "..." : "null"); // Log snippet
-      if (rawState) {
-        const parsedForLog = JSON.parse(rawState);
-        console.log(`[CustomStorage storage.event - ${sourceIdentifier}] Parsed state for logging:`, {
-          stateExists: !!parsedForLog.state,
-          currentCanvasesCount: parsedForLog.state?.currentCanvases?.length,
-          activeCanvasId: parsedForLog.state?.activeCanvasId
-        });
-      }
-    } catch (e) {
-      console.error(`[CustomStorage storage.event - ${sourceIdentifier}] Error parsing localStorage for logging:`, e);
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event: StorageEvent) => {
+    if (event.key !== STORE_NAME) {
+      return; // Only process events for our store
     }
-  }
-  applyStateFromLocalStorage(sourceIdentifier); // Pass the identifier
-});
+
+    // Controller tabs should ignore storage events to prevent self-update loops.
+    // They rely on BroadcastChannel for updates from other tabs.
+    // IS_BROADCAST_STUDIO will be added as a flag in the next plan step.
+    if ((window as any).IS_TECHNICAL_INTERFACE || (window as any).IS_BROADCAST_STUDIO) {
+      console.debug('[CustomStorage storage.event] Event ignored: running in a controller tab (TechnicalInterface or BroadcastStudio).');
+      return;
+    }
+
+    // The localStorageWriteInProgressByThisTab check is a general safeguard,
+    // primarily for tabs that might both write and listen to storage events.
+    if (localStorageWriteInProgressByThisTab) {
+      console.debug('[CustomStorage storage.event] Event ignored: localStorageWriteInProgressByThisTab is true in this listening tab.');
+      return;
+    }
+
+    const isBroadcastViewContext = (window as any).IS_BROADCAST_VIEW === true;
+    let sourceIdentifier = isBroadcastViewContext ? 'BroadcastView via StorageEvent' : 'OtherListener via StorageEvent';
+
+    console.debug(`[CustomStorage storage.event - ${sourceIdentifier}] Received event. Applying state.`);
+
+    if (isBroadcastViewContext) {
+      try {
+        const rawState = localStorage.getItem(STORE_NAME);
+        console.log(`[CustomStorage storage.event - ${sourceIdentifier}] Raw data from localStorage:`, rawState ? rawState.substring(0, 300) + "..." : "null"); // Log snippet
+        if (rawState) {
+          const parsedForLog = JSON.parse(rawState);
+          console.log(`[CustomStorage storage.event - ${sourceIdentifier}] Parsed state for logging:`, {
+            stateExists: !!parsedForLog.state,
+            currentCanvasesCount: parsedForLog.state?.currentCanvases?.length,
+            activeCanvasId: parsedForLog.state?.activeCanvasId
+          });
+        }
+      } catch (e) {
+        console.error(`[CustomStorage storage.event - ${sourceIdentifier}] Error parsing localStorage for logging:`, e);
+      }
+    }
+    applyStateFromLocalStorage(sourceIdentifier); // Pass the identifier
+  });
+}
 console.log('[CustomStorage] Window storage event listener RE-ATTACHED for key:', STORE_NAME); // This one can stay as log for init

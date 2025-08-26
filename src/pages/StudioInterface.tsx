@@ -84,8 +84,6 @@ const StudioInterface: React.FC = () => {
     };
   }, []);
 
-  const activeCanvas = useMemo(() => currentCanvases.find(c => c.id === activeCanvasId), [currentCanvases, activeCanvasId]);
-
   useEffect(() => {
     if (socket.current && activeCanvas) {
       const { id, layout, backgroundColor, showBroadcastBorder } = activeCanvas;

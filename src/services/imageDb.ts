@@ -99,8 +99,10 @@ export const deleteImageFromDb = async (key: string): Promise<void> => {
 
 // Вызовем initDb() один раз при загрузке модуля, чтобы база данных была готова как можно раньше.
 // Это не обязательно, но может немного ускорить первую операцию.
-initDb().then(() => {
-  console.log('[ImageDB] Database initialized on module load.');
-}).catch(error => {
-  console.error('[ImageDB] Failed to initialize database on module load:', error);
-});
+if (typeof window !== 'undefined') {
+  initDb().then(() => {
+    console.log('[ImageDB] Database initialized on module load.');
+  }).catch(error => {
+    console.error('[ImageDB] Failed to initialize database on module load:', error);
+  });
+}

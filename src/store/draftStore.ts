@@ -119,7 +119,7 @@ const initialCanvases: StudioCanvas[] = [{
 // Initial flags are now derived in TechnicalInterface.tsx based on playerFlagMappings in localStorage.
 // The store's hostFlag/guestFlag will be null initially, then populated.
 
-const initialCombinedState: CombinedDraftState = {
+export const initialCombinedState: CombinedDraftState = {
   civDraftId: null, mapDraftId: null, hostName: initialPlayerNameHost, guestName: initialPlayerNameGuest,
   scores: { ...initialScores }, civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [],
   mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [], mapPicksGlobal: [], mapBansGlobal: [],
@@ -141,8 +141,6 @@ const initialCombinedState: CombinedDraftState = {
   guestColor: null,
   hostFlag: null, // Initialize to null
   guestFlag: null, // Initialize to null
-  // aoe2cmRawDraftOptions is added above
-  socketDraftType: null, // Added for socket draft type tracking
   draftIsLikelyFinished: false,
   isNewSessionAwaitingFirstDraft: false, // Initial value
   forceMapPoolUpdate: 0,
@@ -301,10 +299,7 @@ const _calculateUpdatedBoxSeriesGames = (
   return newBoxSeriesArray;
 };
 
-const useDraftStore = create<DraftStore>()(
-  devtools(
-    persist(
-      (set, get) => ({
+export const draftStoreImplementation = (set, get) => ({
         ...initialCombinedState,
 
         connectToWebSocket: (draftId: string, draftType: 'civ' | 'map') => {
@@ -343,7 +338,7 @@ const useDraftStore = create<DraftStore>()(
             }
 
             currentSocket.on('connect', () => {
-              console.log(`Socket.IO "connect" event: Successfully connected for draft ${draftId}, type ${draftType}. Socket ID: ${currentSocket?.id}`);
+              console.log(`Socket.IO "connect" event: Successfully connected for draft ${draftId}, type: ${draftType}. Socket ID: ${currentSocket?.id}`);
               const currentStoreDraftId = get()[draftType === 'civ' ? 'civDraftId' : 'mapDraftId'];
               if (get().socketDraftType === draftType && currentStoreDraftId === draftId) {
                 const loadStatusUpdate = draftType === 'civ' ?
@@ -2489,9 +2484,19 @@ const useDraftStore = create<DraftStore>()(
             }
           }
         },
-      }),
+      });
+
+const useDraftStore = create<DraftStore>()(
+  devtools(
+    persist(
+      draftStoreImplementation,
       {
         name: 'aoe4-draft-overlay-storage-v1',
+        storage: typeof window === 'undefined' ? {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        } : customLocalStorageWithBroadcast,
         partialize: (state) => {
           // Create a deep copy of the state to avoid mutating the original state
           const stateToPersist = JSON.parse(JSON.stringify({
@@ -2529,64 +2534,8 @@ const useDraftStore = create<DraftStore>()(
             socketDraftType: state.socketDraftType,
             // lastDraftAction: state.lastDraftAction, // DO NOT PERSIST lastDraftAction
           }));
-
-          // Now, modify the copy
-          // Now, modify the copy
-          // The following logic that replaced data: URLs with "[LOCAL_IMAGE_DATA_NOT_PERSISTED]"
-          // has been removed to allow data: URLs to be persisted directly.
-          // This will fix issues #2 and #3 regarding background images not appearing.
-          // Note: This might lead to larger localStorage usage if many large local images are used.
-
-          // if (stateToPersist.currentCanvases && Array.isArray(stateToPersist.currentCanvases)) {
-          //   stateToPersist.currentCanvases = stateToPersist.currentCanvases.map(canvas => {
-          //     if (canvas.layout && Array.isArray(canvas.layout)) {
-          //       return {
-          //         ...canvas,
-          //         layout: canvas.layout.map((el: StudioElement) => {
-          //           if (el.type === "BackgroundImage" && el.imageUrl && typeof el.imageUrl === 'string' && el.imageUrl.startsWith("data:")) {
-          //             return { ...el, imageUrl: "[LOCAL_IMAGE_DATA_NOT_PERSISTED]" };
-          //           }
-          //           return el;
-          //         })
-          //       };
-          //     }
-          //     return canvas;
-          //   });
-          // }
-          // if (stateToPersist.savedStudioLayouts && Array.isArray(stateToPersist.savedStudioLayouts)) {
-          //   stateToPersist.savedStudioLayouts = stateToPersist.savedStudioLayouts.map(savedLayout => {
-          //     if (savedLayout.canvases && Array.isArray(savedLayout.canvases)) {
-          //       return {
-          //         ...savedLayout,
-          //         canvases: savedLayout.canvases.map(canvas => {
-          //           if (canvas.layout && Array.isArray(canvas.layout)) {
-          //             return {
-          //               ...canvas,
-          //               layout: canvas.layout.map((el: StudioElement) => {
-          //                 if (el.type === "BackgroundImage" && el.imageUrl && typeof el.imageUrl === 'string' && el.imageUrl.startsWith("data:")) {
-          //                    // This specific transformation for "data:" URLs is no longer needed
-          //                    // as imageUrl for BackgroundImage now stores an IndexedDB key (e.g., "bg-...")
-          //                    // or is null. Keys are safe to persist directly.
-          //                   return { ...el, imageUrl: "[LOCAL_IMAGE_DATA_NOT_PERSISTED]" };
-          //                 }
-          //                 return el;
-          //               })
-          //             };
-          //           }
-          //           return canvas;
-          //         })
-          //       };
-          //     }
-          //     return savedLayout;
-          //   });
-          // }
-
-          // The imageUrl for BackgroundImage elements (which is an IndexedDB key) is already included
-          // in currentCanvases and savedStudioLayouts part of stateToPersist.
-          // No special handling is needed here for it anymore, as data URLs are not directly stored in the element state.
           return stateToPersist;
         },
-        storage: customLocalStorageWithBroadcast,
         onRehydrateStorage: (state, error) => {
           if (error) console.error('LOGAOEINFO: [draftStore] Error during rehydration:', error);
           else if (state) console.debug('LOGAOEINFO: [draftStore] Rehydration finished.');
@@ -2633,4 +2582,3 @@ useDraftStore.subscribe(
 
 
 export default useDraftStore;
-// [end of src/store/draftStore.ts] // This marker was removed in the actual modification
