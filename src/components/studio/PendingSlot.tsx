@@ -11,7 +11,7 @@ const PendingSlot: React.FC<PendingSlotProps> = ({ countdown, type }) => {
     <div className={styles.civItemGridCell}>
       <div className={`${styles.civItemVisualContent} ${styles.pending}`}>
         <div className={styles.pendingTimer}>
-          {countdown.toString().padStart(2, '0')}
+          {/* {countdown.toString().padStart(2, '0')} */}
         </div>
       </div>
     </div>
