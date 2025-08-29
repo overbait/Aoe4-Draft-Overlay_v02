@@ -188,7 +188,14 @@ const StudioInterface: React.FC = () => {
     });
 
     } else {
-      updateStudioElementPosition(elementId, { x: data.x, y: data.y });
+      // When not pivot-locked, dragging should update the position based on the drag delta.
+      // The delta from react-draggable is in screen pixels, so we need to scale it back
+      // to the 1920x1080 canvas coordinate system.
+      const newPosition = {
+        x: element.position.x + data.deltaX / studioCanvasScaleFactor,
+        y: element.position.y + data.deltaY / studioCanvasScaleFactor,
+      };
+      updateStudioElementPosition(elementId, newPosition);
     }
   };
 
