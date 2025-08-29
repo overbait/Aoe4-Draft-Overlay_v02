@@ -3,7 +3,6 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
-import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -85,11 +84,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-host-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          draft.actions[highlightedAction]?.type === 'ban' &&
-          draft.actions[highlightedAction]?.player === 'HOST' &&
-          <PendingSlot countdown={countdown} type="civ" />
-        }
       </div>
 
       <div
@@ -106,11 +100,6 @@ const BannedCivsElement: React.FC<BannedCivsElementProps> = ({ element, isBroadc
             identifier={`ban-guest-${index}`}
           />
         ))}
-        {draft && draft.actions && highlightedAction < draft.actions.length &&
-          draft.actions[highlightedAction]?.type === 'ban' &&
-          draft.actions[highlightedAction]?.player === 'GUEST' &&
-          <PendingSlot countdown={countdown} type="civ" />
-        }
       </div>
     </div>
   );

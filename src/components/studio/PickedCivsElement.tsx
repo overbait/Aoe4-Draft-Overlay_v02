@@ -3,7 +3,6 @@ import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
 import CivItem from './CivItem';
 import styles from './GeneralElements.module.css';
-import PendingSlot from './PendingSlot';
 
 interface CivItemData {
   name: string;
@@ -89,7 +88,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-host-${index}`}
             />
           ))}
-          <PendingSlot countdown={countdown} type="civ" />
         </div>
       </div>
 
@@ -111,11 +109,6 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
               identifier={`pick-guest-${index}`}
             />
           ))}
-          {draft && draft.actions && highlightedAction < draft.actions.length &&
-            draft.actions[highlightedAction]?.type === 'pick' &&
-            draft.actions[highlightedAction]?.player === 'GUEST' &&
-            <PendingSlot countdown={countdown} type="civ" />
-          }
         </div>
       </div>
     </div>
