@@ -1279,52 +1279,26 @@ const useDraftStore = create<DraftStore>()(
         },
 
         _resetCurrentSessionState: () => {
-          // Preserving layout related state:
-          // currentCanvases, activeCanvasId, savedStudioLayouts, activeStudioLayoutId
-          // are preserved by not including them in the `set` call's payload,
-          // as `set` performs a shallow merge.
-          // The get() calls for currentSavedPresets and currentSavedStudioLayouts are removed
-          // as these properties are intended to be preserved by not being part of the reset payload.
+          set(state => {
+            // Explicitly preserve canvas and layout state
+            const preservedState = {
+              savedPresets: state.savedPresets,
+              currentCanvases: state.currentCanvases,
+              activeCanvasId: state.activeCanvasId,
+              savedStudioLayouts: state.savedStudioLayouts,
+              activeStudioLayoutId: state.activeStudioLayoutId,
+            };
 
-          set(state => ({
-            // Reset draft-specific parts
-            civDraftId: null,
-            mapDraftId: null,
-            hostName: initialPlayerNameHost,
-            guestName: initialPlayerNameGuest,
-            scores: { ...initialScores },
-            civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [],
-            mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [], mapPicksGlobal: [], mapBansGlobal: [],
-            civDraftStatus: 'disconnected' as ConnectionStatus, civDraftError: null, isLoadingCivDraft: false,
-            mapDraftStatus: 'disconnected' as ConnectionStatus, mapDraftError: null, isLoadingMapDraft: false,
-            socketStatus: 'disconnected' as ConnectionStatus,
-            socketError: null,
-            socketDraftType: null,
-            draftIsLikelyFinished: false,
-            aoe2cmRawDraftOptions: undefined,
-            activePresetId: null, // Explicitly reset activePresetId
-            boxSeriesFormat: null,
-            boxSeriesGames: [],
-            hostFlag: null,
-            guestFlag: null,
-            hostColor: null,
-            guestColor: null,
-            isNewSessionAwaitingFirstDraft: true,
+            // Create a completely new state object by spreading the initial state,
+            // then overriding it with the state we want to preserve.
+            const newState = { ...initialCombinedState, ...preservedState };
 
-            // Reset UI selection state but not the layout structure itself
-            selectedElementId: null,
-            layoutLastUpdated: null,
-            lastDraftAction: null, // Explicitly reset lastDraftAction
+            // Apply final resets for the new session
+            newState.activePresetId = null;
+            newState.isNewSessionAwaitingFirstDraft = true;
 
-            // Properties to preserve (by not mentioning them, they remain as per current state):
-            // currentCanvases: state.currentCanvases,
-            // activeCanvasId: state.activeCanvasId,
-            // savedStudioLayouts: state.savedStudioLayouts, // These are already preserved by not being in the partial state to reset
-            // activeStudioLayoutId: state.activeStudioLayoutId,
-
-            // Ensure activePresetId is reset as per original logic for resetting session state
-            // activePresetId: null, // This was already set above, removed duplicate
-          }));
+            return newState;
+          });
         },
 
         // _updateBoxSeriesGamesFromPicks is now removed and replaced by the local helper _calculateUpdatedBoxSeriesGames
