@@ -1316,6 +1316,7 @@ const useDraftStore = create<DraftStore>()(
 
         connectToDraft: async (draftIdOrUrl: string, draftType: 'civ' | 'map') => {
           console.log(`[connectToDraft] Entry. draftIdOrUrl: ${draftIdOrUrl}, draftType: ${draftType}`);
+          const wasNewSessionAwaitingFirstDraft = get().isNewSessionAwaitingFirstDraft;
 
           if (draftType === 'civ') {
             set({ isLoadingCivDraft: true, civDraftStatus: 'connecting', civDraftError: null });
@@ -1348,9 +1349,24 @@ const useDraftStore = create<DraftStore>()(
             const rawDraftData = response.data;
             const processedData = transformRawDataToSingleDraft(rawDraftData, draftType);
 
+            if (wasNewSessionAwaitingFirstDraft) {
+              const hostNameForPreset = processedData.hostName || initialPlayerNameHost;
+              const guestNameForPreset = processedData.guestName || initialPlayerNameGuest;
+              const presetName = `${hostNameForPreset} vs ${guestNameForPreset} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+              set(state => ({
+                ...state,
+                [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId,
+                hostName: hostNameForPreset,
+                guestName: guestNameForPreset,
+              }));
+
+              get().saveCurrentAsPreset(presetName);
+              set({ isNewSessionAwaitingFirstDraft: false });
+            }
+
             set(state => {
               const baseUpdate: Partial<CombinedDraftState> = {
-                // Preserve player names if not provided in the new data
                 hostName: processedData.hostName || state.hostName,
                 guestName: processedData.guestName || state.guestName,
                 aoe2cmRawDraftOptions: rawDraftData.preset?.draftOptions || state.aoe2cmRawDraftOptions,
@@ -1382,7 +1398,6 @@ const useDraftStore = create<DraftStore>()(
                 });
               }
 
-              // Recalculate BoX series based on the potentially merged state
               const finalCivPicksHost = 'civPicksHost' in baseUpdate ? baseUpdate.civPicksHost! : state.civPicksHost;
               const finalCivPicksGuest = 'civPicksGuest' in baseUpdate ? baseUpdate.civPicksGuest! : state.civPicksGuest;
               const finalMapPicksHost = 'mapPicksHost' in baseUpdate ? baseUpdate.mapPicksHost! : state.mapPicksHost;
