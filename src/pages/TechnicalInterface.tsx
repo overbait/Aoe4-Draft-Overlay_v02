@@ -424,11 +424,13 @@ const COUNTRY_PLAYERS_FILE_PATH = 'assets/countryflags/countryplayers.txt';
       }
     }
     _resetCurrentSessionState();
+    window.dispatchEvent(new CustomEvent('externalPresetChange', { detail: 'New session started' }));
   };
   
   const handleDirectReset = () => {
     // window.confirm removed as per user request
     _resetCurrentSessionState();
+    window.dispatchEvent(new CustomEvent('externalPresetChange', { detail: 'Session has been reset' }));
   };
 
   const handleDeletePresetAndReset = React.useCallback((presetIdToDelete: string) => {
