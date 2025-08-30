@@ -1336,6 +1336,8 @@ const useDraftStore = create<DraftStore>()(
             return false;
           }
 
+          set({ [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId });
+
           const apiUrl = `${DRAFT_DATA_API_BASE_URL}/draft/${extractedId}`;
           console.log(`[ConnectToDraft] Attempting to fetch ${draftType} draft ${extractedId} via HTTP from ${apiUrl}.`);
 
