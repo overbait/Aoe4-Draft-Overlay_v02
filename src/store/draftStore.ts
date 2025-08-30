@@ -362,6 +362,25 @@ const useDraftStore = create<DraftStore>()(
                   currentSocket.on('draft_state', (data) => {
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
 
+                    const { isNewSessionAwaitingFirstDraft, socketDraftType } = get();
+                    if (isNewSessionAwaitingFirstDraft && data) {
+                      const hostNameForPreset = data.nameHost || initialPlayerNameHost;
+                      const guestNameForPreset = data.nameGuest || initialPlayerNameGuest;
+                      const presetName = `${hostNameForPreset} vs ${guestNameForPreset} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                      const draftId = currentSocket?.io.opts.query?.draftId as string || null;
+
+                      set(state => ({
+                        ...state,
+                        [socketDraftType === 'civ' ? 'civDraftId' : 'mapDraftId']: draftId,
+                        hostName: hostNameForPreset,
+                        guestName: guestNameForPreset,
+                      }));
+
+                      get().saveCurrentAsPreset(presetName);
+                      set({ isNewSessionAwaitingFirstDraft: false });
+                    }
+
                     if (data && data.preset) {
                       if (data.nextAction < data.preset.actions.length) {
                         set({ draft: data.preset, highlightedAction: data.nextAction });
@@ -1351,21 +1370,7 @@ const useDraftStore = create<DraftStore>()(
             const rawDraftData = response.data;
             const processedData = transformRawDataToSingleDraft(rawDraftData, draftType);
 
-            if (wasNewSessionAwaitingFirstDraft) {
-              const hostNameForPreset = processedData.hostName || initialPlayerNameHost;
-              const guestNameForPreset = processedData.guestName || initialPlayerNameGuest;
-              const presetName = `${hostNameForPreset} vs ${guestNameForPreset} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-              set(state => ({
-                ...state,
-                [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId,
-                hostName: hostNameForPreset,
-                guestName: guestNameForPreset,
-              }));
-
-              get().saveCurrentAsPreset(presetName);
-              set({ isNewSessionAwaitingFirstDraft: false });
-            }
+            // New session logic is now handled by the draft_state websocket event
 
             set(state => {
               const baseUpdate: Partial<CombinedDraftState> = {
