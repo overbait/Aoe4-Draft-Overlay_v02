@@ -45,8 +45,15 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
   const player1Civs = derivePickedCivs(civPicksHost || []);
   const player2Civs = derivePickedCivs(civPicksGuest || []);
 
-  const p1TranslateX = -(horizontalSplitOffset || 0);
-  const p2TranslateX = (horizontalSplitOffset || 0);
+  const p1Style: React.CSSProperties = {
+    right: '50%',
+    marginRight: `${(horizontalSplitOffset || 0) / 2}px`,
+  };
+
+  const p2Style: React.CSSProperties = {
+    left: '50%',
+    marginLeft: `${(horizontalSplitOffset || 0) / 2}px`,
+  };
 
   const dynamicFontSize = 10;
 
@@ -72,7 +79,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
         )}
       <div
         className={`${styles.playerCivGrid} ${styles.player1CivGrid}`}
-        style={{ transform: `translateX(${p1TranslateX}px)` }}
+        style={p1Style}
       >
         {player1Civs.map((civ, index) => (
           <CivItem
@@ -88,7 +95,7 @@ const PickedCivsElement: React.FC<PickedCivsElementProps> = ({ element, isBroadc
 
       <div
         className={`${styles.playerCivGrid} ${styles.player2CivGrid}`}
-        style={{ transform: `translateX(${p2TranslateX}px)` }}
+        style={p2Style}
       >
         {player2Civs.map((civ, index) => (
           <CivItem
