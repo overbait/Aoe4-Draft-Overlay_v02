@@ -2410,7 +2410,7 @@ const useDraftStore = create<DraftStore>()(
             socketStatus: state.socketStatus,
             socketError: state.socketError,
             socketDraftType: state.socketDraftType,
-            // lastDraftAction: state.lastDraftAction, // DO NOT PERSIST lastDraftAction
+            lastDraftAction: state.lastDraftAction,
           }));
 
           // Now, modify the copy

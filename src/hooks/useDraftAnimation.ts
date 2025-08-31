@@ -38,6 +38,10 @@ const useDraftAnimation = (
 
   const itemIsTheLastAction = useMemo(() => {
     if (!itemName || !lastDraftAction) return false;
+
+    const isRecent = (Date.now() - lastDraftAction.timestamp) < 2000; // 2 seconds
+    if (!isRecent) return false;
+
     const isMatch = lastDraftAction.item === itemName &&
                     lastDraftAction.itemType === itemType &&
                     `${lastDraftAction.action}-${lastDraftAction.player}-${lastDraftAction.index}` === identifier;
