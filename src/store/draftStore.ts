@@ -20,7 +20,7 @@ import {
 
 // customStorage.ts is responsible for broadcasting state changes across tabs.
 // imageDb.ts provides functions to interact with IndexedDB for storing/retrieving image files.
-import { customLocalStorageWithBroadcast } from './customStorage'; // Adjust path if needed
+import { customLocalStorageWithBroadcast, broadcastCustomEvent } from './customStorage'; // Adjust path if needed
 import { deleteImageFromDb } from '../services/imageDb'; //IndexedDB
 
 export interface CombinedDraftState extends OriginalCombinedDraftState {
@@ -1572,6 +1572,7 @@ const useDraftStore = create<DraftStore>()(
           } else {
             console.log('[saveCurrentAsPreset] Creating new preset. Name:', presetName, 'ID:', presetIdToUse, 'Data:', presetData);
             set({ savedPresets: [...savedPresets, presetData], activePresetId: presetData.id });
+            broadcastCustomEvent({ type: 'NEW_PRESET_CREATED' });
           }
           // Removed the data reloading logic that called connectToDraft
         },

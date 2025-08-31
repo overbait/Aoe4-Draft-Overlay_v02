@@ -291,3 +291,15 @@ window.addEventListener('storage', (event: StorageEvent) => {
   applyStateFromLocalStorage(sourceIdentifier); // Pass the identifier
 });
 console.log('[CustomStorage] Window storage event listener RE-ATTACHED for key:', STORE_NAME); // This one can stay as log for init
+
+export const broadcastCustomEvent = (eventData: any) => {
+  if (channel) {
+    try {
+      channel.postMessage(eventData);
+    } catch (e) {
+      console.error('[CustomStorage] Error during custom event broadcast:', e);
+    }
+  } else {
+    console.warn('[CustomStorage] Channel is null, cannot broadcast custom event.');
+  }
+};
