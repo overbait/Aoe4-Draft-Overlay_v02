@@ -151,6 +151,7 @@ const initialCombinedState: CombinedDraftState = {
   countdown: 0,
   draft: null,
   highlightedAction: 0,
+  invalidDraftIds: [],
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
@@ -359,6 +360,15 @@ const useDraftStore = create<DraftStore>()(
 
                 // Re-attach listeners specific to an active connection
                 if (currentSocket) {
+                  currentSocket.on('message', (message: string | string[]) => {
+                    const messageText = Array.isArray(message) ? message.join(' ') : message;
+                    if (messageText === 'This draft does not exist.') {
+                      console.warn(`[draftStore] Server confirmed draft ${draftId} does not exist. Blacklisting it.`);
+                      set(state => ({ invalidDraftIds: [...new Set([...(state.invalidDraftIds || []), draftId])] }));
+                      currentSocket?.disconnect();
+                    }
+                  });
+
                   currentSocket.on('draft_state', (data) => {
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
 
@@ -1224,7 +1234,9 @@ const useDraftStore = create<DraftStore>()(
               // HTTP Fallback Logic (remains largely the same)
               // Only attempt fallback if the disconnect was not a clean client-initiated one ('io client disconnect')
               // and if the draft wasn't likely finished.
+              const isBlacklisted = get().invalidDraftIds?.includes(localDraftId);
               const shouldAttemptHttpFallback = !wasLikelyFinished &&
+                                                !isBlacklisted &&
                                                 reason !== 'io client disconnect' &&
                                                 (reason === 'io server disconnect' || reason === 'transport close' || reason.startsWith('ping timeout') || reason.startsWith('transport error'));
 
@@ -1320,6 +1332,16 @@ const useDraftStore = create<DraftStore>()(
 
           const extractedId = get().extractDraftIdFromUrl(draftIdOrUrl);
           console.log('[connectToDraft] Called for draft ID:', extractedId, 'Type:', draftType);
+
+          if (get().invalidDraftIds?.includes(extractedId!)) {
+            const errorMsg = `Connection blocked: Draft ID ${extractedId} is known to be invalid.`;
+            console.warn(errorMsg);
+            const errorUpdate = draftType === 'civ'
+              ? { isLoadingCivDraft: false, civDraftStatus: 'error' as ConnectionStatus, civDraftError: errorMsg }
+              : { isLoadingMapDraft: false, mapDraftStatus: 'error' as ConnectionStatus, mapDraftError: errorMsg };
+            set(errorUpdate);
+            return false;
+          }
 
           if (!extractedId) {
             const errorMsg = 'Invalid Draft ID or URL provided.';
