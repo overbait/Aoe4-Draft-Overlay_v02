@@ -28,16 +28,16 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
   useEffect(() => {
     (window as any).IS_BROADCAST_VIEW = true;
 
-    const handlePresetChange = (event: Event) => {
-      console.log('[BroadcastView] Detected externalPresetChange event, reloading page. Details:', (event as CustomEvent).detail);
+    const handleNewSession = () => {
+      console.log('[BroadcastView] Detected newSessionDataLoaded event, reloading page.');
       window.location.reload();
     };
 
-    window.addEventListener('externalPresetChange', handlePresetChange);
+    window.addEventListener('newSessionDataLoaded', handleNewSession);
 
     return () => {
       (window as any).IS_BROADCAST_VIEW = false;
-      window.removeEventListener('externalPresetChange', handlePresetChange);
+      window.removeEventListener('newSessionDataLoaded', handleNewSession);
     };
   }, []);
 

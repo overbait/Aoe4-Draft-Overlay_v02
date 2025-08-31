@@ -130,6 +130,7 @@ export interface CombinedDraftState {
   draftIsLikelyFinished?: boolean;
   isNewSessionAwaitingFirstDraft: boolean;
   lastDraftAction: LastDraftAction | null; // Added for animation trigger
+  invalidDraftIds?: string[];
 }
 
 export interface LastDraftAction {
