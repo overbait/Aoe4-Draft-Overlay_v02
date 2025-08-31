@@ -36,6 +36,7 @@ export interface Aoe2cmRawDraftData {
     actionType?: string;
     executingPlayer?: string;
     chosenOptionId?: string;
+    offset?: number;
   }>;
   nextAction?: number;
   status?: string; // e.g., "COMPLETED", "IN_PROGRESS"
@@ -131,6 +132,7 @@ export interface CombinedDraftState {
   isNewSessionAwaitingFirstDraft: boolean;
   lastDraftAction: LastDraftAction | null; // Added for animation trigger
   invalidDraftIds?: string[];
+  revealedBans?: (string | number)[];
 }
 
 export interface LastDraftAction {

@@ -1051,7 +1051,7 @@ const useDraftStore = create<DraftStore>()(
 
                         const currentDraftOptions = state.aoe2cmRawDraftOptions;
 
-                        const unrevealedBans = data.events.filter((event: any) => event.actionType === 'ban' && !state.revealedBans.includes(event.chosenOptionId));
+                        const unrevealedBans = data.events.filter((event: any) => event.actionType === 'ban' && !state.revealedBans.includes(event.offset));
 
                         if (unrevealedBans.length > 0) {
                           newBanRevealCount++;
@@ -1080,7 +1080,7 @@ const useDraftStore = create<DraftStore>()(
                             const hiddenBanIndex = targetBanList.indexOf("Hidden Ban");
                             if (hiddenBanIndex !== -1) {
                               targetBanList[hiddenBanIndex] = optionName;
-                              newRevealedBans.push(chosenOptionId);
+                              newRevealedBans.push(revealedBanEvent.offset);
                               newLastDraftAction = { item: optionName, itemType: effectiveDraftType, action: 'reveal', player: executingPlayer.toLowerCase(), index: hiddenBanIndex, timestamp: Date.now() };
                             }
                           }
