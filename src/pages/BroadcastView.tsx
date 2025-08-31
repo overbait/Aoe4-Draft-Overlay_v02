@@ -41,6 +41,30 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const channel = new BroadcastChannel('zustand_store_sync_channel');
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'NEW_PRESET_CREATED') {
+        // To prevent a reload loop if multiple tabs are open, we can use sessionStorage
+        if (!sessionStorage.getItem('preset-reload-lock')) {
+          sessionStorage.setItem('preset-reload-lock', 'true');
+          window.location.reload();
+        }
+      }
+    };
+    channel.addEventListener('message', handleMessage);
+
+    // Clear the lock when the component unmounts or reloads
+    const clearReloadLock = () => sessionStorage.removeItem('preset-reload-lock');
+    window.addEventListener('beforeunload', clearReloadLock);
+
+    return () => {
+      channel.removeEventListener('message', handleMessage);
+      channel.close();
+      window.removeEventListener('beforeunload', clearReloadLock);
+    };
+  }, []);
+
   const canvasToRender = useMemo(() => {
     // First, try with targetCanvasId from URL
     let foundCanvas = currentCanvasesFromHook.find(canvas => canvas.id === targetCanvasId);
