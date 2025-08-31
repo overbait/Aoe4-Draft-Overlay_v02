@@ -151,15 +151,26 @@ const initialCombinedState: CombinedDraftState = {
   countdown: 0,
   draft: null,
   highlightedAction: 0,
+  invalidDraftIds: [],
 };
 
 // Helper function _calculateUpdatedBoxSeriesGames is removed as per previous subtask to refactor _updateBoxSeriesGamesFromPicks directly.
 // If it's needed for next steps, it would be re-introduced.
 
+const getCleanOptionName = (id: string, nameFromPreset?: string): string => {
+  const nameToProcess = nameFromPreset || id;
+  if (!nameToProcess) return '';
+  const dotIndex = nameToProcess.lastIndexOf('.');
+  if (dotIndex !== -1 && dotIndex < nameToProcess.length - 1) {
+    return nameToProcess.substring(dotIndex + 1);
+  }
+  return nameToProcess;
+};
+
 const transformRawDataToSingleDraft = ( raw: Aoe2cmRawDraftData, draftType: 'civ' | 'map' ): Partial<SingleDraftData> => {
-  const hostName = raw.nameHost || 'Host'; const guestName = raw.nameGuest || 'Guest';
+  const hostName = raw.nameHost; const guestName = raw.nameGuest;
   const output: Partial<SingleDraftData> = { id: raw.id || raw.draftId || 'unknown-id', hostName, guestName, civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [], mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [], mapPicksGlobal: [], mapBansGlobal: [], };
-  const getOptionNameById = (optionId: string): string => { const option = raw.preset?.draftOptions?.find(opt => opt.id === optionId); if (option?.name) return option.name.startsWith('aoe4.') ? option.name.substring(5) : option.name; return optionId.startsWith('aoe4.') ? optionId.substring(5) : optionId; };
+  const getOptionNameById = (optionId: string): string => { const option = raw.preset?.draftOptions?.find(opt => opt.id === optionId); return getCleanOptionName(optionId, option?.name); };
   raw.events?.forEach(event => {
     const action = event.actionType?.toLowerCase() || '';
     const executingPlayer = event.executingPlayer;
@@ -252,14 +263,11 @@ const transformRawDataToSingleDraft = ( raw: Aoe2cmRawDraftData, draftType: 'civ
 };
 
 const getOptionNameFromStore = (optionId: string, draftOptions: Aoe2cmRawDraftData['preset']['draftOptions'] | undefined): string => {
-  if (!draftOptions) {
-    return optionId.startsWith('aoe4.') ? optionId.substring(5) : optionId;
+  if (draftOptions) {
+    const option = draftOptions.find(opt => opt.id === optionId);
+    return getCleanOptionName(optionId, option?.name);
   }
-  const option = draftOptions.find(opt => opt.id === optionId);
-  if (option?.name) {
-    return option.name.startsWith('aoe4.') ? option.name.substring(5) : option.name;
-  }
-  return optionId.startsWith('aoe4.') ? optionId.substring(5) : optionId;
+  return getCleanOptionName(optionId);
 };
 
 const _calculateUpdatedBoxSeriesGames = (
@@ -352,8 +360,37 @@ const useDraftStore = create<DraftStore>()(
 
                 // Re-attach listeners specific to an active connection
                 if (currentSocket) {
+                  currentSocket.on('message', (message: string | string[]) => {
+                    const messageText = Array.isArray(message) ? message.join(' ') : message;
+                    if (messageText === 'This draft does not exist.') {
+                      console.warn(`[draftStore] Server confirmed draft ${draftId} does not exist. Blacklisting it.`);
+                      set(state => ({ invalidDraftIds: [...new Set([...(state.invalidDraftIds || []), draftId])] }));
+                      currentSocket?.disconnect();
+                    }
+                  });
+
                   currentSocket.on('draft_state', (data) => {
                     console.log('[draftStore] Socket.IO "draft_state" event received:', data);
+
+                    const { isNewSessionAwaitingFirstDraft, socketDraftType } = get();
+                    if (isNewSessionAwaitingFirstDraft && data) {
+                      const hostNameForPreset = data.nameHost || initialPlayerNameHost;
+                      const guestNameForPreset = data.nameGuest || initialPlayerNameGuest;
+                      const presetName = `${hostNameForPreset} vs ${guestNameForPreset} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                      const draftId = currentSocket?.io.opts.query?.draftId as string || null;
+
+                      set(state => ({
+                        ...state,
+                        [socketDraftType === 'civ' ? 'civDraftId' : 'mapDraftId']: draftId,
+                        hostName: hostNameForPreset,
+                        guestName: guestNameForPreset,
+                      }));
+
+                      get().saveCurrentAsPreset(presetName);
+                      set({ isNewSessionAwaitingFirstDraft: false });
+              window.dispatchEvent(new CustomEvent('newSessionDataLoaded'));
+                    }
 
                     if (data && data.preset) {
                       if (data.nextAction < data.preset.actions.length) {
@@ -1197,7 +1234,9 @@ const useDraftStore = create<DraftStore>()(
               // HTTP Fallback Logic (remains largely the same)
               // Only attempt fallback if the disconnect was not a clean client-initiated one ('io client disconnect')
               // and if the draft wasn't likely finished.
+              const isBlacklisted = get().invalidDraftIds?.includes(localDraftId);
               const shouldAttemptHttpFallback = !wasLikelyFinished &&
+                                                !isBlacklisted &&
                                                 reason !== 'io client disconnect' &&
                                                 (reason === 'io server disconnect' || reason === 'transport close' || reason.startsWith('ping timeout') || reason.startsWith('transport error'));
 
@@ -1253,52 +1292,26 @@ const useDraftStore = create<DraftStore>()(
         },
 
         _resetCurrentSessionState: () => {
-          // Preserving layout related state:
-          // currentCanvases, activeCanvasId, savedStudioLayouts, activeStudioLayoutId
-          // are preserved by not including them in the `set` call's payload,
-          // as `set` performs a shallow merge.
-          // The get() calls for currentSavedPresets and currentSavedStudioLayouts are removed
-          // as these properties are intended to be preserved by not being part of the reset payload.
+          set(state => {
+            // Explicitly preserve canvas and layout state
+            const preservedState = {
+              savedPresets: state.savedPresets,
+              currentCanvases: state.currentCanvases,
+              activeCanvasId: state.activeCanvasId,
+              savedStudioLayouts: state.savedStudioLayouts,
+              activeStudioLayoutId: state.activeStudioLayoutId,
+            };
 
-          set(state => ({
-            // Reset draft-specific parts
-            civDraftId: null,
-            mapDraftId: null,
-            hostName: initialPlayerNameHost,
-            guestName: initialPlayerNameGuest,
-            scores: { ...initialScores },
-            civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [],
-            mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [], mapPicksGlobal: [], mapBansGlobal: [],
-            civDraftStatus: 'disconnected' as ConnectionStatus, civDraftError: null, isLoadingCivDraft: false,
-            mapDraftStatus: 'disconnected' as ConnectionStatus, mapDraftError: null, isLoadingMapDraft: false,
-            socketStatus: 'disconnected' as ConnectionStatus,
-            socketError: null,
-            socketDraftType: null,
-            draftIsLikelyFinished: false,
-            aoe2cmRawDraftOptions: undefined,
-            activePresetId: null, // Explicitly reset activePresetId
-            boxSeriesFormat: null,
-            boxSeriesGames: [],
-            hostFlag: null,
-            guestFlag: null,
-            hostColor: null,
-            guestColor: null,
-            isNewSessionAwaitingFirstDraft: true,
+            // Create a completely new state object by spreading the initial state,
+            // then overriding it with the state we want to preserve.
+            const newState = { ...initialCombinedState, ...preservedState };
 
-            // Reset UI selection state but not the layout structure itself
-            selectedElementId: null,
-            layoutLastUpdated: null,
-            lastDraftAction: null, // Explicitly reset lastDraftAction
+            // Apply final resets for the new session
+            newState.activePresetId = null;
+            newState.isNewSessionAwaitingFirstDraft = true;
 
-            // Properties to preserve (by not mentioning them, they remain as per current state):
-            // currentCanvases: state.currentCanvases,
-            // activeCanvasId: state.activeCanvasId,
-            // savedStudioLayouts: state.savedStudioLayouts, // These are already preserved by not being in the partial state to reset
-            // activeStudioLayoutId: state.activeStudioLayoutId,
-
-            // Ensure activePresetId is reset as per original logic for resetting session state
-            // activePresetId: null, // This was already set above, removed duplicate
-          }));
+            return newState;
+          });
         },
 
         // _updateBoxSeriesGamesFromPicks is now removed and replaced by the local helper _calculateUpdatedBoxSeriesGames
@@ -1308,48 +1321,41 @@ const useDraftStore = create<DraftStore>()(
         extractDraftIdFromUrl: (url: string) => { try { if (url.startsWith('http://') || url.startsWith('https://')) { const urlObj = new URL(url); if (urlObj.hostname.includes('aoe2cm.net')) { const pathMatch = /\/draft\/([a-zA-Z0-9]+)/.exec(urlObj.pathname); if (pathMatch && pathMatch[1]) return pathMatch[1]; const observerPathMatch = /\/observer\/([a-zA-Z0-9]+)/.exec(urlObj.pathname); if (observerPathMatch && observerPathMatch[1]) return observerPathMatch[1]; } const pathSegments = urlObj.pathname.split('/'); const potentialId = pathSegments.pop() || pathSegments.pop(); if (potentialId && /^[a-zA-Z0-9_-]+$/.test(potentialId) && potentialId.length > 3) return potentialId; const draftIdParam = urlObj.searchParams.get('draftId') || urlObj.searchParams.get('id'); if (draftIdParam) return draftIdParam; } if (/^[a-zA-Z0-9_-]+$/.test(url) && url.length > 3) return url; return null; } catch (error) { if (/^[a-zA-Z0-9_-]+$/.test(url) && url.length > 3) return url; return null; } },
 
         connectToDraft: async (draftIdOrUrl: string, draftType: 'civ' | 'map') => {
-          // Initial logging for function call, before extractedId is defined for this scope
-          console.log(`[connectToDraft] Entry. draftIdOrUrl: ${draftIdOrUrl}, draftType: ${draftType}, activePresetId: ${get().activePresetId}`);
-          const wasNewSessionAwaitingFirstDraft = get().isNewSessionAwaitingFirstDraft; // Get before async
+          console.log(`[connectToDraft] Entry. draftIdOrUrl: ${draftIdOrUrl}, draftType: ${draftType}`);
+          const wasNewSessionAwaitingFirstDraft = get().isNewSessionAwaitingFirstDraft;
 
           if (draftType === 'civ') {
             set({ isLoadingCivDraft: true, civDraftStatus: 'connecting', civDraftError: null });
           } else {
             set({ isLoadingMapDraft: true, mapDraftStatus: 'connecting', mapDraftError: null });
           }
-          const extractedId = get().extractDraftIdFromUrl(draftIdOrUrl); // Main declaration
 
-          // Now log the extractedId
-          console.log('[connectToDraft] Called for draft ID:', extractedId, 'Type:', draftType, 'Initiated by loadPreset for preset ID:', get().activePresetId);
+          const extractedId = get().extractDraftIdFromUrl(draftIdOrUrl);
+          console.log('[connectToDraft] Called for draft ID:', extractedId, 'Type:', draftType);
 
-          if (!extractedId) {
-            // ... rest of the logic for !extractedId
-            const errorMsg = 'Invalid Draft ID or URL provided.';
-            if (draftType === 'civ') {
-              set({ isLoadingCivDraft: false, civDraftStatus: 'error', civDraftError: errorMsg });
-            } else {
-              set({ isLoadingMapDraft: false, mapDraftStatus: 'error', mapDraftError: errorMsg });
-            }
+          if (get().invalidDraftIds?.includes(extractedId!)) {
+            const errorMsg = `Connection blocked: Draft ID ${extractedId} is known to be invalid.`;
+            console.warn(errorMsg);
+            const errorUpdate = draftType === 'civ'
+              ? { isLoadingCivDraft: false, civDraftStatus: 'error' as ConnectionStatus, civDraftError: errorMsg }
+              : { isLoadingMapDraft: false, mapDraftStatus: 'error' as ConnectionStatus, mapDraftError: errorMsg };
+            set(errorUpdate);
             return false;
           }
 
-          if (draftType === 'civ') set({ civDraftId: extractedId }); else set({ mapDraftId: extractedId });
+          if (!extractedId) {
+            const errorMsg = 'Invalid Draft ID or URL provided.';
+            const errorUpdate = draftType === 'civ'
+              ? { isLoadingCivDraft: false, civDraftStatus: 'error' as ConnectionStatus, civDraftError: errorMsg }
+              : { isLoadingMapDraft: false, mapDraftStatus: 'error' as ConnectionStatus, mapDraftError: errorMsg };
+            set(errorUpdate);
+            return false;
+          }
 
-          // Removing/commenting out the block that nullifies activePresetId prematurely.
-          // const currentActivePresetId = get().activePresetId;
-          // const savedPresetsArray = get().savedPresets;
-          // const activePreset = currentActivePresetId ? savedPresetsArray.find(p => p.id === currentActivePresetId) : null;
-          // if (activePreset) {
-          //   if ((draftType === 'civ' && activePreset.civDraftId !== extractedId) ||
-          //       (draftType === 'map' && activePreset.mapDraftId !== extractedId)) {
-          //     // set({ activePresetId: null }); // Problematic line - REMOVED
-          //   }
-          // } else {
-          //   // set({ activePresetId: null }); // Also potentially problematic - REMOVED
-          // }
+          set({ [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId });
 
-          console.log(`[ConnectToDraft] Attempting to fetch ${draftType} draft ${extractedId} via HTTP.`);
           const apiUrl = `${DRAFT_DATA_API_BASE_URL}/draft/${extractedId}`;
+          console.log(`[ConnectToDraft] Attempting to fetch ${draftType} draft ${extractedId} via HTTP from ${apiUrl}.`);
 
           try {
             const response = await axios.get<Aoe2cmRawDraftData>(apiUrl);
@@ -1359,159 +1365,60 @@ const useDraftStore = create<DraftStore>()(
               throw new Error('Received invalid or empty data structure from the API.');
             }
             const rawDraftData = response.data;
-
-            console.log(`[ConnectToDraft] Full rawDraftData for ID ${extractedId}:`, JSON.stringify(rawDraftData, null, 2));
-
             const processedData = transformRawDataToSingleDraft(rawDraftData, draftType);
 
-            if (wasNewSessionAwaitingFirstDraft) {
-              const hostNameForPreset = processedData.hostName || (draftType === 'civ' && rawDraftData.nameHost) || initialPlayerNameHost;
-              const guestNameForPreset = processedData.guestName || (draftType === 'civ' && rawDraftData.nameGuest) || initialPlayerNameGuest;
+            // New session logic is now handled by the draft_state websocket event
 
-              const presetName = `${hostNameForPreset} vs ${guestNameForPreset} - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`; // Changed to toLocaleTimeString
-
-              // Temporarily update store with current draft ID and names before saving preset
-              set(state => ({
-                ...state,
-                [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId,
-                hostName: hostNameForPreset,
-                guestName: guestNameForPreset,
-                // Ensure other relevant fields for saveCurrentAsPreset are up-to-date if needed
-              }));
-
-              get().saveCurrentAsPreset(presetName); // Reverted: No await
-
-              set({ isNewSessionAwaitingFirstDraft: false });
-              set(state => ({ forceMapPoolUpdate: state.forceMapPoolUpdate + 1 }));
-              console.log('[connectToDraft] Incremented forceMapPoolUpdate to trigger UI refresh.');
-            }
-
-            // Determine hostName, guestName, respecting existing if not default
-            let newHostName = get().hostName;
-            let newGuestName = get().guestName;
-            const isHostNameDefaultOrLive = get().hostName === initialPlayerNameHost || get().hostName === "Host (Live)";
-            const isGuestNameDefaultOrLive = get().guestName === initialPlayerNameGuest || get().guestName === "Guest (Live)";
-            if (processedData.hostName) newHostName = isHostNameDefaultOrLive ? processedData.hostName : get().hostName;
-            if (processedData.guestName) newGuestName = isGuestNameDefaultOrLive ? processedData.guestName : get().guestName;
-
-            // Extract pick/ban arrays from HTTP response data
-            const httpCivPicksHost = processedData.civPicksHost || [];
-            const httpCivBansHost = processedData.civBansHost || [];
-            const httpCivPicksGuest = processedData.civPicksGuest || [];
-            const httpCivBansGuest = processedData.civBansGuest || [];
-            const httpMapPicksHost = processedData.mapPicksHost || [];
-            const httpMapBansHost = processedData.mapBansHost || [];
-            const httpMapPicksGuest = processedData.mapPicksGuest || [];
-            const httpMapBansGuest = processedData.mapBansGuest || [];
-            const httpMapPicksGlobal = processedData.mapPicksGlobal || [];
-            const httpMapBansGlobal = processedData.mapBansGlobal || [];
-
-            // Handle BoX Format Detection (before the main set call)
-            let detectedFormatDuringLoad: CombinedDraftState['boxSeriesFormat'] = null;
-            const currentBoxSeriesFormat = get().boxSeriesFormat; // Get current format from state
-
-            const parseNameForBoX = (nameString: string | undefined): CombinedDraftState['boxSeriesFormat'] | null => {
-              console.log(`[parseNameForBoX] Checking nameString: "${nameString}"`);
-              if (!nameString) return null;
-              let format: CombinedDraftState['boxSeriesFormat'] | null = null;
-              const bestOfMatch = nameString.match(/best of (\d+)(?:[^a-zA-Z0-9]|$)/i);
-              console.log(`[parseNameForBoX] bestOfMatch result:`, bestOfMatch);
-              if (bestOfMatch && bestOfMatch[1]) {
-                const number = parseInt(bestOfMatch[1]);
-                if ([1, 3, 5, 7].includes(number)) {
-                  format = `bo${number}` as CombinedDraftState['boxSeriesFormat'];
-                }
-              }
-              if (!format) {
-                const boMatch = nameString.match(/bo\s*(\d+)/i);
-                console.log(`[parseNameForBoX] boMatch result:`, boMatch);
-                if (boMatch && boMatch[1]) {
-                  const number = parseInt(boMatch[1]);
-                  if ([1, 3, 5, 7].includes(number)) {
-                    format = `bo${number}` as CombinedDraftState['boxSeriesFormat'];
-                  }
-                }
-              }
-              console.log(`[parseNameForBoX] Determined format: ${format} for nameString: "${nameString}"`);
-              return format;
-            };
-
-            // Only auto-detect if no active preset is loaded and no format is currently set by the user
-            if (get().activePresetId === null && !currentBoxSeriesFormat) {
-              detectedFormatDuringLoad = parseNameForBoX(rawDraftData.preset?.name);
-              if (detectedFormatDuringLoad) {
-                console.log(`[ConnectToDraft] Auto-detected BoX format (from preset name): ${detectedFormatDuringLoad} for draft ID ${extractedId} from preset name: "${rawDraftData.preset?.name}"`);
-              } else if (rawDraftData.name) { // Fallback to draft name
-                detectedFormatDuringLoad = parseNameForBoX(rawDraftData.name);
-                if (detectedFormatDuringLoad) {
-                  console.log(`[ConnectToDraft] Auto-detected BoX format (from draft name): ${detectedFormatDuringLoad} for draft ID ${extractedId} from draft name: "${rawDraftData.name}"`);
-                }
-              }
-            }
-            const formatToUse = detectedFormatDuringLoad || currentBoxSeriesFormat;
-
-            // Single, consolidated set call
             set(state => {
-                console.log(`[connectToDraft] Updating aoe2cmRawDraftOptions. DraftType: ${draftType}. Current options length: ${state.aoe2cmRawDraftOptions?.length || 0}. New options length: ${rawDraftData.preset?.draftOptions?.length || 0}.`);
-                // Determine final pick/ban arrays: use HTTP data if current draftType matches, else keep existing state
-                const finalCivPicksHost = draftType === 'civ' ? httpCivPicksHost : state.civPicksHost;
-                const finalCivBansHost = draftType === 'civ' ? httpCivBansHost : state.civBansHost;
-                const finalCivPicksGuest = draftType === 'civ' ? httpCivPicksGuest : state.civPicksGuest;
-                const finalCivBansGuest = draftType === 'civ' ? httpCivBansGuest : state.civBansGuest;
+              const baseUpdate: Partial<CombinedDraftState> = {
+                hostName: processedData.hostName || state.hostName,
+                guestName: processedData.guestName || state.guestName,
+                aoe2cmRawDraftOptions: rawDraftData.preset?.draftOptions || state.aoe2cmRawDraftOptions,
+              };
 
-                const finalMapPicksHost = draftType === 'map' ? httpMapPicksHost : state.mapPicksHost;
-                const finalMapBansHost = draftType === 'map' ? httpMapBansHost : state.mapBansHost;
-                const finalMapPicksGuest = draftType === 'map' ? httpMapPicksGuest : state.mapPicksGuest;
-                const finalMapBansGuest = draftType === 'map' ? httpMapBansGuest : state.mapBansGuest;
-                const finalMapPicksGlobal = draftType === 'map' ? httpMapPicksGlobal : state.mapPicksGlobal;
-                const finalMapBansGlobal = draftType === 'map' ? httpMapBansGlobal : state.mapBansGlobal;
+              if (draftType === 'civ') {
+                Object.assign(baseUpdate, {
+                  civDraftId: extractedId,
+                  civPicksHost: processedData.civPicksHost || [],
+                  civBansHost: processedData.civBansHost || [],
+                  civPicksGuest: processedData.civPicksGuest || [],
+                  civBansGuest: processedData.civBansGuest || [],
+                  isLoadingCivDraft: false,
+                  civDraftStatus: 'connected',
+                  civDraftError: null,
+                });
+              } else { // draftType === 'map'
+                Object.assign(baseUpdate, {
+                  mapDraftId: extractedId,
+                  mapPicksHost: processedData.mapPicksHost || [],
+                  mapBansHost: processedData.mapBansHost || [],
+                  mapPicksGuest: processedData.mapPicksGuest || [],
+                  mapBansGuest: processedData.mapBansGuest || [],
+                  mapPicksGlobal: processedData.mapPicksGlobal || [],
+                  mapBansGlobal: processedData.mapBansGlobal || [],
+                  isLoadingMapDraft: false,
+                  mapDraftStatus: 'connected',
+                  mapDraftError: null,
+                });
+              }
 
-                // If format changes due to detection, currentBoxSeriesGames should be empty to rebuild fresh
-                // otherwise, use state.boxSeriesGames to preserve winners.
-                const baseGamesForCalc = (detectedFormatDuringLoad && detectedFormatDuringLoad !== state.boxSeriesFormat) ? [] : state.boxSeriesGames;
+              const finalCivPicksHost = 'civPicksHost' in baseUpdate ? baseUpdate.civPicksHost! : state.civPicksHost;
+              const finalCivPicksGuest = 'civPicksGuest' in baseUpdate ? baseUpdate.civPicksGuest! : state.civPicksGuest;
+              const finalMapPicksHost = 'mapPicksHost' in baseUpdate ? baseUpdate.mapPicksHost! : state.mapPicksHost;
+              const finalMapPicksGuest = 'mapPicksGuest' in baseUpdate ? baseUpdate.mapPicksGuest! : state.mapPicksGuest;
+              const finalMapPicksGlobal = 'mapPicksGlobal' in baseUpdate ? baseUpdate.mapPicksGlobal! : state.mapPicksGlobal;
 
-                const newBoxSeriesGames = _calculateUpdatedBoxSeriesGames(
-                    formatToUse,
-                    baseGamesForCalc,
-                    finalCivPicksHost,
-                    finalCivPicksGuest,
-                    finalMapPicksHost,
-                    finalMapPicksGuest,
-                    finalMapPicksGlobal
-                );
+              baseUpdate.boxSeriesGames = _calculateUpdatedBoxSeriesGames(
+                state.boxSeriesFormat,
+                state.boxSeriesGames,
+                finalCivPicksHost,
+                finalCivPicksGuest,
+                finalMapPicksHost,
+                finalMapPicksGuest,
+                finalMapPicksGlobal
+              );
 
-                const updatePayload: Partial<CombinedDraftState> = {
-                    ...state, // Start with current state
-                    hostName: newHostName,
-                    guestName: newGuestName,
-                    // Ensure the correct log is present before the conditional assignment
-                    aoe2cmRawDraftOptions: rawDraftData.preset?.draftOptions || state.aoe2cmRawDraftOptions,
-
-                    civPicksHost: finalCivPicksHost, civBansHost: finalCivBansHost,
-                    civPicksGuest: finalCivPicksGuest, civBansGuest: finalCivBansGuest,
-                    mapPicksHost: finalMapPicksHost, mapBansHost: finalMapBansHost,
-                    mapPicksGuest: finalMapPicksGuest, mapBansGuest: finalMapBansGuest,
-                    mapPicksGlobal: finalMapPicksGlobal, mapBansGlobal: finalMapBansGlobal,
-
-                    boxSeriesGames: newBoxSeriesGames,
-                };
-
-                // If a new format was detected and it's different from current state, apply it
-                if (detectedFormatDuringLoad && detectedFormatDuringLoad !== state.boxSeriesFormat) {
-                    updatePayload.boxSeriesFormat = detectedFormatDuringLoad;
-                }
-
-                // Update status and loading flags
-                if (draftType === 'civ') {
-                    updatePayload.isLoadingCivDraft = false;
-                    updatePayload.civDraftStatus = 'connected';
-                    updatePayload.civDraftError = null;
-                } else { // map
-                    updatePayload.isLoadingMapDraft = false;
-                    updatePayload.mapDraftStatus = 'connected';
-                    updatePayload.mapDraftError = null;
-                }
-                return updatePayload;
+              return baseUpdate;
             });
 
             get()._updateActivePresetIfNeeded();
@@ -1520,11 +1427,9 @@ const useDraftStore = create<DraftStore>()(
               console.log(`[ConnectToDraft] Draft ${extractedId} is ongoing. Attempting WebSocket connection.`);
               get().connectToWebSocket(extractedId, draftType);
             } else {
-              console.log(`[ConnectToDraft] Draft ${extractedId} is not ongoing (completed or status unknown). WebSocket connection will not be attempted.`);
-              if (get().socketDraftType === draftType && (get().civDraftId === extractedId || get().mapDraftId === extractedId)) {
-                 get().disconnectWebSocket();
-              } else {
-                set({socketStatus: 'disconnected', socketError: null, socketDraftType: null});
+              console.log(`[ConnectToDraft] Draft ${extractedId} is not ongoing. No WebSocket connection needed.`);
+              if (get().socketDraftType === draftType && get()[draftType === 'civ' ? 'civDraftId' : 'mapDraftId'] === extractedId) {
+                get().disconnectWebSocket();
               }
             }
             return true;

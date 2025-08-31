@@ -1,5 +1,5 @@
 import useDraftStore from './draftStore';
-import { Aoe2cmRawDraftData } from '../types/draft'; // Adjust path if necessary
+import { Aoe2cmRawDraftData } from '../types/draft';
 import axios from 'axios';
 
 // Mock axios
@@ -47,58 +47,65 @@ const mockDraft_kIqET: Aoe2cmRawDraftData = {
   hostConnected: false, guestConnected: false, hostReady: true, guestReady: true, startTimestamp: 0
 };
 
-// Basic assertion function for the test
-function assertEqual(actual: any, expected: any, message: string) {
-  if (actual !== expected) {
-    // Using console.error for test failures to make them more visible if run directly
-    console.error(`Assertion failed: ${message}. Expected "${expected}", but got "${actual}".`);
-    throw new Error(`Assertion failed: ${message}. Expected "${expected}", but got "${actual}".`);
-  }
-}
-
-async function runTest() {
-  console.log('Starting test: Last remaining map assignment (kIqET draft)...');
-
-  // Reset store to initial state before each test run
-  useDraftStore.setState(useDraftStore.getState()._resetCurrentSessionState());
-
-  // Mock the API call for kIqET draft
-  mockedAxios.get.mockResolvedValue({ data: mockDraft_kIqET });
-
-  // Set BO5 format (as per preset name "M.o.S. Bo5 Map Draft")
-  // This ensures boxSeriesGames array is initialized for 5 games.
-  useDraftStore.getState().setBoxSeriesFormat('bo5');
-
-  // Connect to the draft
-  const connectResult = await useDraftStore.getState().connectToDraft('kIqET', 'map');
-  assertEqual(connectResult, true, 'Connection to draft (kIqET) should be successful');
-
-  const state = useDraftStore.getState();
-
-  // Verify that "Regions" (from "NONE" pick event) is in mapPicksGlobal
-  assertEqual(state.mapPicksGlobal?.includes('Regions'), true, 'mapPicksGlobal should include "Regions" from event processing');
-
-  // Verify the 5th game's map (index 4)
-  if (!state.boxSeriesGames || state.boxSeriesGames.length < 5) {
-    throw new Error(`boxSeriesGames is not defined or has fewer than 5 games for kIqET. Length: ${state.boxSeriesGames?.length}`);
-  }
-  assertEqual(state.boxSeriesGames[4]?.map, 'Regions', 'Game 5 map (kIqET) should be "Regions"');
-
-  console.log('Test passed for kIqET: "Regions" correctly assigned.');
-}
-
-// It's good practice to wrap test execution in a way that can be discovered by a test runner
-// or provide a clear entry point if run as a script.
-// For now, direct execution with error handling:
-runTest()
-  .then(() => {
-    console.log('Draft store tests completed successfully.');
-    // process.exit(0); // Not needed if not running in a CLI-only test mode
-  })
-  .catch(e => {
-    console.error("Draft store test suite failed:", e);
-    // process.exit(1); // Exit with error code if a test fails
+describe('draftStore', () => {
+  beforeEach(() => {
+    // Reset store to initial state before each test
+    const { _resetCurrentSessionState } = useDraftStore.getState();
+    _resetCurrentSessionState();
+    mockedAxios.get.mockClear();
   });
 
-// Add a simple export to make it a module, satisfying TypeScript.
-export {};
+  test('should correctly assign the last remaining map to global picks', async () => {
+    // Mock the API call for kIqET draft
+    mockedAxios.get.mockResolvedValue({ data: mockDraft_kIqET });
+
+    // Set BO5 format to initialize the boxSeriesGames array
+    useDraftStore.getState().setBoxSeriesFormat('bo5');
+
+    // Connect to the draft
+    const connectResult = await useDraftStore.getState().connectToDraft('kIqET', 'map');
+    expect(connectResult).toBe(true);
+
+    const state = useDraftStore.getState();
+
+    // Verify that "Regions" (from "NONE" pick event) is in mapPicksGlobal
+    expect(state.mapPicksGlobal).toContain('Regions');
+
+    // Verify the 5th game's map (index 4)
+    expect(state.boxSeriesGames).toHaveLength(5);
+    expect(state.boxSeriesGames[4]?.map).toBe('Regions');
+  });
+
+  test('should merge civ and map drafts without losing state', async () => {
+    const civDraftData: Aoe2cmRawDraftData = {
+      nameHost: 'PlayerA',
+      nameGuest: 'PlayerB',
+      events: [{ executingPlayer: 'HOST', actionType: 'pick', chosenOptionId: 'aoe4.English' }]
+    };
+    const mapDraftData: Aoe2cmRawDraftData = {
+      // No names in this one
+      events: [{ executingPlayer: 'GUEST', actionType: 'pick', chosenOptionId: 'some-map.Lipany' }]
+    };
+
+    // 1. Import Civ Draft
+    mockedAxios.get.mockResolvedValue({ data: civDraftData });
+    await useDraftStore.getState().connectToDraft('civDraftId', 'civ');
+
+    let state = useDraftStore.getState();
+    expect(state.hostName).toBe('PlayerA');
+    expect(state.guestName).toBe('PlayerB');
+    expect(state.civPicksHost).toContain('English');
+    expect(state.mapPicksGuest).toEqual([]);
+
+    // 2. Import Map Draft
+    mockedAxios.get.mockResolvedValue({ data: mapDraftData });
+    await useDraftStore.getState().connectToDraft('mapDraftId', 'map');
+
+    state = useDraftStore.getState();
+
+    // Verify that map data is present AND civ data is preserved
+    expect(state.mapPicksGuest).toContain('Lipany');
+    expect(state.civPicksHost).toContain('English'); // Check that civ picks are still there
+    expect(state.hostName).toBe('PlayerA'); // Check that player names are preserved
+  });
+});

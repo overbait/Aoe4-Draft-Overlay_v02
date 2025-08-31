@@ -383,10 +383,18 @@ const COUNTRY_PLAYERS_FILE_PATH = 'assets/countryflags/countryplayers.txt';
 
   const renderStatusIndicator = (status: ConnectionStatus, isLoading: boolean, error: string | null) => {
     let color = 'grey';
-    if (isLoading) color = 'orange';
-    else if (error) color = 'red';
-    else if (status === 'connected') color = 'green';
-    return <div className="status-circle" style={{ backgroundColor: color }} title={error || status}></div>;
+    let className = "status-circle";
+    if (isLoading) {
+      color = 'orange';
+    } else if (error) {
+      color = 'red';
+    } else if (status === 'live') {
+      color = '#007bff'; // A nice blue color
+      className += " status-live";
+    } else if (status === 'connected') {
+      color = 'green';
+    }
+    return <div className={className} style={{ backgroundColor: color }} title={error || status}></div>;
   };
 
   const handleAddNewPresetAndSaveCurrent = () => {
