@@ -27,8 +27,17 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
 
   useEffect(() => {
     (window as any).IS_BROADCAST_VIEW = true;
+
+    const handleNewSession = () => {
+      console.log('[BroadcastView] Detected newSessionDataLoaded event, reloading page.');
+      window.location.reload();
+    };
+
+    window.addEventListener('newSessionDataLoaded', handleNewSession);
+
     return () => {
       (window as any).IS_BROADCAST_VIEW = false;
+      window.removeEventListener('newSessionDataLoaded', handleNewSession);
     };
   }, []);
 
