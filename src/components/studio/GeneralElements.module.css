@@ -231,3 +231,16 @@
   font-size: 1.5em;
   font-weight: bold;
 }
+
+@keyframes longFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.longFadeIn {
+  animation: longFadeIn 1.5s ease-in-out forwards;
+}

@@ -55,7 +55,7 @@ const useDraftAnimation = (
 
   if (itemIsTheLastAction) {
     return {
-      animationClass: 'fadeIn',
+      animationClass: 'longFadeIn',
       imageOpacity: 1,
       isRevealing: false,
     };
