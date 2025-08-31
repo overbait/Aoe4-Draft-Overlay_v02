@@ -389,7 +389,6 @@ const useDraftStore = create<DraftStore>()(
 
                       get().saveCurrentAsPreset(presetName);
                       set({ isNewSessionAwaitingFirstDraft: false });
-              window.dispatchEvent(new CustomEvent('newSessionDataLoaded'));
                     }
 
                     if (data && data.preset) {

@@ -106,143 +106,165 @@ const BoXSeriesOverviewElement: React.FC<BoXSeriesOverviewElementProps> = ({ ele
 
   return (
     <div className={styles.baseElement} style={{ fontFamily, fontSize: `${dynamicFontSize}px` }}>
-      {visibleGames.map((game: BoxSeriesGame, index: number) => { // Use visibleGames here
-        // Note: The 'index' here is for the visibleGames array. If the original index is needed for Game X text,
-        // and we want to preserve original numbering (e.g. Game 1, Game 3 if Game 2 is hidden),
-        // we would need to find the original index from boxSeriesGames.
-        // For now, assuming Game {index + 1} refers to the sequence of VISIBLE games.
-        // If original game numbering is critical even when some are hidden, this logic will need adjustment.
-        // Based on "Игры в элементе Box Series Overview на странице Broadcast Studio должны продолжать подстраиваться относительно центра",
-        // re-numbering based on visible games seems acceptable.
+      {visibleGames.map((game: BoxSeriesGame, index: number) => (
+        <GameEntry
+          key={index}
+          game={game}
+          index={index}
+          element={element} // Pass element props
+          dynamicGameTitleStyle={dynamicGameTitleStyle}
+          gameImageRowDynamicStyle={gameImageRowDynamicStyle}
+          civSelectorStyleBase={civSelectorStyleBase}
+          mapSelectorStyleBase={mapSelectorStyleBase}
+        />
+      ))}
+    </div>
+  );
+};
 
-        const hostCivKey = `hc-${game.hostCiv || 'random'}-${index}`; // Ensure key uniqueness with potentially sparse original indices
-        const mapKey = `map-${game.map || 'random'}-${index}`;
-        const guestCivKey = `gc-${game.guestCiv || 'random'}-${index}`;
+// New inner component to encapsulate the hooks
+const GameEntry: React.FC<{
+  game: BoxSeriesGame;
+  index: number;
+  element: StudioElement;
+  dynamicGameTitleStyle: React.CSSProperties;
+  gameImageRowDynamicStyle: React.CSSProperties;
+  civSelectorStyleBase: React.CSSProperties;
+  mapSelectorStyleBase: React.CSSProperties;
+}> = ({ game, index, element, dynamicGameTitleStyle, gameImageRowDynamicStyle, civSelectorStyleBase, mapSelectorStyleBase }) => {
+  const {
+    showCivNames = true,
+    showMapNames = true,
+    gameEntrySpacing = 10,
+    hideCivs = false,
+    hideMaps = false,
+    hideGameXText = false,
+    pivotInternalOffset = 0,
+  } = element;
 
-        // Opacity states for the <img> overlay fade-in effect
-        const [hostCivImgOpacity, setHostCivImgOpacity] = useState(0);
-        const [guestCivImgOpacity, setGuestCivImgOpacity] = useState(0);
-        const [mapImgOpacity, setMapImgOpacity] = useState(0);
+  const hostCivKey = `hc-${game.hostCiv || 'random'}-${index}`;
+  const mapKey = `map-${game.map || 'random'}-${index}`;
+  const guestCivKey = `gc-${game.guestCiv || 'random'}-${index}`;
 
-        useEffect(() => {
-          if (game.hostCiv) {
-            setHostCivImgOpacity(0); // Reset for fade-in if civ changes
-            const timer = setTimeout(() => setHostCivImgOpacity(1), 50);
-            return () => clearTimeout(timer);
-          } else {
-            setHostCivImgOpacity(0);
-          }
-        }, [game.hostCiv]);
+  // Hooks are now called consistently inside GameEntry
+  const [hostCivImgOpacity, setHostCivImgOpacity] = useState(0);
+  const [guestCivImgOpacity, setGuestCivImgOpacity] = useState(0);
+  const [mapImgOpacity, setMapImgOpacity] = useState(0);
 
-        useEffect(() => {
-          if (game.guestCiv) {
-            setGuestCivImgOpacity(0);
-            const timer = setTimeout(() => setGuestCivImgOpacity(1), 50);
-            return () => clearTimeout(timer);
-          } else {
-            setGuestCivImgOpacity(0);
-          }
-        }, [game.guestCiv]);
+  useEffect(() => {
+    if (game.hostCiv) {
+      setHostCivImgOpacity(0);
+      const timer = setTimeout(() => setHostCivImgOpacity(1), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setHostCivImgOpacity(0);
+    }
+  }, [game.hostCiv]);
 
-        useEffect(() => {
-          if (game.map) {
-            setMapImgOpacity(0);
-            const timer = setTimeout(() => setMapImgOpacity(1), 50);
-            return () => clearTimeout(timer);
-          } else {
-            setMapImgOpacity(0);
-          }
-        }, [game.map]);
+  useEffect(() => {
+    if (game.guestCiv) {
+      setGuestCivImgOpacity(0);
+      const timer = setTimeout(() => setGuestCivImgOpacity(1), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setGuestCivImgOpacity(0);
+    }
+  }, [game.guestCiv]);
 
-        // Restore linear gradient for a subtle effect, can be removed if problematic
-        const gradient = 'linear-gradient(to bottom, rgba(74,59,42,0.1), rgba(74,59,42,0.0))';
+  useEffect(() => {
+    if (game.map) {
+      setMapImgOpacity(0);
+      const timer = setTimeout(() => setMapImgOpacity(1), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setMapImgOpacity(0);
+    }
+  }, [game.map]);
 
-        return (
-         <div key={index} className={styles.gameEntryContainer} style={{ paddingTop: index > 0 ? `${gameEntrySpacing}px` : '0px' }}>
-            {!hideGameXText && <div className={styles.gameTitle} style={dynamicGameTitleStyle}>Game {index + 1}</div>}
-            <div className={styles.gameImageRow} style={gameImageRowDynamicStyle}>
-              {!hideCivs && (
-                <div className={`${styles.civCell} ${styles.leftCivCell}`}>
-                  <div
-                    key={hostCivKey}
-                    className={`${styles.selectorDisplay} ${game.winner === 'host' ? styles.winnerGlow : ''}`}
-                    style={{
-                      ...civSelectorStyleBase,
-                      backgroundImage: `${gradient}, url('/assets/civflags_normal/${formatCivNameForImagePath('random')}.png')`,
-                    }}
-                  >
-                    {game.hostCiv && (
-                      <img
-                        src={`/assets/civflags_normal/${formatCivNameForImagePath(game.hostCiv)}.png`}
-                        alt={game.hostCiv || 'Host Civ'}
-                        className={styles.boxPickedImage}
-                        style={{ opacity: hostCivImgOpacity }}
-                      />
-                    )}
-                    {showCivNames && game.hostCiv && (
-                      <div className={styles.selectorTextOverlay}>{game.hostCiv}</div>
-                    )}
-                  </div>
-                </div>
+  const gradient = 'linear-gradient(to bottom, rgba(74,59,42,0.1), rgba(74,59,42,0.0))';
+
+  return (
+    <div className={styles.gameEntryContainer} style={{ paddingTop: index > 0 ? `${gameEntrySpacing}px` : '0px' }}>
+      {!hideGameXText && <div className={styles.gameTitle} style={dynamicGameTitleStyle}>Game {index + 1}</div>}
+      <div className={styles.gameImageRow} style={gameImageRowDynamicStyle}>
+        {!hideCivs && (
+          <div className={`${styles.civCell} ${styles.leftCivCell}`}>
+            <div
+              key={hostCivKey}
+              className={`${styles.selectorDisplay} ${game.winner === 'host' ? styles.winnerGlow : ''}`}
+              style={{
+                ...civSelectorStyleBase,
+                backgroundImage: `${gradient}, url('/assets/civflags_normal/${formatCivNameForImagePath('random')}.png')`,
+              }}
+            >
+              {game.hostCiv && (
+                <img
+                  src={`/assets/civflags_normal/${formatCivNameForImagePath(game.hostCiv)}.png`}
+                  alt={game.hostCiv || 'Host Civ'}
+                  className={styles.boxPickedImage}
+                  style={{ opacity: hostCivImgOpacity }}
+                />
               )}
-              {!hideCivs && !hideMaps && (pivotInternalOffset > 0) && <div className={styles.spacer}></div>}
-              {/* Central content: Map or Spacer if map is hidden and pivot is active */}
-              {(!hideMaps) && (
-                <div className={styles.mapCell}>
-                  <div
-                    key={mapKey}
-                    className={styles.selectorDisplay}
-                    style={{
-                      ...mapSelectorStyleBase,
-                      backgroundImage: `${gradient}, url('/assets/maps/${formatMapNameForImagePath('random')}.png')`,
-                    }}
-                  >
-                    {game.map && (
-                      <img
-                        src={`/assets/maps/${formatMapNameForImagePath(game.map)}.png`}
-                        alt={game.map || 'Map'}
-                        className={styles.boxPickedImage}
-                        style={{ opacity: mapImgOpacity }}
-                      />
-                    )}
-                    {showMapNames && game.map && (
-                      <div className={styles.selectorTextOverlay}>{game.map}</div>
-                    )}
-                  </div>
-                </div>
+              {showCivNames && game.hostCiv && (
+                <div className={styles.selectorTextOverlay}>{game.hostCiv}</div>
               )}
-              {/* Dedicated spacer for when maps are hidden, civs are visible, and pivot is active */}
-              {hideMaps && !hideCivs && pivotInternalOffset > 0 && (
-                <div style={{ width: `${pivotInternalOffset * 2}px`, flexShrink: 0 /* Prevent shrinking */ }}></div>
+            </div>
+          </div>
+        )}
+        {!hideCivs && !hideMaps && (pivotInternalOffset > 0) && <div className={styles.spacer}></div>}
+        {(!hideMaps) && (
+          <div className={styles.mapCell}>
+            <div
+              key={mapKey}
+              className={styles.selectorDisplay}
+              style={{
+                ...mapSelectorStyleBase,
+                backgroundImage: `${gradient}, url('/assets/maps/${formatMapNameForImagePath('random')}.png')`,
+              }}
+            >
+              {game.map && (
+                <img
+                  src={`/assets/maps/${formatMapNameForImagePath(game.map)}.png`}
+                  alt={game.map || 'Map'}
+                  className={styles.boxPickedImage}
+                  style={{ opacity: mapImgOpacity }}
+                />
               )}
-              {!hideCivs && !hideMaps && (pivotInternalOffset > 0) && <div className={styles.spacer}></div>}
-              {!hideCivs && (
-                <div className={`${styles.civCell} ${styles.rightCivCell}`}>
-                  <div
-                    key={guestCivKey}
-                    className={`${styles.selectorDisplay} ${game.winner === 'guest' ? styles.winnerGlow : ''}`}
-                    style={{
-                      ...civSelectorStyleBase,
-                      backgroundImage: `${gradient}, url('/assets/civflags_normal/${formatCivNameForImagePath('random')}.png')`,
-                    }}
-                  >
-                    {game.guestCiv && (
-                      <img
-                        src={`/assets/civflags_normal/${formatCivNameForImagePath(game.guestCiv)}.png`}
-                        alt={game.guestCiv || 'Guest Civ'}
-                        className={styles.boxPickedImage}
-                        style={{ opacity: guestCivImgOpacity }}
-                      />
-                    )}
-                    {showCivNames && game.guestCiv && (
-                      <div className={styles.selectorTextOverlay}>{game.guestCiv}</div>
-                    )}
-                  </div>
-                </div>
+              {showMapNames && game.map && (
+                <div className={styles.selectorTextOverlay}>{game.map}</div>
               )}
-           </div>
-        </div>
-      )})}
+            </div>
+          </div>
+        )}
+        {hideMaps && !hideCivs && pivotInternalOffset > 0 && (
+          <div style={{ width: `${pivotInternalOffset * 2}px`, flexShrink: 0 }}></div>
+        )}
+        {!hideCivs && !hideMaps && (pivotInternalOffset > 0) && <div className={styles.spacer}></div>}
+        {!hideCivs && (
+          <div className={`${styles.civCell} ${styles.rightCivCell}`}>
+            <div
+              key={guestCivKey}
+              className={`${styles.selectorDisplay} ${game.winner === 'guest' ? styles.winnerGlow : ''}`}
+              style={{
+                ...civSelectorStyleBase,
+                backgroundImage: `${gradient}, url('/assets/civflags_normal/${formatCivNameForImagePath('random')}.png')`,
+              }}
+            >
+              {game.guestCiv && (
+                <img
+                  src={`/assets/civflags_normal/${formatCivNameForImagePath(game.guestCiv)}.png`}
+                  alt={game.guestCiv || 'Guest Civ'}
+                  className={styles.boxPickedImage}
+                  style={{ opacity: guestCivImgOpacity }}
+                />
+              )}
+              {showCivNames && game.guestCiv && (
+                <div className={styles.selectorTextOverlay}>{game.guestCiv}</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
