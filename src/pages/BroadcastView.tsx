@@ -11,6 +11,7 @@ import CivPoolElement from '../components/studio/CivPoolElement';
 import PickedCivsElement from '../components/studio/PickedCivsElement';
 import BannedCivsElement from '../components/studio/BannedCivsElement';
 import MapsElement from '../components/studio/MapsElement';
+import DeciderMapElement from '../components/studio/DeciderMap';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import new component
 // All elements are now imported.
 
@@ -173,6 +174,8 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
             content = <BannedCivsElement element={element} isBroadcast={true} />;
         } else if (element.type === "Maps") {
             content = <MapsElement element={element} isBroadcast={true} />;
+        } else if (element.type === "DeciderMap") {
+            content = <DeciderMapElement element={element} />;
         } else if (element.type === "BackgroundImage") {
           content = <BackgroundImageElement element={element} isBroadcast={true} />;
         } else {

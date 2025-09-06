@@ -259,7 +259,8 @@ const transformRawDataToSingleDraft = ( raw: Aoe2cmRawDraftData, draftType: 'civ
   }
 
   let currentTurnPlayerDisplay: string | undefined = 'none'; let currentActionDisplay: string | undefined = 'unknown'; let draftStatus: SingleDraftData['status'] = 'unknown'; if (raw.preset?.turns && typeof raw.nextAction === 'number') { if (raw.nextAction >= raw.preset.turns.length) draftStatus = 'completed'; else { draftStatus = 'inProgress'; const currentTurnInfo = raw.preset.turns[raw.nextAction]; if (currentTurnInfo) { currentTurnPlayerDisplay = currentTurnInfo.player === 'HOST' ? hostName : currentTurnInfo.player === 'GUEST' ? guestName : 'None'; currentActionDisplay = currentTurnInfo.action?.toUpperCase().replace('G', ''); } } } else if (raw.status) draftStatus = raw.status.toLowerCase() as SingleDraftData['status']; else if (raw.ongoing === false) draftStatus = 'completed'; else if (raw.ongoing === true) draftStatus = 'inProgress';
-  output.status = draftStatus; output.currentTurnPlayer = currentTurnPlayerDisplay; output.currentAction = currentActionDisplay; return output;
+  output.status = draftStatus; output.currentTurnPlayer = currentTurnPlayerDisplay; output.currentAction = currentActionDisplay;
+  return output;
 };
 
 const getOptionNameFromStore = (optionId: string, draftOptions: Aoe2cmRawDraftData['preset']['draftOptions'] | undefined): string => {
@@ -1881,6 +1882,28 @@ const useDraftStore = create<DraftStore>()(
             pivotInternalOffset: 0,
             showGlow: true,
         } as StudioElement;
+    } else if (elementType === "DeciderMap") {
+      newElement = {
+        id: Date.now().toString(),
+        type: "DeciderMap",
+        position: { x: initialX_px, y: initialY_px },
+        size: { width: 150, height: 180 },
+        fontFamily: 'Arial, sans-serif',
+        backgroundColor: 'transparent',
+        borderColor: 'transparent',
+        scale: 1,
+        isPivotLocked: false,
+        horizontalSplitOffset: 0,
+        imageUrl: null,
+        opacity: 1,
+        stretch: 'cover',
+        textColor: 'white',
+        pivotInternalOffset: 0,
+        showGlow: true,
+        showTitle: true,
+        showText: true,
+        deciderMapTitle: "Decider Map",
+      } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
         id: Date.now().toString(),

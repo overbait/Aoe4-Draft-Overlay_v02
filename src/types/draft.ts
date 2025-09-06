@@ -79,6 +79,9 @@ export interface StudioElement {
   pivotInternalOffset?: number;
   showCivNames?: boolean;  // For toggling civ names on civ selectors
   showMapNames?: boolean;  // For toggling map names on map selectors
+  deciderMapTitle?: string; // For DeciderMap element
+  showTitle?: boolean; // For DeciderMap element title
+  showText?: boolean; // For DeciderMap and other elements
   gameEntrySpacing?: number; // Vertical spacing between game entries in BoX overview
   hideCivs?: boolean; // New property for BoXSeriesOverview to hide civs
   hideMaps?: boolean; // New property for BoXSeriesOverview to hide maps
