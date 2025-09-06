@@ -122,7 +122,6 @@ const initialCombinedState: CombinedDraftState = {
   civDraftId: null, mapDraftId: null, hostName: initialPlayerNameHost, guestName: initialPlayerNameGuest,
   scores: { ...initialScores }, civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [],
   mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [], mapPicksGlobal: [], mapBansGlobal: [],
-  deciderMap: null,
   civDraftStatus: 'disconnected', civDraftError: null, isLoadingCivDraft: false,
   mapDraftStatus: 'disconnected', mapDraftError: null, isLoadingMapDraft: false,
   socketStatus: 'disconnected',
@@ -261,7 +260,6 @@ const transformRawDataToSingleDraft = ( raw: Aoe2cmRawDraftData, draftType: 'civ
 
   let currentTurnPlayerDisplay: string | undefined = 'none'; let currentActionDisplay: string | undefined = 'unknown'; let draftStatus: SingleDraftData['status'] = 'unknown'; if (raw.preset?.turns && typeof raw.nextAction === 'number') { if (raw.nextAction >= raw.preset.turns.length) draftStatus = 'completed'; else { draftStatus = 'inProgress'; const currentTurnInfo = raw.preset.turns[raw.nextAction]; if (currentTurnInfo) { currentTurnPlayerDisplay = currentTurnInfo.player === 'HOST' ? hostName : currentTurnInfo.player === 'GUEST' ? guestName : 'None'; currentActionDisplay = currentTurnInfo.action?.toUpperCase().replace('G', ''); } } } else if (raw.status) draftStatus = raw.status.toLowerCase() as SingleDraftData['status']; else if (raw.ongoing === false) draftStatus = 'completed'; else if (raw.ongoing === true) draftStatus = 'inProgress';
   output.status = draftStatus; output.currentTurnPlayer = currentTurnPlayerDisplay; output.currentAction = currentActionDisplay;
-  output.deciderMap = output.mapPicksGlobal && output.mapPicksGlobal.length > 0 ? output.mapPicksGlobal[output.mapPicksGlobal.length - 1] : null;
   return output;
 };
 
@@ -538,7 +536,6 @@ const useDraftStore = create<DraftStore>()(
                           mapPicksHost: tempMapPicksHost, mapBansHost: tempMapBansHost,
                           mapPicksGuest: tempMapPicksGuest, mapBansGuest: tempMapBansGuest,
                           mapPicksGlobal: tempMapPicksGlobal, mapBansGlobal: tempMapBansGlobal,
-                          deciderMap: tempMapPicksGlobal.length > 0 ? tempMapPicksGlobal[tempMapPicksGlobal.length - 1] : null,
                           boxSeriesGames: newBoxSeriesGames
                         };
                       } else {
@@ -709,7 +706,6 @@ const useDraftStore = create<DraftStore>()(
                             mapPicksHost: tempMapPicksHost, mapBansHost: tempMapBansHost,
                             mapPicksGuest: tempMapPicksGuest, mapBansGuest: tempMapBansGuest,
                             mapPicksGlobal: tempMapPicksGlobal, mapBansGlobal: tempMapBansGlobal,
-                            deciderMap: tempMapPicksGlobal.length > 0 ? tempMapPicksGlobal[tempMapPicksGlobal.length - 1] : null,
                             boxSeriesGames: newBoxSeriesGames,
                             lastDraftAction: newLastDraftAction, // Update lastDraftAction
                             aoe2cmRawDraftOptions: tempAoe2cmRawDraftOptions, // Persist potentially updated options
@@ -862,7 +858,6 @@ const useDraftStore = create<DraftStore>()(
                             mapPicksHost: tempMapPicksHost, mapBansHost: tempMapBansHost,
                             mapPicksGuest: tempMapPicksGuest, mapBansGuest: tempMapBansGuest,
                             mapPicksGlobal: tempMapPicksGlobal, mapBansGlobal: tempMapBansGlobal,
-                            deciderMap: tempMapPicksGlobal.length > 0 ? tempMapPicksGlobal[tempMapPicksGlobal.length - 1] : null,
                             boxSeriesGames: newBoxSeriesGames,
                             lastDraftAction: newLastDraftAction, // Update lastDraftAction
                             aoe2cmRawDraftOptions: tempAoe2cmRawDraftOptions, // Persist potentially updated options
@@ -1029,7 +1024,6 @@ const useDraftStore = create<DraftStore>()(
                                 mapPicksHost: tempMapPicksHost, mapBansHost: tempMapBansHost,
                                 mapPicksGuest: tempMapPicksGuest, mapBansGuest: tempMapBansGuest,
                                 mapPicksGlobal: tempMapPicksGlobal, mapBansGlobal: tempMapBansGlobal,
-                                deciderMap: tempMapPicksGlobal.length > 0 ? tempMapPicksGlobal[tempMapPicksGlobal.length - 1] : null,
                                 boxSeriesGames: newBoxSeriesGames,
                                 lastDraftAction: newLastDraftAction, // Update lastDraftAction
                             };
@@ -1134,13 +1128,9 @@ const useDraftStore = create<DraftStore>()(
               if (currentSocket) {
                 currentSocket.on('draft_finished', (data) => {
                   console.log('Socket.IO "draft_finished" event received:', data);
+                  // data might be null or an empty object, the event itself is the signal
                   set({ draftIsLikelyFinished: true });
-                  console.log('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true. Forcing a re-fetch of final draft state.');
-                  const { socketDraftType, civDraftId, mapDraftId } = get();
-                  const draftId = socketDraftType === 'civ' ? civDraftId : mapDraftId;
-                  if (draftId && socketDraftType) {
-                    get().connectToDraft(draftId, socketDraftType);
-                  }
+                  console.log('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true.');
                 });
               }
             }); // End of currentSocket.on('connect')
@@ -1407,7 +1397,6 @@ const useDraftStore = create<DraftStore>()(
                   mapBansGuest: processedData.mapBansGuest || [],
                   mapPicksGlobal: processedData.mapPicksGlobal || [],
                   mapBansGlobal: processedData.mapBansGlobal || [],
-                  deciderMap: processedData.deciderMap || null,
                   isLoadingMapDraft: false,
                   mapDraftStatus: 'connected',
                   mapDraftError: null,
@@ -1479,7 +1468,7 @@ const useDraftStore = create<DraftStore>()(
               ...update,
               mapDraftId: null, mapDraftStatus: 'disconnected', mapDraftError: null, isLoadingMapDraft: false,
               mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [],
-              mapPicksGlobal: [], mapBansGlobal: [], deciderMap: null,
+              mapPicksGlobal: [], mapBansGlobal: [],
               boxSeriesGames: get().boxSeriesGames.map(game => ({ ...game, map: null })),
               // activePresetId: null, // Keep active preset unless both drafts are disconnected
             };
@@ -1597,7 +1586,7 @@ const useDraftStore = create<DraftStore>()(
               lastDraftAction: null,
               civPicksHost: [], civBansHost: [], civPicksGuest: [], civBansGuest: [],
               mapPicksHost: [], mapBansHost: [], mapPicksGuest: [], mapBansGuest: [],
-              mapPicksGlobal: [], mapBansGlobal: [], deciderMap: null,
+              mapPicksGlobal: [], mapBansGlobal: [],
               aoe2cmRawDraftOptions: undefined, // Also clear draft options here
               // Reset other relevant draft state before applying preset values
               civDraftId: null, mapDraftId: null,
@@ -2438,7 +2427,6 @@ const useDraftStore = create<DraftStore>()(
             mapBansGuest: state.mapBansGuest,
             mapPicksGlobal: state.mapPicksGlobal,
             mapBansGlobal: state.mapBansGlobal,
-            deciderMap: state.deciderMap,
             forceMapPoolUpdate: state.forceMapPoolUpdate,
             draftIsLikelyFinished: state.draftIsLikelyFinished,
             isNewSessionAwaitingFirstDraft: state.isNewSessionAwaitingFirstDraft,

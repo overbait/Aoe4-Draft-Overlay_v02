@@ -59,7 +59,6 @@ export interface SingleDraftData {
   mapBansGuest: string[];
   mapPicksGlobal: string[];
   mapBansGlobal: string[];
-  deciderMap: string | null;
   status: 'inProgress' | 'completed' | 'unknown';
   currentTurnPlayer?: string;
   currentAction?: string;
@@ -115,7 +114,6 @@ export interface CombinedDraftState {
   scores: { host: number; guest: number }; civPicksHost: string[]; civBansHost: string[];
   civPicksGuest: string[]; civBansGuest: string[]; mapPicksHost: string[]; mapBansHost: string[];
   mapPicksGuest: string[]; mapBansGuest: string[]; mapPicksGlobal: string[]; mapBansGlobal: string[];
-  deciderMap: string | null;
   civDraftStatus: ConnectionStatus; civDraftError: string | null; isLoadingCivDraft: boolean;
   mapDraftStatus: ConnectionStatus; mapDraftError: string | null; isLoadingMapDraft: boolean;
   socketStatus: ConnectionStatus;
