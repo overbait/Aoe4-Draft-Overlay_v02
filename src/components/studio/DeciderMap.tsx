@@ -1,7 +1,6 @@
 import React from 'react';
 import useDraftStore from '../../store/draftStore';
 import { StudioElement } from '../../types/draft';
-import MapItem from './MapItem';
 import styles from './GeneralElements.module.css';
 
 const formatMapNameForImagePath = (mapName: string): string => {
@@ -15,8 +14,8 @@ interface DeciderMapElementProps {
 
 const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
   const {
-    fontFamily = 'Arial, sans-serif',
     scale = 1,
+    showTitle = true,
     showText = true,
     deciderMapTitle = 'Decider Map',
   } = element;
@@ -24,14 +23,6 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
   const deciderMap = useDraftStore(state => state.deciderMap);
 
   const mapImageUrl = deciderMap ? `/assets/maps/${formatMapNameForImagePath(deciderMap)}.png` : '';
-
-  const titleStyle: React.CSSProperties = {
-    fontFamily,
-    textAlign: 'center',
-    marginBottom: '5px',
-    color: 'white',
-    fontSize: '1.2em', // Example size, can be adjusted
-  };
 
   const wrapperStyle: React.CSSProperties = {
     transform: `scale(${scale})`,
@@ -54,16 +45,18 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
 
   return (
     <div style={wrapperStyle}>
-      {showText && <div style={titleStyle}>{deciderMapTitle}</div>}
+      {showTitle && <div className={styles.civName} style={{ marginBottom: '5px' }}>{deciderMapTitle}</div>}
       {deciderMap ? (
-        <MapItem
-          key={`decider-map-${deciderMap}`}
-          mapName={deciderMap}
-          mapImageUrl={mapImageUrl}
-          status="picked"
-          element={element}
-          identifier={`decider-map`}
-        />
+        <div style={{...emptyCellStyle, position: 'relative', backgroundImage: `url('/assets/maps/random.png')`, backgroundSize: 'cover' }}>
+          <img
+            src={mapImageUrl}
+            alt={deciderMap}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          {showText && (
+            <div className={styles.civName} style={{position: 'absolute', bottom: 0, width: '100%', padding: '2px 0', lineHeight: '1.2' }}>{deciderMap}</div>
+          )}
+        </div>
       ) : (
         <div style={emptyCellStyle}></div>
       )}

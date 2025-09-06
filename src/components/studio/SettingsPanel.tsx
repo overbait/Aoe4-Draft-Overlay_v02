@@ -291,10 +291,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
             />
           </div>
           <div style={settingRowStyle}>
-            <label htmlFor="deciderMapShowTextCheckbox" style={labelStyle}>Show Title/Text:</label>
+            <label htmlFor="deciderMapShowTitleCheckbox" style={labelStyle}>Show Title:</label>
             <input
               type="checkbox"
-              id="deciderMapShowTextCheckbox"
+              id="deciderMapShowTitleCheckbox"
+              style={checkboxStyle}
+              checked={selectedElement.showTitle ?? true}
+              onChange={(e) => handleSettingChange('showTitle', e.target.checked)}
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapShowNameCheckbox" style={labelStyle}>Show Map Name:</label>
+            <input
+              type="checkbox"
+              id="deciderMapShowNameCheckbox"
               style={checkboxStyle}
               checked={selectedElement.showText ?? true}
               onChange={(e) => handleSettingChange('showText', e.target.checked)}

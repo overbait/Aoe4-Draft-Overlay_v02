@@ -1907,6 +1907,7 @@ const useDraftStore = create<DraftStore>()(
         textColor: 'white',
         pivotInternalOffset: 0,
         showGlow: true,
+        showTitle: true,
         showText: true,
         deciderMapTitle: "Decider Map",
       } as StudioElement;
