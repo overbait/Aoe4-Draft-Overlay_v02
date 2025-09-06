@@ -140,8 +140,6 @@ const initialCombinedState: CombinedDraftState = {
   guestColor: null,
   hostFlag: null, // Initialize to null
   guestFlag: null, // Initialize to null
-  // aoe2cmRawDraftOptions is added above
-  socketDraftType: null, // Added for socket draft type tracking
   draftIsLikelyFinished: false,
   isNewSessionAwaitingFirstDraft: false, // Initial value
   forceMapPoolUpdate: 0,
@@ -1881,6 +1879,18 @@ const useDraftStore = create<DraftStore>()(
             pivotInternalOffset: 0,
             showGlow: true,
         } as StudioElement;
+    } else if (elementType === "DeciderMap") {
+      newElement = {
+        id: Date.now().toString(),
+        type: "DeciderMap",
+        position: { x: initialX_px, y: initialY_px },
+        size: { width: 150, height: 180 },
+        fontFamily: 'Arial, sans-serif',
+        scale: 1,
+        showText: true,
+        labelText: 'Decider Map',
+        textColor: 'white',
+      } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
         id: Date.now().toString(),

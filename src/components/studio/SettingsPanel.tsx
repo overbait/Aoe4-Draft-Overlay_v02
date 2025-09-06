@@ -189,7 +189,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
          </div>
        </>
      )}
-      {(selectedElement.type === 'MapPoolElement' || selectedElement.type === 'CivPoolElement' || selectedElement.type === 'PickedCivs' || selectedElement.type === 'BannedCivs' || selectedElement.type === 'Maps') && (
+      {(selectedElement.type === 'MapPoolElement' || selectedElement.type === 'CivPoolElement' || selectedElement.type === 'PickedCivs' || selectedElement.type === 'BannedCivs' || selectedElement.type === 'Maps' || selectedElement.type === 'DeciderMap') && (
         <>
         <div style={settingRowStyle}>
             <label htmlFor="showTextCheckbox" style={labelStyle}>Show Text:</label>
@@ -259,6 +259,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
                 value={selectedElement.horizontalSplitOffset || 0}
                 onChange={(e) => handleSettingChange('horizontalSplitOffset', parseInt(e.target.value, 10))}
                 step="1"
+              />
+            </div>
+          )}
+          {selectedElement.type === 'DeciderMap' && (
+            <div className={styles.settingItem}>
+              <label htmlFor="labelText" className={styles.settingLabel}>Label Text:</label>
+              <input
+                type="text"
+                id="labelText"
+                name="labelText"
+                className={styles.settingInput}
+                value={selectedElement.labelText || 'Decider Map'}
+                onChange={(e) => handleSettingChange('labelText', e.target.value)}
+                placeholder="Enter label text"
               />
             </div>
           )}

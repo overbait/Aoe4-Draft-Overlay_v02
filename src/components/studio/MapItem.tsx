@@ -6,7 +6,7 @@ import styles from './GeneralElements.module.css';
 interface MapItemProps {
   mapName: string;
   mapImageUrl: string;
-  status: 'picked' | 'banned';
+  status: 'picked' | 'banned' | 'adminPicked';
   element: StudioElement;
   identifier: string;
 }
@@ -18,13 +18,20 @@ const MapItem: React.FC<MapItemProps> = ({ mapName, mapImageUrl, status, element
 
   const getGlowStyle = () => {
     if (!element.showGlow) return 'none';
-    return status === 'picked' ? '0 0 3.5px 1px #9CFF9C' : '0 0 3.5px 1px #FF9C9C';
+    if (status === 'picked') return '0 0 3.5px 1px #9CFF9C';
+    if (status === 'banned') return '0 0 3.5px 1px #FF9C9C';
+    if (status === 'adminPicked') return '0 0 3.5px 1px #FFFFFF';
+    return 'none';
   };
 
   const getGradient = () => {
-    return status === 'banned'
-      ? 'linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%)'
-      : 'none';
+    if (status === 'banned') {
+      return 'linear-gradient(to top, rgba(255, 0, 0, 0.7) 0%, rgba(255, 0, 0, 0) 100%)';
+    }
+    if (status === 'adminPicked') {
+      return 'none';
+    }
+    return 'none';
   };
 
   const combinedClassName = `${styles.civItemVisualContent} ${styles[status]} ${styles[animation.animationClass] || ''}`;

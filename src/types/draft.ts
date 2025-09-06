@@ -66,6 +66,12 @@ export interface SingleDraftData {
 
 export interface StudioElement {
   id: string;
+  /**
+   * The type of the element. Can be one of:
+   * 'ScoreOnly', 'NicknamesOnly', 'BoXSeriesOverview', 'CountryFlags', 'ColorGlowElement',
+   * 'MapPoolElement', 'CivPoolElement', 'PickedCivs', 'BannedCivs', 'Maps',
+   * 'DeciderMap', 'BackgroundImage'
+   */
   type: string;
   position: { x: number; y: number };
   size: { width: number; height: number };
