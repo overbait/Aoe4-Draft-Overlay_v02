@@ -265,6 +265,58 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
         </>
       )}
 
+      {selectedElement.type === 'DeciderMap' && (
+        <>
+          <h4 style={sectionHeaderStyle}>Decider Map Options</h4>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapTitleInput" style={labelStyle}>Title:</label>
+            <input
+              type="text"
+              id="deciderMapTitleInput"
+              style={inputStyle}
+              value={selectedElement.deciderMapTitle || ''}
+              onChange={(e) => handleSettingChange('deciderMapTitle', e.target.value)}
+              placeholder="e.g., Decider Map"
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapFontFamilyInput" style={labelStyle}>Font Family:</label>
+            <input
+              type="text"
+              id="deciderMapFontFamilyInput"
+              style={inputStyle}
+              value={selectedElement.fontFamily || ''}
+              onChange={(e) => handleSettingChange('fontFamily', e.target.value)}
+              placeholder="e.g., Arial, sans-serif"
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapShowTextCheckbox" style={labelStyle}>Show Title/Text:</label>
+            <input
+              type="checkbox"
+              id="deciderMapShowTextCheckbox"
+              style={checkboxStyle}
+              checked={selectedElement.showText ?? true}
+              onChange={(e) => handleSettingChange('showText', e.target.checked)}
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapScaleSlider" style={labelStyle}>Scale:</label>
+            <input
+              type="range"
+              id="deciderMapScaleSlider"
+              style={rangeInputStyle}
+              min="0.2"
+              max="5"
+              step="0.05"
+              value={selectedElement.scale || 1}
+              onChange={(e) => handleSettingChange('scale', parseFloat(e.target.value))}
+            />
+            <span style={rangeValueStyle}>{(selectedElement.scale || 1).toFixed(2)}</span>
+          </div>
+        </>
+      )}
+
      {selectedElement.type === 'NicknamesOnly' && (
        <>
          <h4 style={sectionHeaderStyle}>Nicknames Options</h4>

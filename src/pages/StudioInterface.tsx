@@ -10,6 +10,7 @@ import CivPoolElement from '../components/studio/CivPoolElement'; // Added CivPo
 import PickedCivsElement from '../components/studio/PickedCivsElement';
 import BannedCivsElement from '../components/studio/BannedCivsElement';
 import MapsElement from '../components/studio/MapsElement';
+import DeciderMapElement from '../components/studio/DeciderMap';
 import BackgroundImageElement from '../components/studio/BackgroundImageElement'; // Import BackgroundImageElement
 import { StudioElement, SavedStudioLayout } from '../types/draft';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -321,6 +322,7 @@ const StudioInterface: React.FC = () => {
              <button onClick={() => addStudioElement("PickedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Picked Civs</button>
              <button onClick={() => addStudioElement("BannedCivs")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Banned Civs</button>
              <button onClick={() => addStudioElement("Maps")} style={{ ...buttonStyle, backgroundColor: 'green', width: 'calc(50% - 5px)' }}>Add Maps</button>
+             <button onClick={() => addStudioElement("DeciderMap")} style={{ ...buttonStyle, backgroundColor: 'orange', width: 'calc(50% - 5px)' }}>Add Decider Map</button>
            </div>
          )}
         </div>
@@ -532,6 +534,7 @@ const StudioInterface: React.FC = () => {
               else if (element.type === "PickedCivs") { content = <PickedCivsElement element={element} />; }
               else if (element.type === "BannedCivs") { content = <BannedCivsElement element={element} />; }
               else if (element.type === "Maps") { content = <MapsElement element={element} />; }
+              else if (element.type === "DeciderMap") { content = <DeciderMapElement element={element} />; }
               else if (element.type === "BackgroundImage") {
                 // Use BackgroundImageElement for preview in StudioInterface as well
                 content = <BackgroundImageElement element={element} isSelected={isSelected} />;
