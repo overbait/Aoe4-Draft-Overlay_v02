@@ -1134,9 +1134,13 @@ const useDraftStore = create<DraftStore>()(
               if (currentSocket) {
                 currentSocket.on('draft_finished', (data) => {
                   console.log('Socket.IO "draft_finished" event received:', data);
-                  // data might be null or an empty object, the event itself is the signal
                   set({ draftIsLikelyFinished: true });
-                  console.log('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true.');
+                  console.log('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true. Forcing a re-fetch of final draft state.');
+                  const { socketDraftType, civDraftId, mapDraftId } = get();
+                  const draftId = socketDraftType === 'civ' ? civDraftId : mapDraftId;
+                  if (draftId && socketDraftType) {
+                    get().connectToDraft(draftId, socketDraftType);
+                  }
                 });
               }
             }); // End of currentSocket.on('connect')

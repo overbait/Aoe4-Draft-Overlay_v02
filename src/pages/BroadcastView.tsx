@@ -142,7 +142,7 @@ const BroadcastView: React.FC<BroadcastViewProps> = ({ targetCanvasId }) => {
           boxSizing: 'border-box',
         };
 
-        const currentOverflow = (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps" || element.type === "DeciderMap") ? 'visible' : 'hidden';
+        const currentOverflow = (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden';
 
         const innerDivStyle = {
           width: `${element.size.width}px`,
