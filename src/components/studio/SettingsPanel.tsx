@@ -324,6 +324,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
             />
             <span style={rangeValueStyle}>{(selectedElement.scale || 1).toFixed(2)}</span>
           </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapShowGlowCheckbox" style={labelStyle}>Show Glow:</label>
+            <input
+              type="checkbox"
+              id="deciderMapShowGlowCheckbox"
+              style={checkboxStyle}
+              checked={selectedElement.showGlow ?? true}
+              onChange={(e) => handleSettingChange('showGlow', e.target.checked)}
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <label htmlFor="deciderMapGlowColorInput" style={labelStyle}>Glow Color:</label>
+            <input
+              type="text"
+              id="deciderMapGlowColorInput"
+              style={inputStyle}
+              value={selectedElement.glowColor || '#FFFF00'}
+              onChange={(e) => handleSettingChange('glowColor', e.target.value)}
+              placeholder="#FFFF00"
+            />
+          </div>
         </>
       )}
 

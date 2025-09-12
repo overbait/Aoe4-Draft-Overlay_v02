@@ -18,6 +18,8 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
     showTitle = true,
     showText = true,
     deciderMapTitle = 'Decider Map',
+    showGlow = true,
+    glowColor = '#FFFF00',
   } = element;
 
   const mapPicksGlobal = useDraftStore(state => state.mapPicksGlobal);
@@ -30,6 +32,11 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
   }, [mapPicksGlobal]);
 
   const mapImageUrl = deciderMap ? `/assets/maps/${formatMapNameForImagePath(deciderMap)}.png` : '';
+
+  const getGlowStyle = () => {
+    if (!showGlow) return 'none';
+    return `0 0 3.5px 1px ${glowColor}`;
+  };
 
   const wrapperStyle: React.CSSProperties = {
     transform: `scale(${scale})`,
@@ -56,6 +63,7 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
     backgroundColor: '#111',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
+    boxShadow: getGlowStyle(),
   }
 
   return (
