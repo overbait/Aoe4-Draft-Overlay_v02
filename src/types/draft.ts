@@ -90,6 +90,8 @@ export interface StudioElement {
   imageUrl?: string | null; // For BackgroundImageElement
   opacity?: number;         // For BackgroundImageElement
   stretch?: 'cover' | 'contain' | 'fill'; // For BackgroundImageElement
+  showGlow?: boolean;
+  glowColor?: string;
   [key: string]: any;
   player1MapPool?: MapItem[];
   player2MapPool?: MapItem[];

@@ -1903,6 +1903,8 @@ const useDraftStore = create<DraftStore>()(
         showTitle: true,
         showText: true,
         deciderMapTitle: "Decider Map",
+        showGlow: true,
+        glowColor: '#FFFF00',
       } as StudioElement;
     } else if (elementType === "CivPoolElement") {
       newElement = {
