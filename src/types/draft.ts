@@ -77,6 +77,7 @@ export interface StudioElement {
   scale?: number;
   isPivotLocked?: boolean; // New property for mirror/pivot functionality
   pivotInternalOffset?: number;
+  subPivots?: number[];
   showCivNames?: boolean;  // For toggling civ names on civ selectors
   showMapNames?: boolean;  // For toggling map names on map selectors
   deciderMapTitle?: string; // For DeciderMap element

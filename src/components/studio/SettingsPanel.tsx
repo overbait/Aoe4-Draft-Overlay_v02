@@ -46,6 +46,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
   const buttonStyle: React.CSSProperties = { padding: '8px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'block', width: '100%', fontSize: '0.9em' };
   const deleteButtonStyle: React.CSSProperties = { ...buttonStyle, backgroundColor: '#dc3545', color: 'white', marginTop: '20px' };
   const closeButtonStyle: React.CSSProperties = { ...buttonStyle, backgroundColor: '#555', color: 'white', marginTop: '10px' };
+  const subPivots = Array.isArray(selectedElement.subPivots) ? selectedElement.subPivots : [];
+  const hasPivotInternalOffsetControl = typeof selectedElement.pivotInternalOffset === 'number';
+  const hasSubPivotsControl = subPivots.length > 0;
 
   return (
     <div style={panelStyle}>
@@ -448,7 +451,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
          </div>
          */}
        </>
-     )}
+      )}
 
       {selectedElement.type === 'BackgroundImage' && (
         <>
@@ -542,6 +545,52 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ selectedElement, onClose 
           {/* Add other BackgroundImage specific settings here if any in the future */}
           {/* Common settings like scale, pivot lock might not be relevant for a background */}
           {/* but could be added if desired. For now, keeping it simple. */}
+        </>
+      )}
+
+      {(hasPivotInternalOffsetControl || hasSubPivotsControl) && (
+        <>
+          <h4 style={sectionHeaderStyle}>Pivot Settings</h4>
+          {hasPivotInternalOffsetControl && (
+            <div style={settingRowStyle}>
+              <label htmlFor="pivotInternalOffset" style={labelStyle}>Pivot Offset (px):</label>
+              <input
+                type="number"
+                id="pivotInternalOffset"
+                style={inputStyle}
+                value={selectedElement.pivotInternalOffset ?? 0}
+                onChange={(e) => {
+                  const parsedValue = parseInt(e.target.value, 10);
+                  handleSettingChange('pivotInternalOffset', Number.isNaN(parsedValue) ? 0 : parsedValue);
+                }}
+                step={1}
+                disabled={!selectedElement.isPivotLocked}
+              />
+            </div>
+          )}
+          {hasSubPivotsControl && (
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ ...labelStyle, display: 'block', marginBottom: '6px' }}>Sub Pivot Offsets (px):</label>
+              {subPivots.map((offset, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ ...labelStyle, marginRight: '10px', flexShrink: 0 }}>{`Pivot ${index + 1}:`}</span>
+                  <input
+                    type="number"
+                    style={{ ...inputStyle, flexGrow: 1 }}
+                    value={offset}
+                    onChange={(e) => {
+                      const parsedValue = parseInt(e.target.value, 10);
+                      const updatedSubPivots = [...subPivots];
+                      updatedSubPivots[index] = Number.isNaN(parsedValue) ? 0 : parsedValue;
+                      handleSettingChange('subPivots', updatedSubPivots);
+                    }}
+                    step={1}
+                    disabled={!selectedElement.isPivotLocked}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 

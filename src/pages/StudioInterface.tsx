@@ -20,6 +20,154 @@ import SettingsPanel from '../components/studio/SettingsPanel';
 
 const MIN_ELEMENT_WIDTH = 50;
 
+const HORIZONTAL_SPLIT_TYPES = new Set<string>([
+  "MapPoolElement",
+  "CivPoolElement",
+  "PickedCivs",
+  "BannedCivs",
+  "Maps",
+]);
+
+const PIVOT_OFFSET_MULTIPLIERS: Partial<Record<string, number>> = {
+  ScoreOnly: 2,
+  BoXSeriesOverview: 1,
+};
+
+type PivotDragStartMetadata = {
+  initialMouseX: number;
+  elementCenterX: number;
+};
+
+type DragStartContextState = {
+  elementId: string;
+} & PivotDragStartMetadata;
+
+interface PivotDragParams {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  scale: number;
+  delta: { x: number; y: number };
+  minWidth: number;
+  isHorizontalSplit: boolean;
+  pivotInternalOffset?: number;
+  horizontalSplitOffset?: number;
+  pivotOffsetMultiplier?: number;
+  dragStartContext?: PivotDragStartMetadata | null;
+}
+
+interface PivotComputationResult {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  pivotInternalOffset?: number;
+  horizontalSplitOffset?: number;
+}
+
+interface PivotResizeParams {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  scale: number;
+  newSize: { width: number; height: number };
+  minWidth: number;
+  isHorizontalSplit: boolean;
+  pivotInternalOffset?: number;
+  horizontalSplitOffset?: number;
+  pivotOffsetMultiplier?: number;
+}
+
+const computePivotDrag = ({
+  position,
+  size,
+  scale,
+  delta,
+  minWidth,
+  isHorizontalSplit,
+  pivotInternalOffset,
+  horizontalSplitOffset,
+  pivotOffsetMultiplier = 0,
+  dragStartContext,
+}: PivotDragParams): PivotComputationResult => {
+  const safeScale = scale || 1;
+  const newY = position.y + delta.y;
+
+  if (isHorizontalSplit) {
+    let newHorizontalSplitOffset = horizontalSplitOffset || 0;
+    if (delta.x !== 0 && dragStartContext) {
+      const offsetDelta = delta.x / safeScale;
+      if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
+        newHorizontalSplitOffset -= offsetDelta;
+      } else {
+        newHorizontalSplitOffset += offsetDelta;
+      }
+    }
+
+    return {
+      position: { x: position.x, y: newY },
+      size: { width: size.width, height: size.height },
+      horizontalSplitOffset: newHorizontalSplitOffset,
+    };
+  }
+
+  const pivotScreenX = position.x + (size.width / 2) * safeScale;
+  const effectiveUnscaledDrag = delta.x / safeScale;
+  const shouldInvertDrag = !!dragStartContext && dragStartContext.initialMouseX < dragStartContext.elementCenterX;
+  const appliedUnscaledDrag = shouldInvertDrag ? -effectiveUnscaledDrag : effectiveUnscaledDrag;
+
+  const finalWidth = Math.max(minWidth, size.width + 2 * appliedUnscaledDrag);
+  const widthDeltaFromOriginal = (size.width - finalWidth) / 2;
+  const finalX = pivotScreenX - (finalWidth / 2) * safeScale;
+
+  let updatedPivotOffset = pivotInternalOffset;
+  if (pivotInternalOffset !== undefined) {
+    const multiplier = pivotOffsetMultiplier ?? 0;
+    updatedPivotOffset = Math.max(0, pivotInternalOffset - multiplier * widthDeltaFromOriginal);
+  }
+
+  return {
+    position: { x: finalX, y: newY },
+    size: { width: finalWidth, height: size.height },
+    pivotInternalOffset: updatedPivotOffset,
+  };
+};
+
+const computePivotResize = ({
+  position,
+  size,
+  scale,
+  newSize,
+  minWidth,
+  isHorizontalSplit,
+  pivotInternalOffset,
+  horizontalSplitOffset,
+  pivotOffsetMultiplier = 0,
+}: PivotResizeParams): PivotComputationResult => {
+  const safeScale = scale || 1;
+  const unscaledWidth = Math.max(minWidth, newSize.width / safeScale);
+  const unscaledHeight = newSize.height / safeScale;
+
+  if (isHorizontalSplit) {
+    return {
+      position: { x: position.x, y: position.y },
+      size: { width: unscaledWidth, height: unscaledHeight },
+      horizontalSplitOffset,
+    };
+  }
+
+  const pivotScreenX = position.x + (size.width / 2) * safeScale;
+  const newX = pivotScreenX - (unscaledWidth / 2) * safeScale;
+  const widthDeltaFromOriginal = (size.width - unscaledWidth) / 2;
+
+  let updatedPivotOffset = pivotInternalOffset;
+  if (pivotInternalOffset !== undefined) {
+    updatedPivotOffset = Math.max(0, pivotInternalOffset - pivotOffsetMultiplier * widthDeltaFromOriginal);
+  }
+
+  return {
+    position: { x: newX, y: position.y },
+    size: { width: unscaledWidth, height: unscaledHeight },
+    pivotInternalOffset: updatedPivotOffset,
+  };
+};
+
 const StudioInterface: React.FC = () => {
   const {
     currentCanvases,
@@ -71,7 +219,7 @@ const StudioInterface: React.FC = () => {
   const [isCanvasSettingsOpen, setIsCanvasSettingsOpen] = useState<boolean>(true);
   const [editingCanvasId, setEditingCanvasId] = useState<string | null>(null);
   const [editingCanvasName, setEditingCanvasName] = useState<string>("");
-  const [dragStartContext, setDragStartContext] = useState<{ elementId: string, initialMouseX: number, elementCenterX: number } | null>(null);
+  const [dragStartContext, setDragStartContext] = useState<DragStartContextState | null>(null);
 
   // Ref for the responsive wrapper to calculate scale
   const responsiveWrapperRef = React.useRef<HTMLDivElement>(null);
@@ -129,64 +277,36 @@ const StudioInterface: React.FC = () => {
     if (!element) return;
 
     if (element.isPivotLocked) {
-    let newY_screen = element.position.y + data.deltaY;
+      const isHorizontalSplit = HORIZONTAL_SPLIT_TYPES.has(element.type);
+      const pivotOffsetMultiplier = PIVOT_OFFSET_MULTIPLIERS[element.type] ?? 0;
+      const applicableDragContext = dragStartContext && dragStartContext.elementId === elementId ? dragStartContext : null;
 
-    if (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") {
-        let newHorizontalSplitOffset = element.horizontalSplitOffset || 0;
-        const currentX_screen = element.position.x;
-        const currentScale = element.scale || 1;
+      const pivotResult = computePivotDrag({
+        position: element.position,
+        size: element.size,
+        scale: element.scale || 1,
+        delta: { x: data.deltaX, y: data.deltaY },
+        minWidth: MIN_ELEMENT_WIDTH,
+        isHorizontalSplit,
+        pivotInternalOffset: element.pivotInternalOffset,
+        horizontalSplitOffset: element.horizontalSplitOffset,
+        pivotOffsetMultiplier,
+        dragStartContext: applicableDragContext,
+      });
 
-        if (data.deltaX !== 0 && dragStartContext && dragStartContext.elementId === elementId) {
-            let changeInOffsetFactor = data.deltaX / currentScale;
+      const settings: Partial<StudioElement> = {
+        position: pivotResult.position,
+        size: pivotResult.size,
+      };
 
-            if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
-                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) - changeInOffsetFactor;
-            } else {
-                newHorizontalSplitOffset = (element.horizontalSplitOffset || 0) + changeInOffsetFactor;
-            }
-        }
-        updateStudioElementSettings(elementId, {
-            position: { x: currentX_screen, y: newY_screen },
-            horizontalSplitOffset: newHorizontalSplitOffset
-        });
-        return;
-    }
+      if (isHorizontalSplit) {
+        settings.horizontalSplitOffset = pivotResult.horizontalSplitOffset;
+      } else if (pivotResult.pivotInternalOffset !== undefined) {
+        settings.pivotInternalOffset = pivotResult.pivotInternalOffset;
+      }
 
-    const currentX_screen = element.position.x;
-    const currentUnscaledWidth = element.size.width;
-    const currentUnscaledHeight = element.size.height;
-    const currentScale = element.scale || 1;
-    const currentPivotOffset_unscaled = element.pivotInternalOffset || 0;
-
-    let finalX_screen = currentX_screen;
-    let finalUnscaledWidth = currentUnscaledWidth;
-    let finalPivotOffset_unscaled = currentPivotOffset_unscaled;
-
-    if (data.deltaX !== 0) {
-        const pivotScreenX_fixed = currentX_screen + (currentUnscaledWidth / 2) * currentScale;
-        const effectiveUnscaledDrag = data.deltaX / currentScale;
-        let actualEffectiveUnscaledDrag = effectiveUnscaledDrag;
-
-        if (dragStartContext && dragStartContext.elementId === elementId) {
-          if (dragStartContext.initialMouseX < dragStartContext.elementCenterX) {
-            actualEffectiveUnscaledDrag = -effectiveUnscaledDrag;
-          }
-        }
-        finalUnscaledWidth = Math.max(MIN_ELEMENT_WIDTH, currentUnscaledWidth + (2 * actualEffectiveUnscaledDrag));
-        const actualUnscaledDragAppliedToEdge = (currentUnscaledWidth - finalUnscaledWidth) / 2;
-        finalX_screen = pivotScreenX_fixed - (finalUnscaledWidth / 2) * currentScale;
-
-        if (element.type === "ScoreOnly") {
-          finalPivotOffset_unscaled = Math.max(0, currentPivotOffset_unscaled - (2 * actualUnscaledDragAppliedToEdge));
-        } else if (element.type === "BoXSeriesOverview") {
-          finalPivotOffset_unscaled = Math.max(0, currentPivotOffset_unscaled - actualUnscaledDragAppliedToEdge);
-        }
-    }
-    updateStudioElementSettings(elementId, {
-        position: { x: finalX_screen, y: newY_screen },
-        size: { width: finalUnscaledWidth, height: currentUnscaledHeight },
-        pivotInternalOffset: finalPivotOffset_unscaled
-    });
+      updateStudioElementSettings(elementId, settings);
+      return;
 
     } else {
       // When not pivot-locked, dragging should update the position based on the drag delta.
@@ -202,10 +322,44 @@ const StudioInterface: React.FC = () => {
 
   const handleResizeStop = (elementId: string, data: ResizeCallbackData) => {
     const currentElement = activeLayout.find(el => el.id === elementId);
-    const currentElementScale = currentElement?.scale || 1;
-    // data.size is the new size in pixels, relative to the ResizableBox's parent (the scaled 1920x1080 div)
-    // We need to divide by the element's own scale to get its new base unscaled size.
-    updateStudioElementSize(elementId, { width: data.size.width / currentElementScale, height: data.size.height / currentElementScale });
+    if (!currentElement) return;
+
+    const currentElementScale = currentElement.scale || 1;
+
+    if (currentElement.isPivotLocked) {
+      const isHorizontalSplit = HORIZONTAL_SPLIT_TYPES.has(currentElement.type);
+      const pivotOffsetMultiplier = PIVOT_OFFSET_MULTIPLIERS[currentElement.type] ?? 0;
+
+      const pivotResult = computePivotResize({
+        position: currentElement.position,
+        size: currentElement.size,
+        scale: currentElementScale,
+        newSize: data.size,
+        minWidth: MIN_ELEMENT_WIDTH,
+        isHorizontalSplit,
+        pivotInternalOffset: currentElement.pivotInternalOffset,
+        horizontalSplitOffset: currentElement.horizontalSplitOffset,
+        pivotOffsetMultiplier,
+      });
+
+      const settings: Partial<StudioElement> = {
+        position: pivotResult.position,
+        size: pivotResult.size,
+      };
+
+      if (isHorizontalSplit) {
+        settings.horizontalSplitOffset = pivotResult.horizontalSplitOffset;
+      } else if (pivotResult.pivotInternalOffset !== undefined) {
+        settings.pivotInternalOffset = pivotResult.pivotInternalOffset;
+      }
+
+      updateStudioElementSettings(elementId, settings);
+    } else {
+      updateStudioElementSize(elementId, {
+        width: data.size.width / currentElementScale,
+        height: data.size.height / currentElementScale,
+      });
+    }
   };
 
   const handleSaveLayout = () => { if (newLayoutName.trim() === "") { alert("Please enter a name."); return; } saveCurrentStudioLayout(newLayoutName.trim()); setNewLayoutName(""); };
