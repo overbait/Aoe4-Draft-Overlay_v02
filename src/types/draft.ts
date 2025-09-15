@@ -64,6 +64,11 @@ export interface SingleDraftData {
   currentAction?: string;
 }
 
+export interface PivotSettings {
+  x?: number | string;
+  y?: number | string;
+}
+
 export interface StudioElement {
   id: string;
   type: string;
@@ -96,6 +101,7 @@ export interface StudioElement {
   player1MapPool?: MapItem[];
   player2MapPool?: MapItem[];
   horizontalSplitOffset?: number;
+  pivot?: PivotSettings | null;
 }
 
 export interface MapItem {

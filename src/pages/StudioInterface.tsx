@@ -17,6 +17,7 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { ResizableBox, ResizeCallbackData } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import SettingsPanel from '../components/studio/SettingsPanel';
+import StudioElementWrapper from '../components/studio/StudioElementWrapper';
 
 const MIN_ELEMENT_WIDTH = 50;
 
@@ -589,21 +590,22 @@ const StudioInterface: React.FC = () => {
                       style={elementSpecificStyle}
                       className="drag-handle"
                       >
-                    <div
-                         onClick={(e) => { e.stopPropagation(); handleElementClick(element.id);}}
-                         style={{
-                             width: element.size.width + 'px',
-                             height: element.size.height + 'px',
-                             overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden',
-                             boxSizing: 'border-box',
-                             border: `1px solid ${element.borderColor || 'transparent'}`,
-                             background: element.backgroundColor || 'transparent',
-                             cursor: 'move',
-                             transform: `scale(${currentElementScale})`,
-                             transformOrigin: 'top left',
-                         }}>
+                    <StudioElementWrapper
+                      scale={currentElementScale}
+                      pivot={element.pivot}
+                      onClick={(e) => { e.stopPropagation(); handleElementClick(element.id); }}
+                      style={{
+                        width: `${element.size.width}px`,
+                        height: `${element.size.height}px`,
+                        overflow: (element.type === "MapPoolElement" || element.type === "CivPoolElement" || element.type === "PickedCivs" || element.type === "BannedCivs" || element.type === "Maps") ? 'visible' : 'hidden',
+                        boxSizing: 'border-box',
+                        border: `1px solid ${element.borderColor || 'transparent'}`,
+                        background: element.backgroundColor || 'transparent',
+                        cursor: 'move',
+                      }}
+                    >
                       {content}
-                    </div>
+                    </StudioElementWrapper>
                   </ResizableBox>
                 </Draggable>
               );

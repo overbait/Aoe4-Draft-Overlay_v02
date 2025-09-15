@@ -14,7 +14,6 @@ interface DeciderMapElementProps {
 
 const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
   const {
-    scale = 1,
     showTitle = true,
     showText = true,
     deciderMapTitle = 'Decider Map',
@@ -39,8 +38,6 @@ const DeciderMapElement: React.FC<DeciderMapElementProps> = ({ element }) => {
   };
 
   const wrapperStyle: React.CSSProperties = {
-    transform: `scale(${scale})`,
-    transformOrigin: 'top left',
     width: element.size.width,
     height: element.size.height,
     display: 'flex',
