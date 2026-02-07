@@ -144,6 +144,21 @@ select {
   gap: 10px;
 }
 
+.room-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+textarea {
+  background: var(--panel-light);
+  border: 1px solid #2b3342;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--text);
+  resize: vertical;
+}
+
 .room-list {
   display: flex;
   flex-direction: column;
@@ -190,6 +205,10 @@ select {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, 1fr);
+}
+
+.full-row {
+  grid-column: 1 / -1;
 }
 
 .overlay-body {

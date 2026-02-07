@@ -23,6 +23,35 @@
       <section class="panel">
         <h2>1. Список комнат (live)</h2>
         <div class="stack">
+          <div class="room-form">
+            <label>
+              Draft ID
+              <input type="text" id="room-id-input" placeholder="bigYR" />
+            </label>
+            <label>
+              Host
+              <input type="text" id="room-host-input" placeholder="TIGER" />
+            </label>
+            <label>
+              Guest
+              <input type="text" id="room-guest-input" placeholder="SAS" />
+            </label>
+            <label>
+              Тип
+              <select id="room-type-input">
+                <option value="civ">Civ Draft</option>
+                <option value="map">Map Draft</option>
+              </select>
+            </label>
+            <label>
+              Статус
+              <select id="room-status-input">
+                <option value="live">Live</option>
+                <option value="done">Completed</option>
+              </select>
+            </label>
+            <button class="secondary-button" id="room-add-button">Добавить комнату</button>
+          </div>
           <div class="filter-row">
             <input type="text" placeholder="Фильтр по игрокам..." />
             <select>
@@ -31,54 +60,14 @@
               <option>Только цивы</option>
             </select>
           </div>
-          <div class="room-list" id="room-list">
-            <div class="room-item" data-host="TIGER" data-guest="SAS" data-type="civ">
-              <input type="checkbox" />
-              <div>
-                <strong>TIGER vs SAS</strong>
-                <p>Room #bigYR • Civ Draft • Live</p>
-              </div>
-              <span class="chip live">LIVE</span>
-            </div>
-            <div class="room-item" data-host="TIGER" data-guest="SAS" data-type="map">
-              <input type="checkbox" />
-              <div>
-                <strong>TIGER vs SAS</strong>
-                <p>Room #map34 • Map Draft • Live</p>
-              </div>
-              <span class="chip live">LIVE</span>
-            </div>
-            <div class="room-item" data-host="FOO" data-guest="BAR" data-type="civ">
-              <input type="checkbox" />
-              <div>
-                <strong>FOO vs BAR</strong>
-                <p>Room #done12 • Civ Draft • Completed</p>
-              </div>
-              <span class="chip">DONE</span>
-            </div>
-          </div>
+          <div class="room-list" id="room-list"></div>
           <button class="primary-button">Подтвердить выбор комнат</button>
         </div>
       </section>
 
       <section class="panel">
         <h2>2. Объединение пар</h2>
-        <div class="stack">
-          <div class="pair-card">
-            <div>
-              <strong>TIGER vs SAS</strong>
-              <p>Civ: #bigYR • Map: #map34</p>
-            </div>
-            <button class="secondary-button">Открыть в сессию</button>
-          </div>
-          <div class="pair-card">
-            <div>
-              <strong>FOO vs BAR</strong>
-              <p>Civ: #done12 • Map: —</p>
-            </div>
-            <button class="ghost-button">Ожидание второй комнаты</button>
-          </div>
-        </div>
+        <div class="stack" id="pair-list"></div>
       </section>
 
       <section class="panel">
@@ -114,6 +103,14 @@
               <select>
                 <option>Default</option>
               </select>
+            </label>
+            <label class="full-row">
+              Civ Picks (через запятую)
+              <textarea id="civ-picks-input" rows="2" placeholder="French, Ottomans"></textarea>
+            </label>
+            <label class="full-row">
+              Map Pool (через запятую)
+              <textarea id="map-pool-input" rows="2" placeholder="Dry Arabia, Golden Pit"></textarea>
             </label>
           </div>
           <button class="primary-button">Открыть Overlay</button>
