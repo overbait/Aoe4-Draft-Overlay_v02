@@ -25,8 +25,8 @@
         <div class="stack">
           <div class="room-form">
             <label>
-              Draft ID
-              <input type="text" id="room-id-input" placeholder="bigYR" />
+              Draft ID / URL
+              <input type="text" id="room-id-input" placeholder="bigYR или https://aoe2cm.net/draft/bigYR" />
             </label>
             <label>
               Host
@@ -50,7 +50,10 @@
                 <option value="done">Completed</option>
               </select>
             </label>
-            <button class="secondary-button" id="room-add-button">Добавить комнату</button>
+            <div class="room-actions">
+              <button class="secondary-button" id="room-add-button">Добавить комнату</button>
+              <span class="room-status" id="room-status">Готово к импорту</span>
+            </div>
           </div>
           <div class="filter-row">
             <input type="text" placeholder="Фильтр по игрокам..." />

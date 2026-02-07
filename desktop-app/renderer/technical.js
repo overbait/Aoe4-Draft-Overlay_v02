@@ -14,12 +14,67 @@ const roomGuestInput = document.getElementById('room-guest-input');
 const roomTypeInput = document.getElementById('room-type-input');
 const roomStatusInput = document.getElementById('room-status-input');
 const roomAddButton = document.getElementById('room-add-button');
+const roomStatusLabel = document.getElementById('room-status');
 
 let isIgnoringMouse = true;
 let isSearching = false;
 const rooms = [];
 
 const normalizeName = (value) => value.trim().toLowerCase();
+
+const setRoomStatus = (message, status) => {
+  if (!roomStatusLabel) return;
+  roomStatusLabel.textContent = message;
+  roomStatusLabel.classList.remove('error', 'success');
+  if (status) {
+    roomStatusLabel.classList.add(status);
+  }
+};
+
+const extractDraftId = (value) => {
+  if (!value) return null;
+  try {
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      const url = new URL(value);
+      const match = url.pathname.match(/\/draft\/([a-zA-Z0-9]+)/);
+      if (match && match[1]) return match[1];
+      const observerMatch = url.pathname.match(/\/observer\/([a-zA-Z0-9]+)/);
+      if (observerMatch && observerMatch[1]) return observerMatch[1];
+      const segments = url.pathname.split('/').filter(Boolean);
+      const potentialId = segments[segments.length - 1];
+      if (potentialId && /^[a-zA-Z0-9_-]+$/.test(potentialId)) return potentialId;
+      const draftIdParam = url.searchParams.get('draftId') || url.searchParams.get('id');
+      if (draftIdParam) return draftIdParam;
+    }
+    if (/^[a-zA-Z0-9_-]+$/.test(value)) return value;
+  } catch (error) {
+    if (/^[a-zA-Z0-9_-]+$/.test(value)) return value;
+  }
+  return null;
+};
+
+const inferDraftType = (draftOptions = []) => {
+  if (!Array.isArray(draftOptions) || draftOptions.length === 0) return 'civ';
+  const civCount = draftOptions.filter((opt) => opt.id && opt.id.startsWith('aoe4.')).length;
+  return civCount >= draftOptions.length / 2 ? 'civ' : 'map';
+};
+
+const parsePicksFromEvents = (rawData, type) => {
+  if (!rawData || !Array.isArray(rawData.events)) return [];
+  const picks = [];
+  rawData.events.forEach((event) => {
+    if (!event || event.actionType !== 'pick') return;
+    const optionId = event.chosenOptionId;
+    if (!optionId || typeof optionId !== 'string') return;
+    const isCiv = optionId.startsWith('aoe4.');
+    if (type === 'civ' && !isCiv) return;
+    if (type === 'map' && isCiv) return;
+    const option = rawData.preset?.draftOptions?.find((opt) => opt.id === optionId);
+    const name = option?.name ? option.name.split('.').pop() : optionId.split('.').pop();
+    if (name && !picks.includes(name)) picks.push(name);
+  });
+  return picks;
+};
 
 const renderRooms = () => {
   if (!roomList) return;
@@ -165,18 +220,63 @@ roomList?.addEventListener('click', (event) => {
   }
 });
 
-roomAddButton?.addEventListener('click', () => {
+roomAddButton?.addEventListener('click', async () => {
   if (!roomIdInput || !roomHostInput || !roomGuestInput || !roomTypeInput || !roomStatusInput) return;
-  const id = roomIdInput.value.trim();
-  const host = roomHostInput.value.trim();
-  const guest = roomGuestInput.value.trim();
-  if (!id || !host || !guest) return;
+  const rawValue = roomIdInput.value.trim();
+  const draftId = extractDraftId(rawValue);
+  if (!draftId) {
+    setRoomStatus('Неверный ID/URL', 'error');
+    return;
+  }
+
+  setRoomStatus('Импорт...', '');
+  let host = roomHostInput.value.trim();
+  let guest = roomGuestInput.value.trim();
+  let type = roomTypeInput.value;
+  let status = roomStatusInput.value;
+
+  if (!host || !guest) {
+    const response = await window.draftState?.fetchDraft?.(draftId);
+    if (response?.ok && response.data) {
+      host = response.data.nameHost || host;
+      guest = response.data.nameGuest || guest;
+      type = inferDraftType(response.data.preset?.draftOptions || []);
+      status = response.data.ongoing === false ? 'done' : status;
+      if (type === 'civ') {
+        const picks = parsePicksFromEvents(response.data, 'civ');
+        if (civPicksInput && picks.length) {
+          civPicksInput.value = picks.join(', ');
+        }
+      }
+      if (type === 'map') {
+        const picks = parsePicksFromEvents(response.data, 'map');
+        if (mapPoolInput && picks.length) {
+          mapPoolInput.value = picks.join(', ');
+        }
+      }
+      pushState();
+      setRoomStatus('Импортировано', 'success');
+    } else if (!host || !guest) {
+      setRoomStatus(response?.error || 'Не удалось получить данные', 'error');
+      return;
+    } else {
+      setRoomStatus('Добавлено вручную', 'success');
+    }
+  } else {
+    setRoomStatus('Добавлено вручную', 'success');
+  }
+
+  if (!host || !guest) {
+    setRoomStatus('Host/Guest обязательны', 'error');
+    return;
+  }
+
   rooms.unshift({
-    id,
+    id: draftId,
     host,
     guest,
-    type: roomTypeInput.value,
-    status: roomStatusInput.value,
+    type,
+    status,
     selected: false,
   });
   roomIdInput.value = '';

@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+const DRAFT_DATA_API_BASE_URL = 'https://aoe2cm.net/api';
+
 let technicalWindow;
 let overlayWindow;
 let appState = {
@@ -91,5 +93,22 @@ ipcMain.on('state:update', (_, partialState) => {
   }
   if (overlayWindow) {
     overlayWindow.webContents.send('state:changed', appState);
+  }
+});
+
+ipcMain.handle('draft:fetch', async (_, draftId) => {
+  if (!draftId) {
+    return { ok: false, error: 'Draft ID is required.' };
+  }
+  const url = `${DRAFT_DATA_API_BASE_URL}/draft/${draftId}`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return { ok: false, error: `Request failed: ${response.status}` };
+    }
+    const data = await response.json();
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error.message || 'Unknown error.' };
   }
 });
