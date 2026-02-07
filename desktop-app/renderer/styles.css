@@ -43,6 +43,17 @@ body {
   gap: 12px;
 }
 
+.search-toggle {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.search-toggle.active {
+  background: rgba(53, 201, 108, 0.2);
+  color: var(--live);
+}
+
 .badge {
   background: var(--accent);
   color: #fff;

@@ -3,6 +3,14 @@ const path = require('path');
 
 let technicalWindow;
 let overlayWindow;
+let appState = {
+  hostName: 'TIGER',
+  guestName: 'SAS',
+  hostScore: 1,
+  guestScore: 0,
+  civPicks: ['French', 'Ottomans', 'Japanese'],
+  mapPool: ['Dry Arabia', 'Mountain Pass', 'Golden Pit'],
+};
 
 const createTechnicalWindow = () => {
   technicalWindow = new BrowserWindow({
@@ -16,6 +24,9 @@ const createTechnicalWindow = () => {
   });
 
   technicalWindow.loadFile(path.join(__dirname, 'renderer', 'technical.html'));
+  technicalWindow.webContents.on('did-finish-load', () => {
+    technicalWindow.webContents.send('state:changed', appState);
+  });
   technicalWindow.on('closed', () => {
     technicalWindow = null;
     if (overlayWindow) {
@@ -40,7 +51,11 @@ const createOverlayWindow = () => {
   });
 
   overlayWindow.loadFile(path.join(__dirname, 'renderer', 'overlay.html'));
-  overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  overlayWindow.setIgnoreMouseEvents(true);
+  overlayWindow.setFocusable(false);
+  overlayWindow.webContents.on('did-finish-load', () => {
+    overlayWindow.webContents.send('state:changed', appState);
+  });
   overlayWindow.on('closed', () => {
     overlayWindow = null;
   });
@@ -66,5 +81,15 @@ app.on('window-all-closed', () => {
 
 ipcMain.on('overlay:set-ignoremouse', (_, shouldIgnore) => {
   if (!overlayWindow) return;
-  overlayWindow.setIgnoreMouseEvents(Boolean(shouldIgnore), { forward: true });
+  overlayWindow.setIgnoreMouseEvents(Boolean(shouldIgnore));
+});
+
+ipcMain.on('state:update', (_, partialState) => {
+  appState = { ...appState, ...partialState };
+  if (technicalWindow) {
+    technicalWindow.webContents.send('state:changed', appState);
+  }
+  if (overlayWindow) {
+    overlayWindow.webContents.send('state:changed', appState);
+  }
 });

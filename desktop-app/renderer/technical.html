@@ -11,6 +11,7 @@
       <div class="header-title">
         <span class="badge">Desktop</span>
         <h1>AoE4 Draft Overlay</h1>
+        <button class="secondary-button search-toggle" id="search-toggle">Поиск игр: OFF</button>
       </div>
       <div class="header-actions">
         <button class="secondary-button" id="toggle-overlay-inputs">Включить клики по оверлею</button>
@@ -20,22 +21,7 @@
 
     <main class="layout">
       <section class="panel">
-        <h2>1. Подключение к драфтам</h2>
-        <div class="stack">
-          <label>
-            Ссылка на spectate
-            <input type="text" value="https://aoe2cm.net/spectate" />
-          </label>
-          <label>
-            Время авто-обновления (сек)
-            <input type="number" value="8" />
-          </label>
-          <button class="primary-button">Запустить браузерное сканирование</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>2. Список комнат (live)</h2>
+        <h2>1. Список комнат (live)</h2>
         <div class="stack">
           <div class="filter-row">
             <input type="text" placeholder="Фильтр по игрокам..." />
@@ -45,8 +31,8 @@
               <option>Только цивы</option>
             </select>
           </div>
-          <div class="room-list">
-            <div class="room-item">
+          <div class="room-list" id="room-list">
+            <div class="room-item" data-host="TIGER" data-guest="SAS" data-type="civ">
               <input type="checkbox" />
               <div>
                 <strong>TIGER vs SAS</strong>
@@ -54,7 +40,7 @@
               </div>
               <span class="chip live">LIVE</span>
             </div>
-            <div class="room-item">
+            <div class="room-item" data-host="TIGER" data-guest="SAS" data-type="map">
               <input type="checkbox" />
               <div>
                 <strong>TIGER vs SAS</strong>
@@ -62,7 +48,7 @@
               </div>
               <span class="chip live">LIVE</span>
             </div>
-            <div class="room-item">
+            <div class="room-item" data-host="FOO" data-guest="BAR" data-type="civ">
               <input type="checkbox" />
               <div>
                 <strong>FOO vs BAR</strong>
@@ -76,7 +62,7 @@
       </section>
 
       <section class="panel">
-        <h2>3. Объединение пар</h2>
+        <h2>2. Объединение пар</h2>
         <div class="stack">
           <div class="pair-card">
             <div>
@@ -96,16 +82,24 @@
       </section>
 
       <section class="panel">
-        <h2>4. Текущая сессия</h2>
+        <h2>3. Текущая сессия</h2>
         <div class="stack">
           <div class="session-grid">
             <label>
               Host
-              <input type="text" value="TIGER" />
+              <input type="text" id="host-input" value="TIGER" />
             </label>
             <label>
               Guest
-              <input type="text" value="SAS" />
+              <input type="text" id="guest-input" value="SAS" />
+            </label>
+            <label>
+              Host Score
+              <input type="number" id="host-score-input" value="1" min="0" />
+            </label>
+            <label>
+              Guest Score
+              <input type="number" id="guest-score-input" value="0" min="0" />
             </label>
             <label>
               Формат
