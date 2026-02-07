@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AoE4 Draft Overlay - Technical</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-shell">
+    <header class="app-header">
+      <div class="header-title">
+        <span class="badge">Desktop</span>
+        <h1>AoE4 Draft Overlay</h1>
+      </div>
+      <div class="header-actions">
+        <button class="secondary-button" id="toggle-overlay-inputs">Включить клики по оверлею</button>
+        <button class="primary-button">Deploy to OBS (скоро)</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>1. Подключение к драфтам</h2>
+        <div class="stack">
+          <label>
+            Ссылка на spectate
+            <input type="text" value="https://aoe2cm.net/spectate" />
+          </label>
+          <label>
+            Время авто-обновления (сек)
+            <input type="number" value="8" />
+          </label>
+          <button class="primary-button">Запустить браузерное сканирование</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>2. Список комнат (live)</h2>
+        <div class="stack">
+          <div class="filter-row">
+            <input type="text" placeholder="Фильтр по игрокам..." />
+            <select>
+              <option>Все типы</option>
+              <option>Только карты</option>
+              <option>Только цивы</option>
+            </select>
+          </div>
+          <div class="room-list">
+            <div class="room-item">
+              <input type="checkbox" />
+              <div>
+                <strong>TIGER vs SAS</strong>
+                <p>Room #bigYR • Civ Draft • Live</p>
+              </div>
+              <span class="chip live">LIVE</span>
+            </div>
+            <div class="room-item">
+              <input type="checkbox" />
+              <div>
+                <strong>TIGER vs SAS</strong>
+                <p>Room #map34 • Map Draft • Live</p>
+              </div>
+              <span class="chip live">LIVE</span>
+            </div>
+            <div class="room-item">
+              <input type="checkbox" />
+              <div>
+                <strong>FOO vs BAR</strong>
+                <p>Room #done12 • Civ Draft • Completed</p>
+              </div>
+              <span class="chip">DONE</span>
+            </div>
+          </div>
+          <button class="primary-button">Подтвердить выбор комнат</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Объединение пар</h2>
+        <div class="stack">
+          <div class="pair-card">
+            <div>
+              <strong>TIGER vs SAS</strong>
+              <p>Civ: #bigYR • Map: #map34</p>
+            </div>
+            <button class="secondary-button">Открыть в сессию</button>
+          </div>
+          <div class="pair-card">
+            <div>
+              <strong>FOO vs BAR</strong>
+              <p>Civ: #done12 • Map: —</p>
+            </div>
+            <button class="ghost-button">Ожидание второй комнаты</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>4. Текущая сессия</h2>
+        <div class="stack">
+          <div class="session-grid">
+            <label>
+              Host
+              <input type="text" value="TIGER" />
+            </label>
+            <label>
+              Guest
+              <input type="text" value="SAS" />
+            </label>
+            <label>
+              Формат
+              <select>
+                <option>Bo3</option>
+                <option>Bo5</option>
+                <option>Bo7</option>
+              </select>
+            </label>
+            <label>
+              Пресет
+              <select>
+                <option>Default</option>
+              </select>
+            </label>
+          </div>
+          <button class="primary-button">Открыть Overlay</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="technical.js"></script>
+  </body>
+</html>
