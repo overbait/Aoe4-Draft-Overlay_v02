@@ -52,6 +52,17 @@ To get started with the Aoe4 Draft Overlay, follow these steps:
         *   Use the "Import / Export Layouts" section to share your layouts. Export will download an `aoe4-layouts.json` file. You can commit this file to your version control. Other users can then download it and use the "Import Layouts from File" button.
     *   The **Broadcast View** (accessible via a link from the Studio Interface, typically like `/?view=broadcast&canvasId=YOUR_CANVAS_ID`) is the clean output for your streaming software (e.g., OBS).
 
+## Desktop App (WIP)
+
+This repository includes an early Electron desktop scaffold under `desktop-app/` with separate **Technical** and **Overlay** windows.
+
+### Quick Launch
+
+*   **Windows**: Double-click `run-desktop.bat`
+*   **Linux/macOS**: Run `sh run-desktop.sh`
+
+The scripts install dependencies on first run and then start the desktop app.
+
 ## License & Credits
 
 * **License:** MIT – do whatever you want but no warranty.

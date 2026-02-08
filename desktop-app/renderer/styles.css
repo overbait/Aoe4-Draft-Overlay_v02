@@ -1,0 +1,286 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d0f12;
+  --panel: #171b22;
+  --panel-light: #1f2630;
+  --text: #e9eef5;
+  --muted: #9aa4b2;
+  --accent: #5b8cff;
+  --accent-strong: #3f6df6;
+  --chip: #263041;
+  --live: #35c96c;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid #202634;
+  background: #0f131a;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-toggle {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.search-toggle.active {
+  background: rgba(53, 201, 108, 0.2);
+  color: var(--live);
+}
+
+.badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.layout {
+  display: grid;
+  gap: 18px;
+  padding: 20px 28px 40px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #222a35;
+  min-height: 260px;
+}
+
+.panel h2 {
+  font-size: 18px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+input,
+select {
+  background: var(--panel-light);
+  border: 1px solid #2b3342;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--text);
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondary-button {
+  background: #253149;
+  color: var(--text);
+}
+
+.ghost-button {
+  background: transparent;
+  border: 1px dashed #3a465b;
+  color: var(--muted);
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 10px;
+}
+
+.room-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.room-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.room-status {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.room-status.error {
+  color: #ff7a7a;
+}
+
+.room-status.success {
+  color: var(--live);
+}
+
+textarea {
+  background: var(--panel-light);
+  border: 1px solid #2b3342;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--text);
+  resize: vertical;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.room-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: #141923;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.room-item p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.chip {
+  background: var(--chip);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.chip.live {
+  background: rgba(53, 201, 108, 0.2);
+  color: var(--live);
+}
+
+.pair-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #131923;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.session-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+.overlay-body {
+  background: transparent;
+}
+
+.overlay-root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px;
+}
+
+.overlay-row {
+  display: grid;
+  grid-template-columns: 1fr 200px 1fr;
+  gap: 16px;
+}
+
+.overlay-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.overlay-card {
+  background: rgba(15, 19, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: var(--text);
+  backdrop-filter: blur(6px);
+}
+
+.overlay-card.score {
+  text-align: center;
+}
+
+.overlay-card .label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.overlay-card ul {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  font-size: 14px;
+}

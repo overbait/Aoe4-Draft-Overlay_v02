@@ -1,0 +1,13 @@
+{
+  "name": "aoe4-draft-overlay-desktop",
+  "version": "0.1.0",
+  "description": "Desktop shell for AoE4 Draft Overlay (Technical + Overlay windows)",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^30.0.0"
+  }
+}

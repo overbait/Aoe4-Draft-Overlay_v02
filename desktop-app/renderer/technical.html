@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AoE4 Draft Overlay - Technical</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-shell">
+    <header class="app-header">
+      <div class="header-title">
+        <span class="badge">Desktop</span>
+        <h1>AoE4 Draft Overlay</h1>
+        <button class="secondary-button search-toggle" id="search-toggle">Поиск игр: OFF</button>
+      </div>
+      <div class="header-actions">
+        <button class="secondary-button" id="toggle-overlay-inputs">Включить клики по оверлею</button>
+        <button class="primary-button">Deploy to OBS (скоро)</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>1. Список комнат (live)</h2>
+        <div class="stack">
+          <div class="room-form">
+            <label>
+              Draft ID / URL
+              <input type="text" id="room-id-input" placeholder="bigYR или https://aoe2cm.net/draft/bigYR" />
+            </label>
+            <label>
+              Host
+              <input type="text" id="room-host-input" placeholder="TIGER" />
+            </label>
+            <label>
+              Guest
+              <input type="text" id="room-guest-input" placeholder="SAS" />
+            </label>
+            <label>
+              Тип
+              <select id="room-type-input">
+                <option value="civ">Civ Draft</option>
+                <option value="map">Map Draft</option>
+              </select>
+            </label>
+            <label>
+              Статус
+              <select id="room-status-input">
+                <option value="live">Live</option>
+                <option value="done">Completed</option>
+              </select>
+            </label>
+            <div class="room-actions">
+              <button class="secondary-button" id="room-add-button">Добавить комнату</button>
+              <span class="room-status" id="room-status">Готово к импорту</span>
+            </div>
+          </div>
+          <div class="filter-row">
+            <input type="text" placeholder="Фильтр по игрокам..." />
+            <select>
+              <option>Все типы</option>
+              <option>Только карты</option>
+              <option>Только цивы</option>
+            </select>
+          </div>
+          <div class="room-list" id="room-list"></div>
+          <button class="primary-button">Подтвердить выбор комнат</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>2. Объединение пар</h2>
+        <div class="stack" id="pair-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Текущая сессия</h2>
+        <div class="stack">
+          <div class="session-grid">
+            <label>
+              Host
+              <input type="text" id="host-input" value="TIGER" />
+            </label>
+            <label>
+              Guest
+              <input type="text" id="guest-input" value="SAS" />
+            </label>
+            <label>
+              Host Score
+              <input type="number" id="host-score-input" value="1" min="0" />
+            </label>
+            <label>
+              Guest Score
+              <input type="number" id="guest-score-input" value="0" min="0" />
+            </label>
+            <label>
+              Формат
+              <select>
+                <option>Bo3</option>
+                <option>Bo5</option>
+                <option>Bo7</option>
+              </select>
+            </label>
+            <label>
+              Пресет
+              <select>
+                <option>Default</option>
+              </select>
+            </label>
+            <label class="full-row">
+              Civ Picks (через запятую)
+              <textarea id="civ-picks-input" rows="2" placeholder="French, Ottomans"></textarea>
+            </label>
+            <label class="full-row">
+              Map Pool (через запятую)
+              <textarea id="map-pool-input" rows="2" placeholder="Dry Arabia, Golden Pit"></textarea>
+            </label>
+          </div>
+          <button class="primary-button">Открыть Overlay</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="technical.js"></script>
+  </body>
+</html>
