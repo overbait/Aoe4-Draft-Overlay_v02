@@ -1,1 +1,1 @@
-export {};
+export { transformRawDataToSingleDraft } from './transform';

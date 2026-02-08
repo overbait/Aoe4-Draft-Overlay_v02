@@ -2,8 +2,17 @@
   "name": "@aoe4/draft-transform",
   "private": true,
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "test": "node scripts/vitest-wrapper.cjs"
+  },
+  "dependencies": {
+    "@aoe4/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
   }
 }

@@ -2,17 +2,17 @@
 
 > Source of truth: `/spec/feature_matrix.md`
 >
-> **Milestone 1 status:** infrastructure only (monorepo scaffold + tooling). No FeatureIDs are implemented yet.
+> **Milestone 2 status:** shared types and draft-transform implemented (F-003, F-007). Remaining FeatureIDs are pending.
 
 | FeatureID | Implementation location (new repo) | How to verify |
 | --- | --- | --- |
 | F-001 | `/apps/backend` draft connect API + `/apps/desktop` Drafts panel | Import civ draft ID and verify picks/bans update |
 | F-002 | `/apps/backend` draft connect API + `/apps/desktop` Drafts panel | Import map draft ID and verify picks/bans update |
-| F-003 | `/packages/draft-transform` + backend parse utility | Feed URLs and confirm extracted IDs |
+| F-003 | ✅ `/packages/shared-types` + `/packages/draft-transform` (transform module) | `pnpm -w test --filter draft-transform` |
 | F-004 | `/apps/backend` AoE2CM HTTP client | Observe HTTP success and render-state update |
 | F-005 | `/apps/backend` Socket.IO listener | Observe live updates from ongoing draft |
 | F-006 | `/apps/backend` reconnect policy | Simulate disconnect and verify HTTP fallback |
-| F-007 | `/packages/draft-transform` | Unit tests for picks/bans mapping |
+| F-007 | ✅ `/packages/draft-transform` (transform + tests) | `pnpm -w test --filter draft-transform` |
 | F-008 | `/apps/desktop` Match panel | Update names and confirm overlay text |
 | F-009 | `/apps/desktop` Match panel + backend state | Increment/decrement and confirm overlay score |
 | F-010 | `/apps/desktop` Match panel + backend swap action | Swap sides and verify all dependent fields |
