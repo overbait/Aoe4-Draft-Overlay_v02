@@ -46,7 +46,8 @@ To get started with the Aoe4 Draft Overlay, follow these steps:
         5.  To preview the production build: `npm run preview`
 
     *   **Monorepo quick start (backend + desktop):**
-        *   Run `./scripts/setup-and-run.sh` to install dependencies and start the backend + desktop apps together.
+        *   **Linux/macOS:** run `./scripts/setup-and-run.sh`.
+        *   **Windows:** run `scripts\\setup-and-run.bat`.
 
 4.  **Using the Overlay**:
     *   Once the application is running, open the displayed URL in your web browser.

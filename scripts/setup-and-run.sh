@@ -4,19 +4,25 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "pnpm is required. Install it via corepack (corepack enable) or npm i -g pnpm."
-  exit 1
+if command -v pnpm >/dev/null 2>&1; then
+  echo "Installing dependencies with pnpm..."
+  pnpm install
+
+  echo "Starting backend and desktop apps with pnpm..."
+  pnpm --filter @aoe4/backend dev &
+  BACKEND_PID=$!
+  pnpm --filter @aoe4/desktop dev &
+  DESKTOP_PID=$!
+else
+  echo "pnpm not found. Falling back to npm..."
+  npm install
+
+  echo "Starting backend and desktop apps with npm..."
+  npm run dev --prefix apps/backend &
+  BACKEND_PID=$!
+  npm run dev --prefix apps/desktop &
+  DESKTOP_PID=$!
 fi
-
-echo "Installing dependencies..."
-pnpm install
-
-echo "Starting backend and desktop apps..."
-pnpm --filter @aoe4/backend dev &
-BACKEND_PID=$!
-pnpm --filter @aoe4/desktop dev &
-DESKTOP_PID=$!
 
 cleanup() {
   echo "Stopping services..."
