@@ -1,6 +1,8 @@
 # Parity Checklist (FeatureID → Implementation Plan)
 
 > Source of truth: `/spec/feature_matrix.md`
+>
+> **Milestone 1 status:** infrastructure only (monorepo scaffold + tooling). No FeatureIDs are implemented yet.
 
 | FeatureID | Implementation location (new repo) | How to verify |
 | --- | --- | --- |

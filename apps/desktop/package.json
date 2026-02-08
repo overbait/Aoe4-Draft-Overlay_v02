@@ -1,0 +1,10 @@
+{
+  "name": "@aoe4/desktop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/dev.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint . --ext .ts,.tsx"
+  }
+}
