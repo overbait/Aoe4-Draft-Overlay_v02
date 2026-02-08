@@ -31,8 +31,14 @@ export interface CombinedDraftState extends OriginalCombinedDraftState {
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
 // The imported CombinedDraftState from ../types/draft now includes isNewSessionAwaitingFirstDraft.
 
-const DRAFT_DATA_API_BASE_URL = 'https://aoe2cm.net/api';
+const backendBaseUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+const DRAFT_DATA_API_BASE_URL = `${backendBaseUrl}/api/proxy/aoe2cm`;
 const DRAFT_WEBSOCKET_URL_PLACEHOLDER = 'wss://aoe2cm.net'; // Base domain
+const debugLog = (...args: unknown[]) => {
+  if (import.meta.env.DEV) {
+    console.log(...args);
+  }
+};
 
 interface DraftStore extends CombinedDraftState {
   highlightedAction: number;
@@ -316,9 +322,9 @@ const useDraftStore = create<DraftStore>()(
         ...initialCombinedState,
 
         connectToWebSocket: (draftId: string, draftType: 'civ' | 'map') => {
-          console.log(`[connectToWebSocket] Attempting connection for draft ID: ${draftId}, type: ${draftType}`);
+          debugLog(`[connectToWebSocket] Attempting connection for draft ID: ${draftId}, type: ${draftType}`);
           if (currentSocket) {
-            console.log("Disconnecting previous socket before creating a new one. Old socket draft ID:", currentSocket.io.opts.query?.draftId);
+            debugLog("Disconnecting previous socket before creating a new one. Old socket draft ID:", currentSocket.io.opts.query?.draftId);
             currentSocket.disconnect();
             currentSocket = null;
           }
@@ -351,7 +357,7 @@ const useDraftStore = create<DraftStore>()(
             }
 
             currentSocket.on('connect', () => {
-              console.log(`Socket.IO "connect" event: Successfully connected for draft ${draftId}, type ${draftType}. Socket ID: ${currentSocket?.id}`);
+              debugLog(`Socket.IO "connect" event: Successfully connected for draft ${draftId}, type ${draftType}. Socket ID: ${currentSocket?.id}`);
               const currentStoreDraftId = get()[draftType === 'civ' ? 'civDraftId' : 'mapDraftId'];
               if (get().socketDraftType === draftType && currentStoreDraftId === draftId) {
                 const loadStatusUpdate = draftType === 'civ' ?
@@ -371,7 +377,7 @@ const useDraftStore = create<DraftStore>()(
                   });
 
                   currentSocket.on('draft_state', (data) => {
-                    console.log('[draftStore] Socket.IO "draft_state" event received:', data);
+                    debugLog('[draftStore] Socket.IO "draft_state" event received:', data);
 
                     const { isNewSessionAwaitingFirstDraft, socketDraftType } = get();
                     if (isNewSessionAwaitingFirstDraft && data) {
@@ -445,7 +451,7 @@ const useDraftStore = create<DraftStore>()(
 
                       let eventsProcessedCausingChange = false;
                       if (data.events && Array.isArray(data.events)) {
-                        console.log('[draftStore] Socket.IO "draft_state": Processing historical events count:', data.events.length);
+                        debugLog('[draftStore] Socket.IO "draft_state": Processing historical events count:', data.events.length);
                         const currentSocketDraftType = state.socketDraftType; // Consistent draft type for event processing
 
                         data.events.forEach(event => {
@@ -544,14 +550,14 @@ const useDraftStore = create<DraftStore>()(
                     });
 
                     if (actualStateChangeOccurred) {
-                      console.log('[draftStore] Socket.IO "draft_state": State updated due to names, options, or historical events. Calling _updateActivePresetIfNeeded.');
+                      debugLog('[draftStore] Socket.IO "draft_state": State updated due to names, options, or historical events. Calling _updateActivePresetIfNeeded.');
                       get()._updateActivePresetIfNeeded();
                     }
                   });
 
                   // playerEvent handler (NEW)
                   currentSocket.on('playerEvent', (eventPayload) => {
-                    console.log('[draftStore] Socket.IO "playerEvent" event received:', eventPayload);
+                    debugLog('[draftStore] Socket.IO "playerEvent" event received:', eventPayload);
                     if (!eventPayload || typeof eventPayload !== 'object' ||
                         !eventPayload.hasOwnProperty('player') || // 'player' instead of 'executingPlayer' from backend
                         !eventPayload.hasOwnProperty('actionType') ||
@@ -620,7 +626,7 @@ const useDraftStore = create<DraftStore>()(
                                 // However, getOptionNameFromStore processes it. If we add, use processed name for consistency.
                                 // This assumes that if an option is dynamically picked, its 'name' field would be the processed name.
                                 // Or, we'd need to fetch full draft state. For now, optimistic add with processed name.
-                                console.log(`[draftStore] Optimistically adding option ${chosenOptionId} with name ${optionName} to draftOptions.`);
+                                debugLog(`[draftStore] Optimistically adding option ${chosenOptionId} with name ${optionName} to draftOptions.`);
                                 tempAoe2cmRawDraftOptions.push({ id: chosenOptionId, name: optionName });
                                 // This implies optionName should be the "display" name.
                                 // And getOptionNameFromStore should be robust if draftOptions contains already-processed names for these dynamic adds.
@@ -717,13 +723,13 @@ const useDraftStore = create<DraftStore>()(
                     // The logic for setting pickBanStateChanged based on effectiveDraftType and actionType
                     // is still outside the set call, which is fine for controlling the _updateActivePresetIfNeeded call.
                     if (pickBanStateChanged) {
-                      console.log('[draftStore] Socket.IO "playerEvent": State updated, calling _updateActivePresetIfNeeded.');
+                      debugLog('[draftStore] Socket.IO "playerEvent": State updated, calling _updateActivePresetIfNeeded.');
                       get()._updateActivePresetIfNeeded();
                     }
                   });
 
                   currentSocket.on('act', (eventPayload) => {
-                    console.log('Socket.IO "act" event received:', eventPayload);
+                    debugLog('Socket.IO "act" event received:', eventPayload);
                     if (!eventPayload || typeof eventPayload !== 'object') {
                       console.warn('[draftStore] Socket.IO "act": Received event with invalid payload:', eventPayload);
                       return;
@@ -743,7 +749,7 @@ const useDraftStore = create<DraftStore>()(
                     } else if (typeof chosenOptionId === 'string' && chosenOptionId.length > 0) {
                       const rawOptionName = getOptionNameFromStore(chosenOptionId, currentDraftOptions);
                       if (chosenOptionId.startsWith('aoe4.') && !rawOptionName.startsWith('aoe4.')) {
-                        console.log(`[Prefix Removal Test in 'act'] Original chosenOptionId: ${chosenOptionId}, Cleaned optionName: ${rawOptionName}`);
+                        debugLog(`[Prefix Removal Test in 'act'] Original chosenOptionId: ${chosenOptionId}, Cleaned optionName: ${rawOptionName}`);
                       }
                       optionName = rawOptionName;
                     } else if (chosenOptionId === "") {
@@ -777,7 +783,7 @@ const useDraftStore = create<DraftStore>()(
                         if (chosenOptionId && typeof chosenOptionId === 'string' && chosenOptionId !== "HIDDEN_BAN") {
                             const optionExists = tempAoe2cmRawDraftOptions.some(opt => opt.id === chosenOptionId);
                             if (!optionExists) {
-                                console.log(`[draftStore] Optimistically adding option ${chosenOptionId} with name ${optionName} to draftOptions in 'act' handler.`);
+                                debugLog(`[draftStore] Optimistically adding option ${chosenOptionId} with name ${optionName} to draftOptions in 'act' handler.`);
                                 tempAoe2cmRawDraftOptions.push({ id: chosenOptionId, name: optionName });
                             }
                         }
@@ -867,24 +873,24 @@ const useDraftStore = create<DraftStore>()(
                     // before the set call. If the set call results in no actual change to pick/ban arrays,
                     // it will internally set pickBanStateChanged to false.
                     if(pickBanStateChanged) {
-                        console.log('[draftStore] Socket.IO "act": State updated, calling _updateActivePresetIfNeeded.');
+                        debugLog('[draftStore] Socket.IO "act": State updated, calling _updateActivePresetIfNeeded.');
                         get()._updateActivePresetIfNeeded();
                     }
                   });
 
                   currentSocket.on('countdown', (payload) => {
-                    console.log('Countdown payload:', payload);
+                    debugLog('Countdown payload:', payload);
                     if (payload && typeof payload.value === 'number') {
                       set({ countdown: payload.value });
                     }
                   });
 
                   currentSocket.onAny((eventName, ...args) => {
-                    console.log('Socket.IO [DEBUG] event received:', eventName, args);
+                    debugLog('Socket.IO [DEBUG] event received:', eventName, args);
                   });
 
                   currentSocket.on('draft_update', (data) => {
-                    console.log('Socket.IO "draft_update" event received:', data);
+                    debugLog('Socket.IO "draft_update" event received:', data);
 
                     // Added stateChanged flag to call _updateActivePresetIfNeeded only once
                     let draftUpdateStateChanged = false;
@@ -1031,15 +1037,15 @@ const useDraftStore = create<DraftStore>()(
                         return state;
                     });
                     if(draftUpdateStateChanged) {
-                        console.log('[draftStore] Socket.IO "draft_update": State updated, calling _updateActivePresetIfNeeded.');
+                        debugLog('[draftStore] Socket.IO "draft_update": State updated, calling _updateActivePresetIfNeeded.');
                         get()._updateActivePresetIfNeeded();
                     }
                   });
 
                   currentSocket.on('adminEvent', (data) => {
-                    console.log('Socket.IO "adminEvent" received:', data);
+                    debugLog('Socket.IO "adminEvent" received:', data);
                     if (data && data.action === "REVEAL_BANS" && data.events && Array.isArray(data.events)) {
-                      console.log('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
+                      debugLog('[draftStore] Socket.IO "adminEvent": Processing REVEAL_BANS action with events:', data.events);
                       set(state => {
                         const newCivBansHost = [...state.civBansHost];
                         const newCivBansGuest = [...state.civBansGuest];
@@ -1103,15 +1109,15 @@ const useDraftStore = create<DraftStore>()(
                     } else if (data && data.action === "REVEAL_BANS") {
                         console.warn('[draftStore] Socket.IO "adminEvent": REVEAL_BANS action received but "events" array is missing or invalid.', data);
                     } else if (data && typeof data === 'object' && data.action) {
-                        console.log('[draftStore] Socket.IO "adminEvent": Received admin event of type:', data.action, 'Payload:', data);
+                        debugLog('[draftStore] Socket.IO "adminEvent": Received admin event of type:', data.action, 'Payload:', data);
                     } else {
                         console.warn('[draftStore] Socket.IO "adminEvent": Received invalid data for adminEvent:', data);
                     }
                   });
 
-                  console.log(`Socket.IO emitting 'join_draft' for draftId: ${draftId}`);
+                  debugLog(`Socket.IO emitting 'join_draft' for draftId: ${draftId}`);
                   currentSocket.emit('join_draft', { draftId: draftId });
-                  console.log(`Socket.IO emitting 'player_ready' for draftId: ${draftId} as OBSERVER`);
+                  debugLog(`Socket.IO emitting 'player_ready' for draftId: ${draftId} as OBSERVER`);
                   currentSocket.emit('player_ready', { draftId: draftId, playerType: 'OBSERVER' });
                 }
               } else {
@@ -1127,10 +1133,10 @@ const useDraftStore = create<DraftStore>()(
 
               if (currentSocket) {
                 currentSocket.on('draft_finished', (data) => {
-                  console.log('Socket.IO "draft_finished" event received:', data);
+                  debugLog('Socket.IO "draft_finished" event received:', data);
                   // data might be null or an empty object, the event itself is the signal
                   set({ draftIsLikelyFinished: true });
-                  console.log('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true.');
+                  debugLog('[draftStore] Socket.IO "draft_finished": draftIsLikelyFinished set to true.');
                 });
               }
             }); // End of currentSocket.on('connect')
@@ -1165,7 +1171,7 @@ const useDraftStore = create<DraftStore>()(
               const localDraftType = draftType;
               const wasLikelyFinished = get().draftIsLikelyFinished;
 
-              console.log(`Socket.IO "disconnect" event for draft ${localDraftId} (type ${localDraftType}). Reason: ${reason}. Socket ID was: ${currentSocket?.id || 'already cleared or different instance'}. Was draft likely finished: ${wasLikelyFinished}`);
+              debugLog(`Socket.IO "disconnect" event for draft ${localDraftId} (type ${localDraftType}). Reason: ${reason}. Socket ID was: ${currentSocket?.id || 'already cleared or different instance'}. Was draft likely finished: ${wasLikelyFinished}`);
 
               const currentStoreDraftIdForThisType = get()[localDraftType === 'civ' ? 'civDraftId' : 'mapDraftId'];
               const currentSocketDraftTypeInStore = get().socketDraftType; // Store this before it's potentially nulled by set
@@ -1206,12 +1212,12 @@ const useDraftStore = create<DraftStore>()(
                     draftSpecificUpdates.isLoadingMapDraft = false;
                     if (get().mapDraftStatus === 'live') draftSpecificUpdates.mapDraftStatus = 'connected';
                   }
-                   console.log(`[draftStore] Socket.IO for ${localDraftType} draft ${localDraftId} disconnected cleanly. Reason: ${reason}.`);
+                   debugLog(`[draftStore] Socket.IO for ${localDraftType} draft ${localDraftId} disconnected cleanly. Reason: ${reason}.`);
                 }
                 set({ ...statusUpdate, ...draftSpecificUpdates });
               } else {
                  // Disconnect event is for an old/irrelevant socket instance or draft context
-                 console.log(`[draftStore] Socket.IO disconnect event for ${localDraftId} (type ${localDraftType}) ignored as it's not the active socket draft type/ID. Current store socketDraftType: ${currentSocketDraftTypeInStore}, ID for this type: ${currentStoreDraftIdForThisType}`);
+                 debugLog(`[draftStore] Socket.IO disconnect event for ${localDraftId} (type ${localDraftType}) ignored as it's not the active socket draft type/ID. Current store socketDraftType: ${currentSocketDraftTypeInStore}, ID for this type: ${currentStoreDraftIdForThisType}`);
                  // Still, ensure loading flag for this specific draft type is false if its socket was the one disconnecting
                  if (currentSocket && currentSocket.io.opts.query?.draftId === localDraftId && currentSocketDraftTypeInStore === localDraftType) {
                     const draftLoadingUpdate = localDraftType === 'civ' ?
@@ -1222,7 +1228,7 @@ const useDraftStore = create<DraftStore>()(
 
               // Clear the global currentSocket if this instance was the one that disconnected
               if (currentSocket && currentSocket.io.opts.query?.draftId === localDraftId) {
-                 console.log(`[draftStore] Clearing currentSocket variable as its instance for draft ${localDraftId} disconnected.`);
+                 debugLog(`[draftStore] Clearing currentSocket variable as its instance for draft ${localDraftId} disconnected.`);
                  currentSocket.removeAllListeners(); // Defensive cleanup
                  currentSocket = null;
               }
@@ -1243,15 +1249,15 @@ const useDraftStore = create<DraftStore>()(
 
 
               if (shouldAttemptHttpFallback && localDraftId && localDraftType) {
-                console.log(`[draftStore] [HTTP Fallback Triggered] Attempting HTTP fallback for ${localDraftType} draft ${localDraftId} due to disconnect reason: '${reason}' and wasLikelyFinished: ${wasLikelyFinished}.`);
+                debugLog(`[draftStore] [HTTP Fallback Triggered] Attempting HTTP fallback for ${localDraftType} draft ${localDraftId} due to disconnect reason: '${reason}' and wasLikelyFinished: ${wasLikelyFinished}.`);
                 setTimeout(() => {
                     const currentStatus = get()[localDraftType === 'civ' ? 'civDraftStatus' : 'mapDraftStatus'];
                     // Check if we are not already connecting/live for this specific draft type
                     if (currentStatus !== 'connecting' && currentStatus !== 'live') {
-                         console.log(`[draftStore] [HTTP Fallback] Calling connectToDraft for ${localDraftId}`);
+                         debugLog(`[draftStore] [HTTP Fallback] Calling connectToDraft for ${localDraftId}`);
                          get().connectToDraft(localDraftId, localDraftType);
                     } else {
-                         console.log(`[draftStore] [HTTP Fallback] Fallback for ${localDraftId} skipped, another connection attempt is already in progress or live (status: ${currentStatus}).`);
+                         debugLog(`[draftStore] [HTTP Fallback] Fallback for ${localDraftId} skipped, another connection attempt is already in progress or live (status: ${currentStatus}).`);
                     }
                 }, 1000); // Delay before attempting fallback
               }
@@ -1285,7 +1291,7 @@ const useDraftStore = create<DraftStore>()(
 
         disconnectWebSocket: () => {
           if (currentSocket) {
-            console.log("Calling currentSocket.disconnect() for draft ID:", currentSocket.io.opts.query?.draftId, "Socket ID:", currentSocket.id);
+            debugLog("Calling currentSocket.disconnect() for draft ID:", currentSocket.io.opts.query?.draftId, "Socket ID:", currentSocket.id);
             currentSocket.disconnect();
             currentSocket = null;
           }
@@ -1322,7 +1328,7 @@ const useDraftStore = create<DraftStore>()(
         extractDraftIdFromUrl: (url: string) => { try { if (url.startsWith('http://') || url.startsWith('https://')) { const urlObj = new URL(url); if (urlObj.hostname.includes('aoe2cm.net')) { const pathMatch = /\/draft\/([a-zA-Z0-9]+)/.exec(urlObj.pathname); if (pathMatch && pathMatch[1]) return pathMatch[1]; const observerPathMatch = /\/observer\/([a-zA-Z0-9]+)/.exec(urlObj.pathname); if (observerPathMatch && observerPathMatch[1]) return observerPathMatch[1]; } const pathSegments = urlObj.pathname.split('/'); const potentialId = pathSegments.pop() || pathSegments.pop(); if (potentialId && /^[a-zA-Z0-9_-]+$/.test(potentialId) && potentialId.length > 3) return potentialId; const draftIdParam = urlObj.searchParams.get('draftId') || urlObj.searchParams.get('id'); if (draftIdParam) return draftIdParam; } if (/^[a-zA-Z0-9_-]+$/.test(url) && url.length > 3) return url; return null; } catch (error) { if (/^[a-zA-Z0-9_-]+$/.test(url) && url.length > 3) return url; return null; } },
 
         connectToDraft: async (draftIdOrUrl: string, draftType: 'civ' | 'map') => {
-          console.log(`[connectToDraft] Entry. draftIdOrUrl: ${draftIdOrUrl}, draftType: ${draftType}`);
+          debugLog(`[connectToDraft] Entry. draftIdOrUrl: ${draftIdOrUrl}, draftType: ${draftType}`);
           const wasNewSessionAwaitingFirstDraft = get().isNewSessionAwaitingFirstDraft;
 
           if (draftType === 'civ') {
@@ -1332,7 +1338,7 @@ const useDraftStore = create<DraftStore>()(
           }
 
           const extractedId = get().extractDraftIdFromUrl(draftIdOrUrl);
-          console.log('[connectToDraft] Called for draft ID:', extractedId, 'Type:', draftType);
+          debugLog('[connectToDraft] Called for draft ID:', extractedId, 'Type:', draftType);
 
           if (get().invalidDraftIds?.includes(extractedId!)) {
             const errorMsg = `Connection blocked: Draft ID ${extractedId} is known to be invalid.`;
@@ -1356,11 +1362,11 @@ const useDraftStore = create<DraftStore>()(
           set({ [draftType === 'civ' ? 'civDraftId' : 'mapDraftId']: extractedId });
 
           const apiUrl = `${DRAFT_DATA_API_BASE_URL}/draft/${extractedId}`;
-          console.log(`[ConnectToDraft] Attempting to fetch ${draftType} draft ${extractedId} via HTTP from ${apiUrl}.`);
+          debugLog(`[ConnectToDraft] Attempting to fetch ${draftType} draft ${extractedId} via HTTP from ${apiUrl}.`);
 
           try {
             const response = await axios.get<Aoe2cmRawDraftData>(apiUrl);
-            console.log(`[ConnectToDraft] HTTP data received for ${extractedId}. Processing...`);
+            debugLog(`[ConnectToDraft] HTTP data received for ${extractedId}. Processing...`);
 
             if (!response.data || typeof response.data !== 'object') {
               throw new Error('Received invalid or empty data structure from the API.');
@@ -1425,10 +1431,10 @@ const useDraftStore = create<DraftStore>()(
             get()._updateActivePresetIfNeeded();
 
             if (rawDraftData.ongoing === true) {
-              console.log(`[ConnectToDraft] Draft ${extractedId} is ongoing. Attempting WebSocket connection.`);
+              debugLog(`[ConnectToDraft] Draft ${extractedId} is ongoing. Attempting WebSocket connection.`);
               get().connectToWebSocket(extractedId, draftType);
             } else {
-              console.log(`[ConnectToDraft] Draft ${extractedId} is not ongoing. No WebSocket connection needed.`);
+              debugLog(`[ConnectToDraft] Draft ${extractedId} is not ongoing. No WebSocket connection needed.`);
               if (get().socketDraftType === draftType && get()[draftType === 'civ' ? 'civDraftId' : 'mapDraftId'] === extractedId) {
                 get().disconnectWebSocket();
               }
@@ -1558,7 +1564,7 @@ const useDraftStore = create<DraftStore>()(
         incrementScore: (player: 'host' | 'guest') => { set(state => ({ scores: { ...state.scores, [player]: state.scores[player] + 1 }})); get()._updateActivePresetIfNeeded(); },
         decrementScore: (player: 'host' | 'guest') => { set(state => ({ scores: { ...state.scores, [player]: Math.max(0, state.scores[player] - 1) }})); get()._updateActivePresetIfNeeded(); },
         saveCurrentAsPreset: (name?: string) => { // Reverted to sync
-          console.log('[saveCurrentAsPreset] Attempting to save preset. Provided name:', name, 'Current state context:', { hostName: get().hostName, guestName: get().guestName, civDraftId: get().civDraftId, mapDraftId: get().mapDraftId });
+          debugLog('[saveCurrentAsPreset] Attempting to save preset. Provided name:', name, 'Current state context:', { hostName: get().hostName, guestName: get().guestName, civDraftId: get().civDraftId, mapDraftId: get().mapDraftId });
           const { civDraftId, mapDraftId, hostName, guestName, scores, savedPresets, boxSeriesFormat, boxSeriesGames, hostColor, guestColor } = get();
           const presetName = name || `${hostName} vs ${guestName} - ${new Date().toLocaleDateString()}`;
           const existingPresetIndex = savedPresets.findIndex(p => p.name === presetName);
@@ -1566,19 +1572,19 @@ const useDraftStore = create<DraftStore>()(
           const presetData: SavedPreset = { id: presetIdToUse, name: presetName, civDraftId, mapDraftId, hostName, guestName, scores: { ...scores }, boxSeriesFormat, boxSeriesGames: JSON.parse(JSON.stringify(boxSeriesGames)), hostColor, guestColor };
 
           if (existingPresetIndex !== -1) {
-            console.log('[saveCurrentAsPreset] Updating existing preset. Name:', presetName, 'ID:', presetIdToUse, 'Updated data:', presetData);
+            debugLog('[saveCurrentAsPreset] Updating existing preset. Name:', presetName, 'ID:', presetIdToUse, 'Updated data:', presetData);
             const updatedPresets = [...savedPresets];
             updatedPresets[existingPresetIndex] = presetData;
             set({ savedPresets: updatedPresets, activePresetId: presetData.id });
           } else {
-            console.log('[saveCurrentAsPreset] Creating new preset. Name:', presetName, 'ID:', presetIdToUse, 'Data:', presetData);
+            debugLog('[saveCurrentAsPreset] Creating new preset. Name:', presetName, 'ID:', presetIdToUse, 'Data:', presetData);
             set({ savedPresets: [...savedPresets, presetData], activePresetId: presetData.id });
             broadcastCustomEvent({ type: 'NEW_PRESET_CREATED' });
           }
           // Removed the data reloading logic that called connectToDraft
         },
         loadPreset: async (presetId: string) => {
-          console.log('[loadPreset] Starting to load preset ID:', presetId);
+          debugLog('[loadPreset] Starting to load preset ID:', presetId);
           const preset = get().savedPresets.find(p => p.id === presetId);
           if (preset) {
             // Explicitly reset lastDraftAction and pick/ban lists before loading new preset data
@@ -1613,11 +1619,11 @@ const useDraftStore = create<DraftStore>()(
               guestColor: preset.guestColor || null,
             });
 
-            console.log('[loadPreset] Applied preset data (including boxSeriesGames with winners and visibility) for preset ID:', presetId);
+            debugLog('[loadPreset] Applied preset data (including boxSeriesGames with winners and visibility) for preset ID:', presetId);
             if (preset.civDraftId) await get().connectToDraft(preset.civDraftId, 'civ');
             if (preset.mapDraftId) await get().connectToDraft(preset.mapDraftId, 'map');
             set({ activePresetId: preset.id }); // Ensure activePresetId is set after connections
-            console.log('[loadPreset] Finished processing preset ID:', presetId, 'Current aoe2cmRawDraftOptions:', get().aoe2cmRawDraftOptions);
+            debugLog('[loadPreset] Finished processing preset ID:', presetId, 'Current aoe2cmRawDraftOptions:', get().aoe2cmRawDraftOptions);
           }
         },
         deletePreset: (presetId: string) => { const currentActiveId = get().activePresetId; set(state => ({ savedPresets: state.savedPresets.filter(p => p.id !== presetId) })); if (currentActiveId === presetId) get()._resetCurrentSessionState(); },
@@ -1714,7 +1720,7 @@ const useDraftStore = create<DraftStore>()(
         // Для BackgroundImage специфичные поля, такие как player1MapPool, не нужны.
         // Только общие и те, что относятся к BackgroundImage.
       } as StudioElement; 
-      console.log('[STORE LOG] addStudioElement: Adding BackgroundImage. Initial imageUrl (key):', newElement.imageUrl);
+      debugLog('[STORE LOG] addStudioElement: Adding BackgroundImage. Initial imageUrl (key):', newElement.imageUrl);
     } else if (elementType === "BoXSeriesOverview") {
       newElement = {
         id: Date.now().toString(),
@@ -1965,7 +1971,7 @@ const useDraftStore = create<DraftStore>()(
   get()._autoSaveOrUpdateActiveStudioLayout();
 },
         updateStudioElementPosition: (elementId: string, position: { x: number, y: number }) => {
-          console.log(`[STORE LOG] updateStudioElementPosition: Element ${elementId}, New position: x=${position.x}, y=${position.y}`); // POS/SIZE LOG
+          debugLog(`[STORE LOG] updateStudioElementPosition: Element ${elementId}, New position: x=${position.x}, y=${position.y}`); // POS/SIZE LOG
           set(state => {
             const updatedCanvases = state.currentCanvases.map(canvas =>
               canvas.id === state.activeCanvasId
@@ -1977,7 +1983,7 @@ const useDraftStore = create<DraftStore>()(
           get()._autoSaveOrUpdateActiveStudioLayout();
         },
         updateStudioElementSize: (elementId: string, size: { width: number, height: number }) => {
-          console.log(`[STORE LOG] updateStudioElementSize: Element ${elementId}, New size: w=${size.width}, h=${size.height}`); // POS/SIZE LOG
+          debugLog(`[STORE LOG] updateStudioElementSize: Element ${elementId}, New size: w=${size.width}, h=${size.height}`); // POS/SIZE LOG
           set(state => {
             const updatedCanvases = state.currentCanvases.map(canvas =>
               canvas.id === state.activeCanvasId
@@ -1992,16 +1998,16 @@ const useDraftStore = create<DraftStore>()(
         updateStudioElementSettings: (elementId: string, settings: Partial<StudioElement>) => {
           // BG LOG: Log incoming settings, especially if it's for imageUrl
           if (settings.hasOwnProperty('imageUrl')) {
-            console.log(`[STORE LOG] updateStudioElementSettings: Updating element ${elementId} with imageUrl. Length: ${settings.imageUrl ? settings.imageUrl.length : 'null'}. Starts with: ${settings.imageUrl ? settings.imageUrl.substring(0, 30) : 'N/A'}`);
+            debugLog(`[STORE LOG] updateStudioElementSettings: Updating element ${elementId} with imageUrl. Length: ${settings.imageUrl ? settings.imageUrl.length : 'null'}. Starts with: ${settings.imageUrl ? settings.imageUrl.substring(0, 30) : 'N/A'}`);
           }
           // POS/SIZE LOG for settings update
           if (settings.position) {
-            console.log(`[STORE LOG] updateStudioElementSettings (for position): Element ${elementId}, New position: x=${settings.position.x}, y=${settings.position.y}`);
+            debugLog(`[STORE LOG] updateStudioElementSettings (for position): Element ${elementId}, New position: x=${settings.position.x}, y=${settings.position.y}`);
           }
           if (settings.size) {
-            console.log(`[STORE LOG] updateStudioElementSettings (for size): Element ${elementId}, New size: w=${settings.size.width}, h=${settings.size.height}`);
+            debugLog(`[STORE LOG] updateStudioElementSettings (for size): Element ${elementId}, New size: w=${settings.size.width}, h=${settings.size.height}`);
           }
-          console.log(`[STORE DEBUG] updateStudioElementSettings called. Element ID: ${elementId}, Settings: `, JSON.stringify(settings));
+          debugLog(`[STORE DEBUG] updateStudioElementSettings called. Element ID: ${elementId}, Settings: `, JSON.stringify(settings));
           set(state => {
             let updatedElementForLog: StudioElement | undefined;
             const updatedCanvases = state.currentCanvases.map(canvas => {
@@ -2011,14 +2017,14 @@ const useDraftStore = create<DraftStore>()(
                     updatedElementForLog = { ...el, ...settings };
                     // BG LOG: Log the imageUrl of the element being updated
                     if (settings.hasOwnProperty('imageUrl')) {
-                        console.log(`[STORE LOG] updateStudioElementSettings (inside set): Element ${elementId} new imageUrl. Length: ${updatedElementForLog.imageUrl ? updatedElementForLog.imageUrl.length : 'null'}. Starts with: ${updatedElementForLog.imageUrl ? updatedElementForLog.imageUrl.substring(0, 30) : 'N/A'}`);
+                        debugLog(`[STORE LOG] updateStudioElementSettings (inside set): Element ${elementId} new imageUrl. Length: ${updatedElementForLog.imageUrl ? updatedElementForLog.imageUrl.length : 'null'}. Starts with: ${updatedElementForLog.imageUrl ? updatedElementForLog.imageUrl.substring(0, 30) : 'N/A'}`);
                     }
                     return updatedElementForLog;
                   }
                   return el;
                 });
                 if (updatedElementForLog) {
-                  console.log(`[STORE DEBUG] Element ${elementId} after update (within set): `, JSON.stringify(updatedElementForLog));
+                  debugLog(`[STORE DEBUG] Element ${elementId} after update (within set): `, JSON.stringify(updatedElementForLog));
                 }
                 return {
                   ...canvas,
@@ -2032,7 +2038,7 @@ const useDraftStore = create<DraftStore>()(
           // Log after state is set (though the above log inside map is more immediate for the change)
           // const activeCanvas = get().currentCanvases.find(c => c.id === get().activeCanvasId);
           // const finalUpdatedElement = activeCanvas?.layout.find(el => el.id === elementId);
-          // console.log(`[STORE DEBUG] Element ${elementId} imageUrl after update (from get): `, finalUpdatedElement?.imageUrl);
+          // debugLog(`[STORE DEBUG] Element ${elementId} imageUrl after update (from get): `, finalUpdatedElement?.imageUrl);
           get()._autoSaveOrUpdateActiveStudioLayout();
         },
         removeStudioElement: (elementId: string) => {
@@ -2045,7 +2051,7 @@ const useDraftStore = create<DraftStore>()(
             // No need to await here, deletion can happen in the background.
             // Errors will be logged by deleteImageFromDb.
             deleteImageFromDb(imageKey);
-            console.log(`[STORE LOG] removeStudioElement: Initiated deletion from DB for BackgroundImage element ${elementId} with key ${imageKey}.`);
+            debugLog(`[STORE LOG] removeStudioElement: Initiated deletion from DB for BackgroundImage element ${elementId} with key ${imageKey}.`);
           }
 
           set(state => {
@@ -2087,16 +2093,16 @@ const useDraftStore = create<DraftStore>()(
               // This compares the activeCanvasId and a stringified version of the canvases array.
               if (currentActiveCanvasId === layoutToLoad.activeCanvasId &&
                   JSON.stringify(currentLayoutCanvases) === JSON.stringify(layoutToLoad.canvases)) {
-                // console.log(`[loadStudioLayout] Layout ${layoutId} is already active and matches current state. Skipping load.`);
+                // debugLog(`[loadStudioLayout] Layout ${layoutId} is already active and matches current state. Skipping load.`);
                 return state; // Return current state, no changes needed
               }
 
               // BG LOG: Log imageUrls when loading a layout
-              console.log(`[STORE LOG] loadStudioLayout: Loading layout ID ${layoutId}.`);
+              debugLog(`[STORE LOG] loadStudioLayout: Loading layout ID ${layoutId}.`);
               layoutToLoad.canvases.forEach(canvas => {
                 canvas.layout.forEach(el => {
                   if (el.type === 'BackgroundImage' && el.imageUrl) {
-                    console.log(`[STORE LOG] loadStudioLayout: Canvas ${canvas.id}, Element ${el.id} (BG Image) has imageUrl. Length: ${el.imageUrl.length}. Starts with: ${el.imageUrl.substring(0, 30)}`);
+                    debugLog(`[STORE LOG] loadStudioLayout: Canvas ${canvas.id}, Element ${el.id} (BG Image) has imageUrl. Length: ${el.imageUrl.length}. Starts with: ${el.imageUrl.substring(0, 30)}`);
                   }
                 });
               });
@@ -2198,8 +2204,8 @@ const useDraftStore = create<DraftStore>()(
           };
         });
         const stateForLogging = get();
-        console.log('LOGAOEINFO: [updateCanvasName] State after set for canvas rename. currentCanvases:', JSON.parse(JSON.stringify(stateForLogging.currentCanvases.map(c => ({id: c.id, name: c.name}))))); // Log only id and name for brevity
-        console.log('LOGAOEINFO: [updateCanvasName] ActiveStudioLayoutId before calling _autoSaveOrUpdateActiveStudioLayout:', stateForLogging.activeStudioLayoutId);
+        debugLog('LOGAOEINFO: [updateCanvasName] State after set for canvas rename. currentCanvases:', JSON.parse(JSON.stringify(stateForLogging.currentCanvases.map(c => ({id: c.id, name: c.name}))))); // Log only id and name for brevity
+        debugLog('LOGAOEINFO: [updateCanvasName] ActiveStudioLayoutId before calling _autoSaveOrUpdateActiveStudioLayout:', stateForLogging.activeStudioLayoutId);
         get()._autoSaveOrUpdateActiveStudioLayout();
       },
         setActiveStudioLayoutId: (layoutId: string | null) => {
@@ -2255,13 +2261,13 @@ const useDraftStore = create<DraftStore>()(
         resetActiveCanvasLayout: () => {
           const activeCanvas = get().currentCanvases.find(c => c.id === get().activeCanvasId);
           if (activeCanvas && activeCanvas.layout.length > 0) {
-            console.log(`[STORE LOG] resetActiveCanvasLayout: Resetting canvas ${activeCanvas.id}. Found ${activeCanvas.layout.length} elements to process for potential DB cleanup.`);
+            debugLog(`[STORE LOG] resetActiveCanvasLayout: Resetting canvas ${activeCanvas.id}. Found ${activeCanvas.layout.length} elements to process for potential DB cleanup.`);
             activeCanvas.layout.forEach(element => {
               if (element.type === 'BackgroundImage' && element.imageUrl && typeof element.imageUrl === 'string' && element.imageUrl.startsWith('bg-')) {
                 const imageKey = element.imageUrl;
                 // Asynchronous deletion, no need to await. Errors logged by deleteImageFromDb.
                 deleteImageFromDb(imageKey);
-                console.log(`[STORE LOG] resetActiveCanvasLayout: Initiated DB deletion for BackgroundImage element ${element.id} with key ${imageKey}.`);
+                debugLog(`[STORE LOG] resetActiveCanvasLayout: Initiated DB deletion for BackgroundImage element ${element.id} with key ${imageKey}.`);
               }
             });
           }
@@ -2287,7 +2293,7 @@ const useDraftStore = create<DraftStore>()(
             }
             // If layout was already empty or active canvas not found (though previous check should handle it)
             if (originalActiveCanvasFromState && originalActiveCanvasFromState.layout.length === 0) {
-                 console.log(`[STORE LOG] resetActiveCanvasLayout: Canvas ${state.activeCanvasId} was already empty. No state change for layout array needed.`);
+                 debugLog(`[STORE LOG] resetActiveCanvasLayout: Canvas ${state.activeCanvasId} was already empty. No state change for layout array needed.`);
                  return {...state, selectedElementId: null, layoutLastUpdated: Date.now() }; // Still update selection and timestamp
             }
             return state; // Return original state if no change made
@@ -2301,7 +2307,7 @@ const useDraftStore = create<DraftStore>()(
               if (canvas.id === canvasId) {
         const oldVal = canvas.showBroadcastBorder;
         const newVal = !(oldVal === undefined ? true : oldVal);
-        console.log(`[STORE LOG] toggleCanvasBroadcastBorder: Canvas ${canvasId}. Old showBroadcastBorder: ${oldVal}, New: ${newVal}`); // BORDER LOG
+        debugLog(`[STORE LOG] toggleCanvasBroadcastBorder: Canvas ${canvasId}. Old showBroadcastBorder: ${oldVal}, New: ${newVal}`); // BORDER LOG
         return { ...canvas, showBroadcastBorder: newVal };
               }
               return canvas;
@@ -2322,27 +2328,27 @@ const useDraftStore = create<DraftStore>()(
           const autoSavePresetName = "(auto)";
 
           // BG LOG: Log imageUrls within currentCanvases before saving
-          console.log(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Called. Active Layout ID: ${activeStudioLayoutId}.`);
+          debugLog(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Called. Active Layout ID: ${activeStudioLayoutId}.`);
           currentCanvases.forEach(canvas => {
             // BORDER LOG: Log showBroadcastBorder for each canvas being saved
-            console.log(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Canvas ${canvas.id} being saved. showBroadcastBorder: ${canvas.showBroadcastBorder}`);
+            debugLog(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Canvas ${canvas.id} being saved. showBroadcastBorder: ${canvas.showBroadcastBorder}`);
             canvas.layout.forEach(el => {
               if (el.type === 'BackgroundImage' && el.imageUrl) {
-                console.log(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Canvas ${canvas.id}, Element ${el.id} (BG Image) being saved has imageUrl. Length: ${el.imageUrl.length}. Starts with: ${el.imageUrl.substring(0, 30)}`);
+                debugLog(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Canvas ${canvas.id}, Element ${el.id} (BG Image) being saved has imageUrl. Length: ${el.imageUrl.length}. Starts with: ${el.imageUrl.substring(0, 30)}`);
               }
               // POS/SIZE LOG for each element during save
-              console.log(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Saving Element ${el.id} (Type: ${el.type}) in Canvas ${canvas.id}. Pos: x=${el.position.x}, y=${el.position.y}. Size: w=${el.size.width}, h=${el.size.height}`);
+              debugLog(`[STORE LOG] _autoSaveOrUpdateActiveStudioLayout: Saving Element ${el.id} (Type: ${el.type}) in Canvas ${canvas.id}. Pos: x=${el.position.x}, y=${el.position.y}. Size: w=${el.size.width}, h=${el.size.height}`);
             });
           });
           // const activeCanvasForLog = currentCanvases.find(c => c.id === activeCanvasId); // Replaced by more detailed log below
-          // console.log(
+          // debugLog(
           //   '[Autosave Debug] _autoSaveOrUpdateActiveStudioLayout CALLED. ActiveLayoutID:', activeStudioLayoutId,
           //   'ActiveCanvasID:', activeCanvasId,
           //   'Total Canvases:', currentCanvases.length,
           //   'Elements in Active Canvas:', activeCanvasForLog ? activeCanvasForLog.layout.length : 'N/A'
           // );
 
-          console.log(`[STORE DEBUG] _autoSaveOrUpdateActiveStudioLayout called. Active Layout ID: ${activeStudioLayoutId}`);
+          debugLog(`[STORE DEBUG] _autoSaveOrUpdateActiveStudioLayout called. Active Layout ID: ${activeStudioLayoutId}`);
           const canvasesToLog = currentCanvases.map(c => ({
             id: c.id,
             name: c.name,
@@ -2356,11 +2362,11 @@ const useDraftStore = create<DraftStore>()(
               stretch: el.stretch
             }))
           }));
-          console.log('[STORE DEBUG] Data being processed by _autoSaveOrUpdateActiveStudioLayout:', JSON.stringify(canvasesToLog, null, 2));
+          debugLog('[STORE DEBUG] Data being processed by _autoSaveOrUpdateActiveStudioLayout:', JSON.stringify(canvasesToLog, null, 2));
 
 
-          // console.log('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Called. Active Layout ID:', activeStudioLayoutId); // Covered by new log
-          // console.log('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] currentCanvases being processed:', JSON.parse(JSON.stringify(currentCanvases))); // Covered by new log
+          // debugLog('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Called. Active Layout ID:', activeStudioLayoutId); // Covered by new log
+          // debugLog('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] currentCanvases being processed:', JSON.parse(JSON.stringify(currentCanvases))); // Covered by new log
 
           if (activeStudioLayoutId) {
             let updatedLayoutObject: SavedStudioLayout | null = null;
@@ -2372,28 +2378,28 @@ const useDraftStore = create<DraftStore>()(
               return layout;
             });
             if (updatedLayoutObject) { // Ensure it's not null before logging
-              console.log('[Autosave Debug] Updating existing active layout. ID:', activeStudioLayoutId, 'Layout being saved:', JSON.parse(JSON.stringify(updatedLayoutObject)));
+              debugLog('[Autosave Debug] Updating existing active layout. ID:', activeStudioLayoutId, 'Layout being saved:', JSON.parse(JSON.stringify(updatedLayoutObject)));
             } else {
-              console.log('[Autosave Debug] activeStudioLayoutId was present, but updatedLayoutObject was not formed. This might indicate an issue.');
+              debugLog('[Autosave Debug] activeStudioLayoutId was present, but updatedLayoutObject was not formed. This might indicate an issue.');
             }
             set({ savedStudioLayouts: updatedLayouts });
             if (updatedLayoutObject) {
-              console.log('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Layout updated in savedStudioLayouts (activeStudioLayoutId case):', JSON.parse(JSON.stringify(updatedLayoutObject)));
+              debugLog('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Layout updated in savedStudioLayouts (activeStudioLayoutId case):', JSON.parse(JSON.stringify(updatedLayoutObject)));
             }
           } else {
             let autoPreset = savedStudioLayouts.find(layout => layout.name === autoSavePresetName);
             if (autoPreset) {
               const updatedAutoPreset = { ...autoPreset, canvases: JSON.parse(JSON.stringify(currentCanvases)), activeCanvasId: activeCanvasId };
               const updatedLayouts = savedStudioLayouts.map(layout => layout.id === autoPreset!.id ? updatedAutoPreset : layout);
-              console.log('[Autosave Debug] Updating (auto) layout. ID:', autoPreset.id, 'Layout being saved:', JSON.parse(JSON.stringify(updatedAutoPreset)));
+              debugLog('[Autosave Debug] Updating (auto) layout. ID:', autoPreset.id, 'Layout being saved:', JSON.parse(JSON.stringify(updatedAutoPreset)));
               set({ savedStudioLayouts: updatedLayouts, activeStudioLayoutId: autoPreset.id });
-              console.log('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Layout updated in savedStudioLayouts (autoPreset found case):', JSON.parse(JSON.stringify(updatedAutoPreset)));
+              debugLog('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] Layout updated in savedStudioLayouts (autoPreset found case):', JSON.parse(JSON.stringify(updatedAutoPreset)));
             } else {
               const newAutoLayoutId = `studiolayout-auto-${Date.now()}`;
               const newAutoLayoutPreset: SavedStudioLayout = { id: newAutoLayoutId, name: autoSavePresetName, canvases: JSON.parse(JSON.stringify(currentCanvases)), activeCanvasId: activeCanvasId };
-              console.log('[Autosave Debug] Creating new (auto) layout. ID:', newAutoLayoutId, 'Layout being saved:', JSON.parse(JSON.stringify(newAutoLayoutPreset)));
+              debugLog('[Autosave Debug] Creating new (auto) layout. ID:', newAutoLayoutId, 'Layout being saved:', JSON.parse(JSON.stringify(newAutoLayoutPreset)));
               set({ savedStudioLayouts: [...savedStudioLayouts, newAutoLayoutPreset], activeStudioLayoutId: newAutoLayoutId });
-              console.log('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] New layout added to savedStudioLayouts (autoPreset not found case):', JSON.parse(JSON.stringify(newAutoLayoutPreset)));
+              debugLog('LOGAOEINFO: [_autoSaveOrUpdateActiveStudioLayout] New layout added to savedStudioLayouts (autoPreset not found case):', JSON.parse(JSON.stringify(newAutoLayoutPreset)));
             }
           }
         },

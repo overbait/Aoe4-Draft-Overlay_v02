@@ -1,0 +1,23 @@
+{
+  "name": "@aoe4/desktop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "tsc -p tsconfig.json && vite build",
+    "lint": "eslint . --ext .ts,.tsx",
+    "preview": "vite preview --port 5173"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-rnd": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
