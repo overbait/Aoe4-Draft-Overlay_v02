@@ -20,6 +20,13 @@ const packageDirectoryMap = new Map([
   ['@aoe4/overlay', 'apps/overlay'],
 ]);
 
+const npmInstall = targetDir => {
+  const result = spawnSync(npmCommand, ['install', '--prefix', join(rootDir, '..', targetDir)], {
+    stdio: 'inherit',
+  });
+  return result.status === 0;
+};
+
 if (filterIndex !== -1 && args[filterIndex + 1]) {
   const filterValue = args[filterIndex + 1];
   if (hasPnpm()) {
@@ -42,6 +49,12 @@ if (hasPnpm()) {
   const child = spawn(pnpmCommand, ['-r', '--parallel', 'dev'], { stdio: 'inherit' });
   child.on('exit', code => process.exit(code ?? 1));
   return;
+}
+
+const backendInstallOk = npmInstall('apps/backend');
+const desktopInstallOk = npmInstall('apps/desktop');
+if (!backendInstallOk || !desktopInstallOk) {
+  process.exit(1);
 }
 
 const backend = spawn(npmCommand, ['run', 'dev', '--prefix', join(rootDir, '..', 'apps/backend')], { stdio: 'inherit' });

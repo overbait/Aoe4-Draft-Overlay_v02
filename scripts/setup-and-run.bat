@@ -12,6 +12,8 @@ if %errorlevel%==0 (
 ) else (
   echo pnpm not found. Falling back to npm...
   npm install
+  npm install --prefix apps/backend
+  npm install --prefix apps/desktop
   echo Starting backend and desktop with npm...
   start "backend" npm run dev --prefix apps/backend
   start "desktop" npm run dev --prefix apps/desktop

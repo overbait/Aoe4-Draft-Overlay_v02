@@ -16,6 +16,8 @@ if command -v pnpm >/dev/null 2>&1; then
 else
   echo "pnpm not found. Falling back to npm..."
   npm install
+  npm install --prefix apps/backend
+  npm install --prefix apps/desktop
 
   echo "Starting backend and desktop apps with npm..."
   npm run dev --prefix apps/backend &
