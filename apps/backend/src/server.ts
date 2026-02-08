@@ -16,6 +16,7 @@ import {
   listProjectRows,
   updateProjectRow,
 } from './db';
+import { startSpectateService } from './spectate';
 
 const API_BASE = 'https://aoe2cm.net/api';
 const SOCKET_BASE = 'wss://aoe2cm.net';
@@ -262,6 +263,71 @@ const connectSocket = (project: ProjectState, draftType: DraftType, draftId: str
 
 const app = express();
 app.use(express.json());
+
+const spectateService = startSpectateService();
+
+const setProxyCorsHeaders = (res: express.Response) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+};
+
+app.options('/api/proxy/aoe2cm/*', (_req, res) => {
+  setProxyCorsHeaders(res);
+  res.sendStatus(204);
+});
+
+app.all('/api/proxy/aoe2cm/*', async (req, res) => {
+  setProxyCorsHeaders(res);
+  const targetPath = req.params[0] ?? '';
+  const targetUrl = `${API_BASE}/${targetPath}`;
+  try {
+    const response = await axios.request({
+      method: req.method,
+      url: targetUrl,
+      params: req.query,
+      data: req.body,
+      responseType: 'arraybuffer',
+      validateStatus: () => true,
+    });
+    if (response.headers['content-type']) {
+      res.setHeader('Content-Type', response.headers['content-type']);
+    }
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    const message = axios.isAxiosError(error)
+      ? `Proxy error: ${error.message}`
+      : (error as Error).message;
+    res.status(502).json({ error: { code: 'PROXY_ERROR', message } });
+  }
+});
+
+app.get('/api/spectate', (_req, res) => {
+  res.json({
+    matches: spectateService.getMatches(),
+    totalMatches: spectateService.getAllMatches().length,
+    watchlist: spectateService.getWatchlist(),
+    lastUpdated: spectateService.getLastUpdated(),
+    source: spectateService.getSource(),
+    lastError: spectateService.getLastError(),
+  });
+});
+
+app.get('/api/spectate/watchlist', (_req, res) => {
+  res.json({ watchlist: spectateService.getWatchlist() });
+});
+
+app.put('/api/spectate/watchlist', (req, res) => {
+  spectateService.updateWatchlist(req.body || {});
+  res.json({
+    watchlist: spectateService.getWatchlist(),
+    matches: spectateService.getMatches(),
+    totalMatches: spectateService.getAllMatches().length,
+    lastUpdated: spectateService.getLastUpdated(),
+    source: spectateService.getSource(),
+    lastError: spectateService.getLastError(),
+  });
+});
 
 app.get('/api/projects', async (_req, res) => {
   const rows = await listProjectRows();

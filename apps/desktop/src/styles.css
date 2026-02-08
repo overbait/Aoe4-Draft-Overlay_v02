@@ -75,3 +75,58 @@ body {
   padding: 4px;
   font-size: 12px;
 }
+.spectate-match {
+  border: 1px solid #2b2b2b;
+}
+.spectate-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.spectate-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.spectate-meta {
+  font-size: 12px;
+  color: #cfcfcf;
+}
+.spectate-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.spectate-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #7db2ff;
+}
+.spectate-summary {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #cfcfcf;
+  margin-bottom: 12px;
+}
+.spectate-toggle-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.spectate-pill {
+  padding: 4px 8px;
+  background: #2a2a2a;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.status-error {
+  color: #ff8b8b;
+  font-size: 12px;
+}
+.status-hint {
+  color: #a5a5a5;
+  font-size: 12px;
+  margin-bottom: 8px;
+}

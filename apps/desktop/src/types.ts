@@ -70,3 +70,33 @@ export interface LayoutImportPayload {
   activeCanvasId: string | null;
   currentCanvases: Canvas[];
 }
+
+export type SpectateDraftType = 'civ' | 'map';
+
+export interface SpectateMatch {
+  id: string;
+  draftId: string;
+  draftType: SpectateDraftType | null;
+  hostName: string | null;
+  guestName: string | null;
+  format: 'bo1' | 'bo3' | 'bo5' | 'bo7' | null;
+  title: string | null;
+  url: string | null;
+  source: 'api' | 'scrape';
+  lastSeen: string;
+}
+
+export interface SpectateWatchlist {
+  players: string[];
+  formats: Array<'bo1' | 'bo3' | 'bo5' | 'bo7'>;
+  draftTypes: SpectateDraftType[];
+}
+
+export interface SpectateStatus {
+  matches: SpectateMatch[];
+  totalMatches: number;
+  watchlist: SpectateWatchlist;
+  lastUpdated: string | null;
+  source: 'api' | 'scrape' | null;
+  lastError: string | null;
+}

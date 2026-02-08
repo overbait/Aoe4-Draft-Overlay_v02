@@ -13,6 +13,7 @@
     "@aoe4/shared-types": "workspace:*",
     "axios": "^1.6.7",
     "express": "^4.19.2",
+    "puppeteer": "^22.15.0",
     "sql.js": "^1.11.0",
     "socket.io-client": "^4.8.1",
     "uuid": "^9.0.1"

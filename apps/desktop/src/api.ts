@@ -1,4 +1,10 @@
-import type { LayoutImportPayload, ProjectState, ProjectSummary } from './types';
+import type {
+  LayoutImportPayload,
+  ProjectState,
+  ProjectSummary,
+  SpectateStatus,
+  SpectateWatchlist,
+} from './types';
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:4000';
 
@@ -105,4 +111,18 @@ export const importLayouts = async (projectId: string, payload: LayoutImportPayl
 export const overlayUrl = (canvasId: string) => {
   const base = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:4000';
   return `${base}/overlay/${canvasId}`;
+};
+
+export const getSpectateStatus = async (): Promise<SpectateStatus> => {
+  const res = await fetch(`${baseUrl}/api/spectate`);
+  return res.json();
+};
+
+export const updateSpectateWatchlist = async (payload: Partial<SpectateWatchlist>): Promise<SpectateStatus> => {
+  const res = await fetch(`${baseUrl}/api/spectate/watchlist`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
 };

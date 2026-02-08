@@ -31,7 +31,8 @@ export interface CombinedDraftState extends OriginalCombinedDraftState {
 // The local CombinedDraftState interface that extended CombinedDraftStateType is no longer needed.
 // The imported CombinedDraftState from ../types/draft now includes isNewSessionAwaitingFirstDraft.
 
-const DRAFT_DATA_API_BASE_URL = 'https://aoe2cm.net/api';
+const backendBaseUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+const DRAFT_DATA_API_BASE_URL = `${backendBaseUrl}/api/proxy/aoe2cm`;
 const DRAFT_WEBSOCKET_URL_PLACEHOLDER = 'wss://aoe2cm.net'; // Base domain
 const debugLog = (...args: unknown[]) => {
   if (import.meta.env.DEV) {

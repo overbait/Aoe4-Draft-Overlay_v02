@@ -7,6 +7,7 @@ import {
   deleteProject,
   disconnectDraft,
   exportLayouts,
+  getSpectateStatus,
   getProject,
   importLayouts,
   listProjects,
@@ -14,10 +15,20 @@ import {
   patchProject,
   reconnectDraft,
   saveLayout,
+  updateSpectateWatchlist,
 } from './api';
-import type { Canvas, ElementItem, LayoutImportPayload, ProjectState, ProjectSummary } from './types';
+import type {
+  Canvas,
+  ElementItem,
+  LayoutImportPayload,
+  ProjectState,
+  ProjectSummary,
+  SpectateMatch,
+  SpectateStatus,
+  SpectateWatchlist,
+} from './types';
 
-const sections = ['Projects', 'Drafts', 'Match', 'Series', 'Layout', 'OBS'] as const;
+const sections = ['Projects', 'Drafts', 'Spectate', 'Match', 'Series', 'Layout', 'OBS'] as const;
 
 const elementTypes = [
   'ScoreOnly',
@@ -45,6 +56,11 @@ const App: React.FC = () => {
   const [importPayload, setImportPayload] = useState('');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [spectateStatus, setSpectateStatus] = useState<SpectateStatus | null>(null);
+  const [spectatePlayersInput, setSpectatePlayersInput] = useState('');
+  const [spectateFormatsInput, setSpectateFormatsInput] = useState('');
+  const [spectateDraftTypes, setSpectateDraftTypes] = useState<SpectateWatchlist['draftTypes']>([]);
+  const [spectateFallbackType, setSpectateFallbackType] = useState<'civ' | 'map'>('civ');
 
   const activeCanvas = useMemo(() => {
     if (!currentProject) return null;
@@ -63,6 +79,12 @@ const App: React.FC = () => {
   useEffect(() => {
     refreshProjects();
   }, []);
+
+  useEffect(() => {
+    if (activeSection === 'Spectate') {
+      loadSpectate();
+    }
+  }, [activeSection]);
 
   const loadProject = async (id: string) => {
     const data = await getProject(id);
@@ -102,6 +124,32 @@ const App: React.FC = () => {
     const updated = await patchProject(currentProject.id, update);
     setCurrentProject(updated);
     setIsDirty(false);
+  };
+
+  const loadSpectate = async () => {
+    const data = await getSpectateStatus();
+    setSpectateStatus(data);
+    setSpectatePlayersInput(data.watchlist.players.join(', '));
+    setSpectateFormatsInput(data.watchlist.formats.join(', '));
+    setSpectateDraftTypes(data.watchlist.draftTypes);
+  };
+
+  const applySpectateWatchlist = async () => {
+    const players = spectatePlayersInput
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean);
+    const formats = spectateFormatsInput
+      .split(',')
+      .map(value => value.trim().toLowerCase())
+      .filter(value => ['bo1', 'bo3', 'bo5', 'bo7'].includes(value)) as SpectateWatchlist['formats'];
+    const payload: Partial<SpectateWatchlist> = {
+      players,
+      formats,
+      draftTypes: spectateDraftTypes,
+    };
+    const updated = await updateSpectateWatchlist(payload);
+    setSpectateStatus(updated);
   };
 
   const handleAddElement = (type: string) => {
@@ -283,6 +331,117 @@ const App: React.FC = () => {
         </div>
         <div>Status: {currentProject?.drafts.map.status}</div>
       </div>
+    </div>
+  );
+
+  const renderSpectateMatch = (match: SpectateMatch) => {
+    const resolvedType = match.draftType ?? spectateFallbackType;
+    return (
+      <div key={match.id} className="card spectate-match">
+        <div className="spectate-header">
+          <div>
+            <div className="spectate-title">
+              {match.title || `${match.hostName ?? 'Unknown'} vs ${match.guestName ?? 'Unknown'}`}
+            </div>
+            <div className="spectate-meta">
+              Draft ID: {match.draftId} · {match.format ?? 'format unknown'} · {match.source}
+            </div>
+          </div>
+          <div className="spectate-actions">
+            {match.draftType ? (
+              <span className="spectate-pill">{match.draftType}</span>
+            ) : (
+              <select
+                value={spectateFallbackType}
+                onChange={e => setSpectateFallbackType(e.target.value as 'civ' | 'map')}
+              >
+                <option value="civ">Civ</option>
+                <option value="map">Map</option>
+              </select>
+            )}
+            <button
+              className="button"
+              onClick={async () => {
+                if (!currentProject) return;
+                await connectDraft(currentProject.id, resolvedType, match.draftId);
+                loadProject(currentProject.id);
+              }}
+            >
+              Import Draft
+            </button>
+          </div>
+        </div>
+        {match.url && (
+          <a className="spectate-link" href={match.url} target="_blank" rel="noreferrer">
+            {match.url}
+          </a>
+        )}
+        <div className="spectate-meta">Last seen: {match.lastSeen}</div>
+      </div>
+    );
+  };
+
+  const renderSpectate = () => (
+    <div className="section">
+      <div className="card">
+        <h3>Watchlist</h3>
+        <div className="input-row">
+          <input
+            placeholder="Players (comma-separated)"
+            value={spectatePlayersInput}
+            onChange={e => setSpectatePlayersInput(e.target.value)}
+          />
+        </div>
+        <div className="input-row">
+          <input
+            placeholder="Formats (bo1, bo3, bo5, bo7)"
+            value={spectateFormatsInput}
+            onChange={e => setSpectateFormatsInput(e.target.value)}
+          />
+        </div>
+        <div className="spectate-toggle-row">
+          <label>
+            <input
+              type="checkbox"
+              checked={spectateDraftTypes.includes('civ')}
+              onChange={e => {
+                setSpectateDraftTypes(prev =>
+                  e.target.checked ? [...new Set([...prev, 'civ'])] : prev.filter(type => type !== 'civ')
+                );
+              }}
+            />
+            Civ drafts
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={spectateDraftTypes.includes('map')}
+              onChange={e => {
+                setSpectateDraftTypes(prev =>
+                  e.target.checked ? [...new Set([...prev, 'map'])] : prev.filter(type => type !== 'map')
+                );
+              }}
+            />
+            Map drafts
+          </label>
+        </div>
+        <div className="input-row">
+          <button className="button" onClick={applySpectateWatchlist}>
+            Apply watchlist
+          </button>
+          <button className="button" onClick={loadSpectate}>
+            Refresh
+          </button>
+        </div>
+        {spectateStatus?.lastError && <div className="status-error">{spectateStatus.lastError}</div>}
+      </div>
+      <div className="spectate-summary">
+        <div>Matches: {spectateStatus?.matches.length ?? 0} / {spectateStatus?.totalMatches ?? 0}</div>
+        <div>Last update: {spectateStatus?.lastUpdated ?? 'n/a'}</div>
+        <div>Source: {spectateStatus?.source ?? 'n/a'}</div>
+      </div>
+      {!currentProject && <div className="status-hint">Open a project to import drafts.</div>}
+      {spectateStatus?.matches.map(match => renderSpectateMatch(match))}
     </div>
   );
 
@@ -791,7 +950,7 @@ const App: React.FC = () => {
   );
 
   const renderSection = () => {
-    if (!currentProject && activeSection !== 'Projects') {
+    if (!currentProject && activeSection !== 'Projects' && activeSection !== 'Spectate') {
       return <div>Select or create a project first.</div>;
     }
 
@@ -800,6 +959,8 @@ const App: React.FC = () => {
         return renderProjects();
       case 'Drafts':
         return renderDrafts();
+      case 'Spectate':
+        return renderSpectate();
       case 'Match':
         return renderMatch();
       case 'Series':
