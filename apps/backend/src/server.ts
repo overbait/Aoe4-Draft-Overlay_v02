@@ -151,7 +151,7 @@ const buildRenderState = (state: ProjectState) => ({
             bansHost: state.drafts.civ.data.civBansHost,
             picksGuest: state.drafts.civ.data.civPicksGuest,
             bansGuest: state.drafts.civ.data.civBansGuest,
-            picksGlobal: state.drafts.civ.data.mapPicksGlobal,
+            picksGlobal: [],
           }
         : {
             picksHost: [],
@@ -478,6 +478,12 @@ app.get('/api/projects/:projectId/render-state', async (req, res) => {
   res.json(buildRenderState(project));
 });
 
+app.get('/overlay/:canvasId', (req, res) => {
+  const overlayBase = process.env.OVERLAY_DEV_URL || 'http://127.0.0.1:5174';
+  const url = new URL(overlayBase);
+  url.searchParams.set('canvasId', req.params.canvasId);
+  res.redirect(url.toString());
+});
 app.get('/sse', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
