@@ -2,16 +2,16 @@
 
 > Source of truth: `/spec/feature_matrix.md`
 >
-> **Milestone 2 status:** shared types and draft-transform implemented (F-003, F-007). Remaining FeatureIDs are pending.
+> **Milestone 3 status:** backend APIs, draft ingest, and SSE stream implemented (F-001, F-002, F-004, F-005, F-006, F-041). Remaining FeatureIDs are pending.
 
 | FeatureID | Implementation location (new repo) | How to verify |
 | --- | --- | --- |
-| F-001 | `/apps/backend` draft connect API + `/apps/desktop` Drafts panel | Import civ draft ID and verify picks/bans update |
-| F-002 | `/apps/backend` draft connect API + `/apps/desktop` Drafts panel | Import map draft ID and verify picks/bans update |
+| F-001 | ✅ `/apps/backend` draft connect API | `curl -X POST /api/projects/:id/drafts/connect` (civ) |
+| F-002 | ✅ `/apps/backend` draft connect API | `curl -X POST /api/projects/:id/drafts/connect` (map) |
 | F-003 | ✅ `/packages/shared-types` + `/packages/draft-transform` (transform module) | `pnpm -w test --filter draft-transform` |
-| F-004 | `/apps/backend` AoE2CM HTTP client | Observe HTTP success and render-state update |
-| F-005 | `/apps/backend` Socket.IO listener | Observe live updates from ongoing draft |
-| F-006 | `/apps/backend` reconnect policy | Simulate disconnect and verify HTTP fallback |
+| F-004 | ✅ `/apps/backend` AoE2CM HTTP client | `curl /api/projects/:id/render-state` after connect |
+| F-005 | ✅ `/apps/backend` Socket.IO listener | Observe `/sse` render_state updates |
+| F-006 | ✅ `/apps/backend` reconnect policy | `POST /api/projects/:id/drafts/reconnect` |
 | F-007 | ✅ `/packages/draft-transform` (transform + tests) | `pnpm -w test --filter draft-transform` |
 | F-008 | `/apps/desktop` Match panel | Update names and confirm overlay text |
 | F-009 | `/apps/desktop` Match panel + backend state | Increment/decrement and confirm overlay score |
@@ -46,5 +46,5 @@
 | F-038 | `/apps/desktop` Layout panel | Change decider map title/glow and verify |
 | F-039 | `/apps/desktop` Layout panel | Drag/resize elements and verify positions |
 | F-040 | `/apps/overlay` renderer | Load overlay for canvas ID and verify render |
-| F-041 | `/apps/backend` state stream + overlay | Verify live updates without localStorage |
+| F-041 | ✅ `/apps/backend` SSE stream (`/sse`) | Observe render_state events |
 | F-042 | `/apps/backend` HTTP proxy (if needed) | Confirm AoE2CM calls without CORS issues |

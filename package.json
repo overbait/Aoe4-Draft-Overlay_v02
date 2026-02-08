@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
+    "dev": "node scripts/dev.mjs",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
@@ -43,6 +43,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "tsx": "^4.19.4"
   }
 }
